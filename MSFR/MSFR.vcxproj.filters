@@ -42,12 +42,15 @@
     <ClCompile Include="RendererDX11.cpp">
       <Filter>Source Files\Engine</Filter>
     </ClCompile>
+    <ClCompile Include="input.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Vec2.h">
+    <ClInclude Include="vec2.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
     <ClInclude Include="Input.h">
@@ -70,7 +73,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Vec2.inl">
+    <None Include="vec2.inl">
       <Filter>Header Files\Engine</Filter>
     </None>
   </ItemGroup>
