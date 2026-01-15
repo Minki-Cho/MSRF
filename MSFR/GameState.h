@@ -1,6 +1,6 @@
 #pragma once
 #include <string> //std::string
-#include "ComponentManager.h"
+#include "ComponentManager.h" //compnents
 
 class Component;
 
