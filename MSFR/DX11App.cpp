@@ -1,9 +1,6 @@
-/*
- * DirectX11 + SDL2 App wrapper
- */
-
 #include "DX11App.h"
 #include "IProgram.h"
+#include "DX11Services.h"
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
@@ -54,7 +51,7 @@ DX11App::DX11App(const char* title, int desired_width, int desired_height)
 {
     InitSDLWindow(title, desired_width, desired_height);
     InitD3D11();
-
+    DX11Services::Init(ptr_device, ptr_context, ptr_swapchain);
     ptr_program = create_program(viewport_width, viewport_height);
     if (ptr_program == nullptr)
     {
@@ -394,7 +391,7 @@ void DX11App::Update()
     // User program
     ptr_program->Update();
     ptr_program->Draw();
-    ptr_program->ImGuiDraw();
+    //ptr_program->ImGuiDraw();
 
     // Present
     // vsync=1 is nicer. If you want uncapped, change first arg to 0.
