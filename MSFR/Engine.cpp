@@ -5,10 +5,10 @@
 #include <string>
 #include <thread> // for std::this_thread::sleep_for (optional)
 
-Engine::Engine()
-{
-    // Member default initializers in Engine.h handle most initialization.
-}
+//Engine::Engine()
+//{
+//    // Member default initializers in Engine.h handle most initialization.
+//}
 
 void Engine::Init(const char* windowName)
 {
@@ -94,15 +94,14 @@ void Engine::Update()
     // gameFinish = gameStateManager.HasGameEnded();
 }
 
-void Draw()
+void Engine::Draw()
 {
-
 }
 
-bool Engine::HasGameEnded()
-{
-    return gameStateManager.HasGameEnded();
-}
+//bool Engine::HasGameEnded()
+//{
+//    return gameStateManager.HasGameEnded();
+//}
 
 void Engine::AddSpriteFont(const std::filesystem::path& fileName)
 {
