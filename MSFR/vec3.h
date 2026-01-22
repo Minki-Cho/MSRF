@@ -1,11 +1,6 @@
-/*
- * Rudy Castan
- * CS200
- * Fall 2022
- */
-
 #pragma once
-
+#define NOMINMAX
+#include <Windows.h>
 struct vec3
 {
     union

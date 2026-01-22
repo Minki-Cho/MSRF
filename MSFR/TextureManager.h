@@ -1,15 +1,22 @@
 #pragma once
-#include <filesystem> //path
-#include <map> //pathToTexture
+#include <filesystem>
+#include <map>
+#include <utility>
 
-class Texture;
+class TextureDX11;
+struct ID3D11Device;
+struct ID3D11DeviceContext;
 
 class TextureManager
 {
 public:
-    Texture* Load(const std::filesystem::path& filePath, bool enableTexel);
-    void Unload();
+    TextureDX11* Load(ID3D11Device* device, ID3D11DeviceContext* ctx,
+        const std::filesystem::path& filePath, bool enableTexel);
+    TextureDX11* Load(const std::filesystem::path& filePath, bool enableTexel);
 
+    void Unload();
+    
 private:
-    std::map<std::filesystem::path, Texture*> pathToTexture;
+    using Key = std::pair<std::filesystem::path, bool>;
+    std::map<Key, TextureDX11*> pathToTexture;
 };

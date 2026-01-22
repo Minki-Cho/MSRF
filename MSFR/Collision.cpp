@@ -200,12 +200,12 @@ void RectCollision::Draw(mat3<float>)
 
     // ==== 너 기존 model_to_ndc 계산 로직 최대 유지 ====
     mat3<float> translation = mat3<float>::build_translation(
-        GetWorldCoorRect().Left() - (1280.f - Engine::GetWindow().GetSize().x) / 2.f,
-        GetWorldCoorRect().Bottom() - (720.f - Engine::GetWindow().GetSize().y) / 2.f);
+        GetWorldCoorRect().Left() - (1280.f - Engine::GetWindow().GetClientWidth()) / 2.f,
+        GetWorldCoorRect().Bottom() - (720.f - Engine::GetWindow().GetClientHeight()) / 2.f);
 
     mat3<float> scale = mat3<float>::build_scale(GetWorldCoorRect().Size().x, GetWorldCoorRect().Size().y);
-    mat3<float> to_bottom_left = mat3<float>::build_translation(-Engine::GetWindow().GetSize().x / 2.f,
-        -Engine::GetWindow().GetSize().y / 2.f);
+    mat3<float> to_bottom_left = mat3<float>::build_translation(-Engine::GetWindow().GetClientWidth() / 2.f,
+        -Engine::GetWindow().GetClientHeight() / 2.f);
 
     const mat3<float> model_to_world = to_bottom_left * translation * scale;
     const mat3<float> extent = mat3<float>::build_scale(2.f / 1280.f, 2.f / 720.f);
@@ -263,15 +263,8 @@ bool RectCollision::DoesCollideWith(vec2 point)
 {
     rect3 a = GetWorldCoorRect();
 
-    if (point.x >= a.Left() && point.x <= a.Right())
-    {
-        if (point.y >= a.Bottom() && point.y <= a.Top())
-            return true;
-
-        if (point.y + point.height >= a.Bottom() && point.y + point.height <= a.Top())
-            return true;
-    }
-    return false;
+    return (point.x >= a.Left() && point.x <= a.Right() &&
+        point.y >= a.Bottom() && point.y <= a.Top());
 }
 
 // ======================= CircleCollision =======================
@@ -335,10 +328,10 @@ void CircleCollision::Draw(mat3<float> cameraMatrix)
     mat3<float> translation = mat3<float>::build_translation(cameraMatrix.column2.x, cameraMatrix.column2.y);
     const mat3<float> model_to_world = translation * scale;
 
-    mat3<float> extent = mat3<float>::build_scale(1.f / Engine::GetWindow().GetSize().x,
-        1.f / Engine::GetWindow().GetSize().y);
-    mat3<float> to_bottom_left = mat3<float>::build_translation(-Engine::GetWindow().GetSize().x / 2.f,
-        -Engine::GetWindow().GetSize().y / 2.f);
+    mat3<float> extent = mat3<float>::build_scale(1.f / Engine::GetWindow().GetClientWidth(),
+        1.f / Engine::GetWindow().GetClientHeight());
+    mat3<float> to_bottom_left = mat3<float>::build_translation(-Engine::GetWindow().GetClientWidth() / 2.f,
+        -Engine::GetWindow().GetClientHeight() / 2.f);
 
     const mat3<float> model_to_ndc = extent * to_bottom_left * model_to_world;
 

@@ -54,7 +54,7 @@
     <ClCompile Include="Random.cpp">
       <Filter>Source Files\Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Texture.cpp">
+    <ClCompile Include="TextureDX11.cpp">
       <Filter>Source Files\Engine</Filter>
     </ClCompile>
     <ClCompile Include="TextureManager.cpp">
@@ -71,6 +71,9 @@
     </ClCompile>
     <ClCompile Include="Collision.cpp">
       <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="stb_image_impl.cpp">
+      <Filter>Header Files\Engine\Helpers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -101,7 +104,7 @@
     <ClInclude Include="Component.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Texture.h">
+    <ClInclude Include="TextureDX11.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
     <ClInclude Include="GameObjectManager.h">
@@ -148,6 +151,12 @@
     </ClInclude>
     <ClInclude Include="Collision.h">
       <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="DX11Services.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Header Files\Engine\Helpers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

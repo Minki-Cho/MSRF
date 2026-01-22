@@ -3,8 +3,6 @@
 #include "vec3.h"
 #include <cassert>
 
-using namespace math;
-
 template <typename T>
 struct [[nodiscard]] mat3
 {

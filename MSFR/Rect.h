@@ -1,4 +1,5 @@
 #pragma once
+
 #include <algorithm> //min, max
 
 #include "vec3.h" //Vec3 variables

@@ -1,6 +1,10 @@
+#define NOMINMAX
+#include <Windows.h>
+
 #include "DX11App.h"
 #include "IProgram.h"
 #include "DX11Services.h"
+#include "Engine.h"
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
@@ -12,6 +16,8 @@
 #include <stdexcept>
 #include <string>
 #include <algorithm>
+#include <sstream>
+#include <iomanip>
 
  // Link libs (you can also put these in project settings)
 #pragma comment(lib, "d3d11.lib")
@@ -31,8 +37,10 @@ namespace
 
     std::runtime_error MakeError(const char* where, HRESULT hr)
     {
-        std::string msg = std::string(where) + " failed. HRESULT=0x" + std::to_string(static_cast<unsigned>(hr));
-        return std::runtime_error(msg);
+        std::ostringstream oss;
+        oss << where << " failed. HRESULT=0x"
+            << std::hex << std::uppercase << static_cast<unsigned>(hr);
+        return std::runtime_error(oss.str());
     }
 
     HWND GetHWNDFromSDL(SDL_Window* window)
@@ -52,6 +60,9 @@ DX11App::DX11App(const char* title, int desired_width, int desired_height)
     InitSDLWindow(title, desired_width, desired_height);
     InitD3D11();
     DX11Services::Init(ptr_device, ptr_context, ptr_swapchain);
+
+    Engine::SetDX11(ptr_device, ptr_context, ptr_swapchain);
+
     ptr_program = create_program(viewport_width, viewport_height);
     if (ptr_program == nullptr)
     {

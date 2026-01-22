@@ -21,6 +21,8 @@ public:
     HWND GetHWND() const { return hWnd; }
     int  GetClientWidth() const { return clientWidth; }
     int  GetClientHeight() const { return clientHeight; }
+    float  GetClientWidth() { return static_cast<float>(clientWidth); }
+    float  GetClientHeight() { return static_cast<float>(clientHeight); }
 
     // Resize signaling (Renderer reads these)
     bool ConsumeResize(int& outW, int& outH); // returns true if a resize was pending

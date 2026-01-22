@@ -45,7 +45,7 @@ public:
     bool getPause()  const { return pause; }
     void setPause(bool b) { pause = b; }
 
-    math::vec2 GetMousePos() const { return mousePos; }
+    vec2 GetMousePos() const { return mousePos; }
     bool GetMousePressed() const { return isMousePressed; }
     bool GetMouseDown() const { return isMouseDown; }
     bool GetMouseUp() const { return isMouseUp; }
@@ -65,7 +65,7 @@ private:
     bool isDone = false;
     bool pause = false;
 
-    math::vec2 mousePos = { 0,0 };
+    vec2 mousePos = { 0,0 };
 
     bool isMouseDown = false;
     bool isMouseUp = false;

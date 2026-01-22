@@ -1,7 +1,7 @@
 
 #include "Sprite.h" //Sprite
 #include "Engine.h" //GetLogger
-#include "Texture.h" //texturePtr
+#include "TextureDX11.h" //texturePtr
 #include "Rect.h"
 #include "Animation.h" //animations
 #include "Collision.h" //Collision
@@ -39,7 +39,11 @@ void Sprite::Load(const std::filesystem::path& spriteInfoFile, GameObject* objec
 
 	std::string text;
 	inFile >> text;
-	texturePtr = Engine::GetTextureManager().Load(text, true);
+	texturePtr = Engine::GetTextureManager().Load(
+		Engine::GetDXDevice(),
+		Engine::GetDXContext(),
+		text,
+		true);
 	frameSize = texturePtr->GetSize();
 
 	inFile >> text;

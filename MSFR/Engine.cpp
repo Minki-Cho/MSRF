@@ -1,21 +1,21 @@
-// Engine.cpp
 #include "Engine.h"
 
 #include <random>
 #include <string>
-#include <thread> // for std::this_thread::sleep_for (optional)
+#include <thread>
 
-//Engine::Engine()
-//{
-//    // Member default initializers in Engine.h handle most initialization.
-//}
+Engine::Engine() = default;
 
 void Engine::Init(const char* windowName)
 {
     logger.LogEvent("Engine Init");
 
-    // Init window (and inside it, you can init DX11/renderer later)
+    // 1) Window 생성 (SDL2 + Win32 window handle 등이 여기서 준비된다고 가정)
     window.Init(windowName, 1280, 720);
+
+    // 2) DX11 생성은 Engine에서 직접 안 함 (너는 RendererDX11 없앴으니까)
+    //    -> DX11App 또는 Window 내부에서 device/context/swapchain 만든 후
+    //       Engine::SetDX11(device, context, swapchain) 호출해서 주입해주면 됨.
 
     // Reset timing / telemetry
     lastTick = Clock::now();
@@ -24,10 +24,6 @@ void Engine::Init(const char* windowName)
 
     gameFinish = false;
     initialized = true;
-
-    // If you need a persistent RNG, store it as a member.
-    // Creating it here as a local does nothing after Init returns.
-    // std::mt19937 rng(std::random_device{}());
 }
 
 void Engine::Shutdown()
@@ -37,9 +33,19 @@ void Engine::Shutdown()
 
     logger.LogEvent("Engine Shutdown");
 
-    // Shutdown subsystems in a safe order (examples)
-    // textureManager.Shutdown();
-    // gameStateManager.Shutdown();
+    // (선택) 텍스처 먼저 해제: GPU 리소스가 texture 안에 있으니까
+    textureManager.Unload();
+
+    // DX11 context state clear (안전)
+    if (dxContext)
+        dxContext->ClearState();
+
+    // DX11 ComPtr reset
+    dxSwapChain.Reset();
+    dxContext.Reset();
+    dxDevice.Reset();
+
+    // Window shutdown (만약 구현되어 있으면)
     // window.Shutdown();
 
     initialized = false;
@@ -52,21 +58,14 @@ void Engine::Update()
 
     const double dt = ComputeDeltaSeconds();
 
-    // Throttle to TargetFPS (simple approach).
-    // NOTE: In a more advanced loop, you'd use a fixed timestep and sleep_until.
     const double targetStep = 1.0 / TargetFPS;
-
     if (dt < targetStep)
     {
-        // Optional: reduce CPU usage. This is a very rough throttle.
-        // A more accurate approach would be sleep_until(nextFrameTime).
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         return;
     }
 
-    logger.LogVerbose("Engine Update");
-
-    // FPS telemetry (prints about every FPSIntervalSec seconds)
+    // FPS telemetry
     frameCount++;
     const auto now = Clock::now();
     const double elapsed = std::chrono::duration<double>(now - fpsCalcTime).count();
@@ -78,36 +77,26 @@ void Engine::Update()
         fpsCalcTime = now;
     }
 
-    // Update order (typical):
-    // 1) Window messages
-    // 2) Input
-    // 3) Game/States
-    //
-    // If your Window::Update() pumps OS messages, call it first.
     window.Update();
     input.Update();
 
-    // If your game state manager uses dt, pass it through.
     UpdateGameObjects(dt);
-
-    // You can also set gameFinish based on states
-    // gameFinish = gameStateManager.HasGameEnded();
 }
 
 void Engine::Draw()
 {
+    // 여기서 실제 렌더링 호출.
+    // DX11App가 BeginFrame/EndFrame을 하고 있다면, 그 안에서 Program::Draw를 호출하는 구조일 수도 있음.
+    // 네 구조에 맞게:
+    // 1) DX11App.Update() 안에서 Present까지 처리
+    // 2) Engine::Draw()는 Program/GameState draw만 호출
+    //
+    // 예시(네가 나중에 연결할 자리):
+    // gameStateManager.Draw();
 }
-
-//bool Engine::HasGameEnded()
-//{
-//    return gameStateManager.HasGameEnded();
-//}
 
 void Engine::AddSpriteFont(const std::filesystem::path& fileName)
 {
-    // Hook this up to your font system later.
-    // Example:
-    // spriteFontManager.Load(fileName);
     (void)fileName;
 }
 
@@ -118,16 +107,11 @@ double Engine::ComputeDeltaSeconds()
     lastTick = now;
 
     double dt = delta.count();
-
-    // Clamp to avoid massive dt spikes (debugger breaks, window drag, etc.)
     if (dt > 0.25) dt = 0.25;
-
     return dt;
 }
 
 void Engine::UpdateGameObjects(double dt)
 {
-    // Keep this function as the “simulation” update path.
-    // Later (Week 9) this is what you move to a simulation thread.
     gameStateManager.Update(dt);
 }

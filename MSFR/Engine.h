@@ -2,6 +2,10 @@
 #include <chrono>
 #include <filesystem>
 
+#include <wrl/client.h>
+#include <d3d11.h>
+#include <dxgi.h>
+
 #include "GameStateManager.h"
 #include "Input.h"
 #include "Window.h"
@@ -29,6 +33,22 @@ public:
 
     template<typename T>
     static T* GetGSComponent() { return GetGameStateManager().GetGSComponent<T>(); }
+
+    // =========================
+    // DX11 Access (NEW)
+    // =========================
+    static ID3D11Device* GetDXDevice() { return Instance().dxDevice.Get(); }
+    static ID3D11DeviceContext* GetDXContext() { return Instance().dxContext.Get(); }
+    static IDXGISwapChain* GetDXSwapChain() { return Instance().dxSwapChain.Get(); }
+
+    // DX11을 Window/DX11App 쪽에서 만들고, Engine에 주입하는 용도
+    // (RendererDX11 대신)
+    static void SetDX11(ID3D11Device* device, ID3D11DeviceContext* context, IDXGISwapChain* swapChain)
+    {
+        Instance().dxDevice = device;
+        Instance().dxContext = context;
+        Instance().dxSwapChain = swapChain;
+    }
 
     void Init(const char* windowName);
     void Shutdown();
@@ -58,6 +78,13 @@ private:
     Input input;
     Window window;
     TextureManager textureManager;
+
+    // =========================
+    // DX11 members (NEW)
+    // =========================
+    Microsoft::WRL::ComPtr<ID3D11Device>        dxDevice;
+    Microsoft::WRL::ComPtr<ID3D11DeviceContext> dxContext;
+    Microsoft::WRL::ComPtr<IDXGISwapChain>      dxSwapChain;
 
     static constexpr double TargetFPS = 60.0;
     static constexpr int FPSIntervalSec = 5;
