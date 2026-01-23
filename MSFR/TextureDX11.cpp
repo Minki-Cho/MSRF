@@ -1,16 +1,21 @@
-#include "Texture.h"
+#include "TextureDX11.h"
 
 #include <d3dcompiler.h>
 #include <stdexcept>
 #include <vector>
 #include <cstring>
+#include <algorithm>
 
 #pragma comment(lib, "d3dcompiler.lib")
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#define NOMINMAX
+#include <Windows.h>
+#include <wincodec.h>
+#include <wrl/client.h>
+#pragma comment(lib, "windowscodecs.lib")
 
 #include "Engine.h"
+
 namespace
 {
     using Microsoft::WRL::ComPtr;
@@ -21,21 +26,107 @@ namespace
         if (FAILED(hr)) throw std::runtime_error(msg);
     }
 
+    // --- WIC helpers ---
+    struct WICImageRGBA
+    {
+        uint32_t width = 0;
+        uint32_t height = 0;
+        std::vector<uint8_t> rgba; // width * height * 4
+    };
+
+    // COM init: 여러 번 호출해도 안전하게(대부분 OK)
+    void EnsureCOM()
+    {
+        static bool once = false;
+        if (once) return;
+
+        HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+        // S_OK / S_FALSE = OK
+        // RPC_E_CHANGED_MODE = 누군가 STA로 이미 초기화 -> 이 경우도 그냥 진행하는 편이 실무에서 흔함
+        if (FAILED(hr) && hr != RPC_E_CHANGED_MODE)
+        {
+            ThrowIfFailed(hr, "CoInitializeEx failed.");
+        }
+        once = true;
+    }
+
+    WICImageRGBA LoadImageRGBA_WIC(const std::wstring& filename)
+    {
+        EnsureCOM();
+
+        ComPtr<IWICImagingFactory> factory;
+        ThrowIfFailed(CoCreateInstance(
+            CLSID_WICImagingFactory,
+            nullptr,
+            CLSCTX_INPROC_SERVER,
+            IID_PPV_ARGS(factory.GetAddressOf())),
+            "CoCreateInstance(IWICImagingFactory) failed.");
+
+        ComPtr<IWICBitmapDecoder> decoder;
+        ThrowIfFailed(factory->CreateDecoderFromFilename(
+            filename.c_str(),
+            nullptr,
+            GENERIC_READ,
+            WICDecodeMetadataCacheOnDemand,
+            decoder.GetAddressOf()),
+            "CreateDecoderFromFilename failed.");
+
+        ComPtr<IWICBitmapFrameDecode> frame;
+        ThrowIfFailed(decoder->GetFrame(0, frame.GetAddressOf()),
+            "decoder->GetFrame(0) failed.");
+
+        UINT w = 0, h = 0;
+        ThrowIfFailed(frame->GetSize(&w, &h), "frame->GetSize failed.");
+
+        ComPtr<IWICFormatConverter> converter;
+        ThrowIfFailed(factory->CreateFormatConverter(converter.GetAddressOf()),
+            "CreateFormatConverter failed.");
+
+        // RGBA 8-bit로 통일 (DXGI_FORMAT_R8G8B8A8_UNORM에 바로 대응)
+        ThrowIfFailed(converter->Initialize(
+            frame.Get(),
+            GUID_WICPixelFormat32bppRGBA,
+            WICBitmapDitherTypeNone,
+            nullptr,
+            0.0,
+            WICBitmapPaletteTypeCustom),
+            "converter->Initialize(32bppRGBA) failed.");
+
+        WICImageRGBA img;
+        img.width = static_cast<uint32_t>(w);
+        img.height = static_cast<uint32_t>(h);
+
+        const uint32_t rowPitch = img.width * 4;
+        const uint32_t imageSize = rowPitch * img.height;
+
+        img.rgba.resize(imageSize);
+
+        ThrowIfFailed(converter->CopyPixels(
+            nullptr,
+            rowPitch,
+            imageSize,
+            img.rgba.data()),
+            "converter->CopyPixels failed.");
+
+        return img;
+    }
+
+    // =====================
+    // 기존 렌더 코드 그대로
+    // =====================
     struct VertexPT
     {
-        float px, py;   // position (2D)
-        float u, v;     // texcoord
+        float px, py;
+        float u, v;
     };
 
     struct CBPerDraw
     {
-        float m[16];        // float4x4 uModelToNDC
-        float texelPos[2];  // normalized
-        float frameSize[2]; // normalized
-        float pad[0];       // (alignment ok; total 16*4 + 16 = 80 bytes)
+        float m[16];
+        float texelPos[2];
+        float frameSize[2];
     };
 
-    // mat3 -> float4x4 확장 (Collision에서 썼던 패턴과 동일 계열)
     CBPerDraw MakeCB(const mat3<float>& modelToNdc, vec2 texelPosN, vec2 frameSizeN)
     {
         CBPerDraw cb{};
@@ -93,17 +184,19 @@ TextureDX11::TextureDX11(ID3D11Device* device, ID3D11DeviceContext* ctx,
 void TextureDX11::Load(ID3D11Device* device, ID3D11DeviceContext* ctx,
     const std::filesystem::path& filePath)
 {
-    if (!device || !ctx) throw std::runtime_error("TextureDX11::Load: device/context is null.");
+    if (!device || !ctx)
+        throw std::runtime_error("TextureDX11::Load: device/context is null.");
 
-    // 1) CPU load image via stb_image
-    int w = 0, h = 0, comp = 0;
-    stbi_uc* pixels = stbi_load(filePath.string().c_str(), &w, &h, &comp, STBI_rgb_alpha);
-    if (!pixels) throw std::runtime_error("stbi_load failed.");
+    // ==========================
+    // 1) CPU load image via WIC
+    // ==========================
+    WICImageRGBA img = LoadImageRGBA_WIC(filePath.wstring());
+    width = img.width;
+    height = img.height;
 
-    width = (uint32_t)w;
-    height = (uint32_t)h;
-
+    // ==========================
     // 2) Create GPU texture
+    // ==========================
     D3D11_TEXTURE2D_DESC td{};
     td.Width = width;
     td.Height = height;
@@ -115,32 +208,24 @@ void TextureDX11::Load(ID3D11Device* device, ID3D11DeviceContext* ctx,
     td.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 
     D3D11_SUBRESOURCE_DATA init{};
-    init.pSysMem = pixels;
+    init.pSysMem = img.rgba.data();
     init.SysMemPitch = width * 4;
 
     ThrowIfFailed(device->CreateTexture2D(&td, &init, texture2D.GetAddressOf()),
         "CreateTexture2D failed.");
 
-    stbi_image_free(pixels);
-
+    // ==========================
     // 3) SRV
-    D3D11_SHADER_RESOURCE_VIEW_DESC sd{};
-    sd.Format = td.Format;
-    sd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    sd.Texture2D.MipLevels = 1;
-
-    ThrowIfFailed(device->CreateShaderResourceView(texture2D.Get(), &sd, srv.GetAddressOf()),
+    // ==========================
+    ThrowIfFailed(device->CreateShaderResourceView(texture2D.Get(), nullptr, srv.GetAddressOf()),
         "CreateShaderResourceView failed.");
 
+    // ==========================
     // 4) Shared pipeline resources (once)
-    if (!vertexBuffer || !indexBuffer)
-        CreateQuad(device);
-
-    if (!sampler || !blendState || !rasterState)
-        CreateStates(device);
-
-    if (!vs || !psTexture || !psTexel || !inputLayout)
-        CreateShaders(device);
+    // ==========================
+    if (!vertexBuffer || !indexBuffer) CreateQuad(device);
+    if (!sampler || !blendState || !rasterState) CreateStates(device);
+    if (!vs || !psTexture || !psTexel || !inputLayout) CreateShaders(device);
 
     if (!constantBuffer)
     {
@@ -152,8 +237,6 @@ void TextureDX11::Load(ID3D11Device* device, ID3D11DeviceContext* ctx,
         ThrowIfFailed(device->CreateBuffer(&cbd, nullptr, constantBuffer.GetAddressOf()),
             "CreateBuffer(ConstantBuffer) failed.");
     }
-
-    (void)ctx;
 }
 
 vec2 TextureDX11::GetSize() const
@@ -163,20 +246,12 @@ vec2 TextureDX11::GetSize() const
 
 void TextureDX11::CreateQuad(ID3D11Device* device)
 {
-    // OpenGL 버전의 CreateFullscreenQuad와 동일 의도:
-    // enableTexel=false면 NDC -1..1 기준, enableTexel=true면 0..1 기준을 쓰는 느낌이었는데,
-    // DX11에서는 그냥 "local space 0..1 사각형"으로 고정해두고
-    // model_to_ndc 행렬로 위치/크기 조절하는 게 가장 깔끔함.
-    //
-    // 그래서 항상 positions는 (0,0)-(1,1)로 만들고, texcoord도 (0,0)-(1,1).
-    // (너가 기존에 scale/translation으로 맞추는 흐름이랑 궁합이 좋음)
-
     const VertexPT verts[4] =
     {
-        { 0.f, 0.f, 0.f, 1.f }, // bottom-left (u=0,v=1)
-        { 1.f, 0.f, 1.f, 1.f }, // bottom-right
-        { 1.f, 1.f, 1.f, 0.f }, // top-right
-        { 0.f, 1.f, 0.f, 0.f }, // top-left
+        { 0.f, 0.f, 0.f, 1.f },
+        { 1.f, 0.f, 1.f, 1.f },
+        { 1.f, 1.f, 1.f, 0.f },
+        { 0.f, 1.f, 0.f, 0.f },
     };
 
     const uint16_t indices[6] = { 0, 1, 2, 0, 2, 3 };
@@ -206,7 +281,6 @@ void TextureDX11::CreateQuad(ID3D11Device* device)
 
 void TextureDX11::CreateStates(ID3D11Device* device)
 {
-    // Sampler
     D3D11_SAMPLER_DESC samp{};
     samp.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
     samp.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
@@ -217,7 +291,6 @@ void TextureDX11::CreateStates(ID3D11Device* device)
     ThrowIfFailed(device->CreateSamplerState(&samp, sampler.GetAddressOf()),
         "CreateSamplerState failed.");
 
-    // Alpha blend (GL_BLEND + SRC_ALPHA, ONE_MINUS_SRC_ALPHA)
     D3D11_BLEND_DESC bd{};
     bd.RenderTarget[0].BlendEnable = TRUE;
     bd.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
@@ -231,7 +304,6 @@ void TextureDX11::CreateStates(ID3D11Device* device)
     ThrowIfFailed(device->CreateBlendState(&bd, blendState.GetAddressOf()),
         "CreateBlendState failed.");
 
-    // Rasterizer (fill, no cull for 2D)
     D3D11_RASTERIZER_DESC rd{};
     rd.FillMode = D3D11_FILL_SOLID;
     rd.CullMode = D3D11_CULL_NONE;
@@ -244,8 +316,6 @@ void TextureDX11::CreateStates(ID3D11Device* device)
 
 void TextureDX11::CreateShaders(ID3D11Device* device)
 {
-    // two pixel shaders: normal texture / texel-sliced
-    // one vertex shader shared
     const auto vsBlob = CompileFromFile(L"assets/shaders/texture_dx11.hlsl", "VSMain", "vs_5_0");
     const auto psTexBlob = CompileFromFile(L"assets/shaders/texture_dx11.hlsl", "PSTexture", "ps_5_0");
     const auto psTexelBlob = CompileFromFile(L"assets/shaders/texel_dx11.hlsl", "PSTexel", "ps_5_0");
@@ -259,7 +329,6 @@ void TextureDX11::CreateShaders(ID3D11Device* device)
     ThrowIfFailed(device->CreatePixelShader(psTexelBlob->GetBufferPointer(), psTexelBlob->GetBufferSize(), nullptr, psTexel.GetAddressOf()),
         "CreatePixelShader(texel) failed.");
 
-    // Input layout: POSITION(float2), TEXCOORD(float2)
     D3D11_INPUT_ELEMENT_DESC layout[] =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -269,13 +338,9 @@ void TextureDX11::CreateShaders(ID3D11Device* device)
         "CreateInputLayout failed.");
 }
 
-// Draw full texture (like OpenGL Texture::Draw(displayMatrix))
 void TextureDX11::Draw(ID3D11DeviceContext* ctx, const mat3<float>& displayMatrix)
 {
     if (!ctx) return;
-
-    // ==== 네 OpenGL 방식 최대한 유지 (1280/720 extent) ====
-    // displayMatrix.column2 is translation, column0/1 scale (assumed)
 
     const float transX = displayMatrix.column2.x * 2.f + (float)width;
     const float transY = displayMatrix.column2.y * 2.f + (float)height;
@@ -293,15 +358,12 @@ void TextureDX11::Draw(ID3D11DeviceContext* ctx, const mat3<float>& displayMatri
         -Engine::GetWindow().GetClientHeight());
 
     const mat3<float> model_to_world = translation * to_bottom_left * scale;
-
     mat3<float> extent = mat3<float>::build_scale(1.f / 1280.f, 1.f / 720.f);
     const mat3<float> model_to_ndc = extent * model_to_world;
 
-    // CB (texel/frame not used for normal PS)
     const CBPerDraw cb = MakeCB(model_to_ndc, { 0,0 }, { 1,1 });
     UpdateDynamicCB(ctx, constantBuffer.Get(), &cb, sizeof(cb));
 
-    // pipeline binds
     ctx->IASetInputLayout(inputLayout.Get());
     ctx->VSSetShader(vs.Get(), nullptr, 0);
     ctx->PSSetShader(psTexture.Get(), nullptr, 0);
@@ -329,13 +391,11 @@ void TextureDX11::Draw(ID3D11DeviceContext* ctx, const mat3<float>& displayMatri
     ctx->DrawIndexed(6, 0, 0);
 }
 
-// Draw sub-rect in texture (like OpenGL texel shader)
 void TextureDX11::Draw(ID3D11DeviceContext* ctx, const mat3<float>& displayMatrix,
     vec2 texelPos, vec2 frameSize)
 {
     if (!ctx) return;
 
-    // model transform (네 OpenGL 로직 유지)
     mat3<float> translation = mat3<float>::build_translation(
         displayMatrix.column2.x - (1280.f - Engine::GetWindow().GetClientWidth()) / 2.f,
         displayMatrix.column2.y - (720.f - Engine::GetWindow().GetClientHeight()) / 2.f);
@@ -349,25 +409,22 @@ void TextureDX11::Draw(ID3D11DeviceContext* ctx, const mat3<float>& displayMatri
         -Engine::GetWindow().GetClientHeight() / 2.f);
 
     const mat3<float> model_to_world = translation * to_bottom_left * scale;
-
     mat3<float> extent = mat3<float>::build_scale(2.f / 1280.f, 2.f / 720.f);
     const mat3<float> model_to_ndc = extent * model_to_world;
 
-    // normalized texel params
     vec2 texelPosN = { texelPos.x / (float)width, texelPos.y / (float)height };
     vec2 frameSizeN = { frameSize.x / (float)width, frameSize.y / (float)height };
 
     const CBPerDraw cb = MakeCB(model_to_ndc, texelPosN, frameSizeN);
     UpdateDynamicCB(ctx, constantBuffer.Get(), &cb, sizeof(cb));
 
-    // pipeline binds
     ctx->IASetInputLayout(inputLayout.Get());
     ctx->VSSetShader(vs.Get(), nullptr, 0);
     ctx->PSSetShader(psTexel.Get(), nullptr, 0);
 
     ID3D11Buffer* cbs[] = { constantBuffer.Get() };
     ctx->VSSetConstantBuffers(0, 1, cbs);
-    ctx->PSSetConstantBuffers(0, 1, cbs); // texel PS도 cb 필요
+    ctx->PSSetConstantBuffers(0, 1, cbs);
 
     ID3D11ShaderResourceView* srvs[] = { srv.Get() };
     ctx->PSSetShaderResources(0, 1, srvs);

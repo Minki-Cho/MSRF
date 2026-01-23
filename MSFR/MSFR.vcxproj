@@ -85,7 +85,9 @@
       <AdditionalDependencies>SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(ProjectDir)external\SDL2\lib\x64\SDL2.dll" "$(OutDir)"</Command>
+      <Command>if not exist "$(TargetDir)" mkdir "$(TargetDir)"
+copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
+</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -105,7 +107,9 @@
       <AdditionalDependencies>SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(ProjectDir)external\SDL2\lib\x64\SDL2.dll" "$(OutDir)"</Command>
+      <Command>if not exist "$(TargetDir)" mkdir "$(TargetDir)"
+copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
+</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -118,13 +122,15 @@
       <AdditionalIncludeDirectories>$(ProjectDir)external\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)external\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(ProjectDir)external\SDL2\lib\x64\SDL2.dll" "$(OutDir)"</Command>
+      <Command>if not exist "$(TargetDir)" mkdir "$(TargetDir)"
+copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
+</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -140,13 +146,15 @@
       <AdditionalIncludeDirectories>$(ProjectDir)external\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)external\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(ProjectDir)external\SDL2\lib\x64\SDL2.dll" "$(OutDir)"</Command>
+      <Command>if not exist "$(TargetDir)" mkdir "$(TargetDir)"
+copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
+</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -154,14 +162,15 @@
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="DX11App.cpp" />
     <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="GameObjectmanager.cpp" />
     <ClCompile Include="GameStateManager.cpp" />
     <ClCompile Include="input.cpp" />
+    <ClCompile Include="IProgram.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Random.cpp" />
     <ClCompile Include="Sprite.cpp" />
-    <ClCompile Include="stb_image_impl.cpp" />
     <ClCompile Include="TextureDX11.cpp" />
     <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="Window.cpp" />
@@ -187,7 +196,6 @@
     <ClInclude Include="Random.h" />
     <ClInclude Include="Rect.h" />
     <ClInclude Include="Sprite.h" />
-    <ClInclude Include="stb_image.h" />
     <ClInclude Include="TextureDX11.h" />
     <ClInclude Include="TextureManager.h" />
     <ClInclude Include="vec2.h" />

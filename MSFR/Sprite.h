@@ -10,7 +10,7 @@
 
 class TextureDX11;
 class Animation;
-
+class GameObject;
 
 class Sprite : public Component
 {

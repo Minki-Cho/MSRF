@@ -128,7 +128,13 @@ void Sprite::Load(const std::filesystem::path& spriteInfoFile, GameObject* objec
 
 void Sprite::Draw(mat3<float> displayMatrix)
 {
-	texturePtr->Draw(displayMatrix * mat3<float>::build_translation(-GetHotSpot(0).x, -GetHotSpot(0).y), GetFrameTexel(animations[currAnim]->GetDisplayFrame()), GetFrameSize());
+	if (!texturePtr) return;
+
+	texturePtr->Draw(
+		Engine::GetDXContext(),
+		displayMatrix * mat3<float>::build_translation(-GetHotSpot(0).x, -GetHotSpot(0).y),
+		GetFrameTexel(animations[currAnim]->GetDisplayFrame()),
+		GetFrameSize());
 }
 
 vec2 Sprite::GetHotSpot(int index)

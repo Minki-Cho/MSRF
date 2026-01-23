@@ -10,14 +10,8 @@ void Engine::Init(const char* windowName)
 {
     logger.LogEvent("Engine Init");
 
-    // 1) Window 생성 (SDL2 + Win32 window handle 등이 여기서 준비된다고 가정)
     window.Init(windowName, 1280, 720);
 
-    // 2) DX11 생성은 Engine에서 직접 안 함 (너는 RendererDX11 없앴으니까)
-    //    -> DX11App 또는 Window 내부에서 device/context/swapchain 만든 후
-    //       Engine::SetDX11(device, context, swapchain) 호출해서 주입해주면 됨.
-
-    // Reset timing / telemetry
     lastTick = Clock::now();
     fpsCalcTime = lastTick;
     frameCount = 0;

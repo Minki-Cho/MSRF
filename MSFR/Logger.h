@@ -13,7 +13,7 @@ public:
 		Event,
 		Error,
 	};
-
+	Logger();
 	Logger(Severity severity, bool useConsole, std::chrono::system_clock::time_point start_time);
 	~Logger();
 

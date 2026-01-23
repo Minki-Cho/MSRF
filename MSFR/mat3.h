@@ -2,6 +2,7 @@
 #include "vec2.h"
 #include "vec3.h"
 #include <cassert>
+#include <cmath>
 
 template <typename T>
 struct [[nodiscard]] mat3
@@ -29,7 +30,7 @@ public:
     static constexpr mat3 build_scale(T scale) noexcept;
     static constexpr mat3 build_scale(T scale_x, T scale_y) noexcept;
     static constexpr mat3 build_scale(const vec2& scale) noexcept;
-    static mat3           build_rotation(T angle_in_radians) noexcept;
+    static constexpr mat3 build_rotation(T angle_in_radians) noexcept;
     static constexpr mat3 build_translation(T translate_x, T translate_y) noexcept;
     static constexpr mat3 build_translation(const vec2& translation) noexcept;
 };
@@ -117,6 +118,19 @@ template <typename T>
 constexpr mat3<T> mat3<T>::build_scale(const vec2& scale) noexcept
 {
     return build_scale(scale.width, scale.height);
+}
+
+template<typename T>
+constexpr mat3<T> mat3<T>::build_rotation(T angle_in_radians) noexcept
+{
+    mat3 r{};
+    const float c = std::cos(angle_in_radians);
+    const float s = std::sin(angle_in_radians);
+
+    r.elements[0][0] = c;  r.elements[0][1] = -s; r.elements[0][2] = 0.f;
+    r.elements[1][0] = s;  r.elements[1][1] = c; r.elements[1][2] = 0.f;
+    r.elements[2][0] = 0.f; r.elements[2][1] = 0.f; r.elements[2][2] = 1.f;
+    return r;
 }
 
 template <typename T>

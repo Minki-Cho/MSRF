@@ -1,6 +1,11 @@
 #include <iostream> // cout.rdbuf
 #include "Logger.h"
 
+Logger::Logger()
+	: Logger(Severity::Event, true, std::chrono::system_clock::now())
+{
+}
+
 Logger::Logger(Logger::Severity severity, bool useConsole, std::chrono::system_clock::time_point start_time)
 	: minLevel(severity), outStream("Trace.log"), startTime(start_time)
 {

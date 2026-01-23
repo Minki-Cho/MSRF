@@ -7,8 +7,6 @@
 #include "vec2.h"
 #include "mat3.h"
 
-using namespace math;
-
 class TextureDX11
 {
 public:
