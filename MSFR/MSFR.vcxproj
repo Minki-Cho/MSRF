@@ -189,6 +189,7 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
     <ClInclude Include="GameObjectManager.h" />
     <ClInclude Include="GameState.h" />
     <ClInclude Include="GameStateManager.h" />
+    <ClInclude Include="Game\GameProgrram.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="IProgram.h" />
     <ClInclude Include="Logger.h" />

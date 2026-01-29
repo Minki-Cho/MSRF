@@ -3,14 +3,12 @@
 
 #include "DX11App.h"
 #include <exception>
-#include "Engine.h"
 
 int main(int, char**)
 {
     try
     {
-        Engine& engine = Engine::Instance();
-        DX11App app("DX11 + SDL2 Engine", 1280, 720);
+        DX11App app("My game Engine", 1280, 720);
 
         while (!app.IsDone())
         {

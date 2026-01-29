@@ -1,16 +1,13 @@
 #include "Engine.h"
 
-#include <random>
-#include <string>
 #include <thread>
+#include <string>
 
 Engine::Engine() = default;
 
-void Engine::Init(const char* windowName)
+void Engine::InitCore()
 {
-    logger.LogEvent("Engine Init");
-
-    window.Init(windowName, 1280, 720);
+    logger.LogEvent("Engine InitCore");
 
     lastTick = Clock::now();
     fpsCalcTime = lastTick;
@@ -20,6 +17,15 @@ void Engine::Init(const char* windowName)
     initialized = true;
 }
 
+// for other graphic
+void Engine::InitWindow(const char* windowName, int w, int h)
+{
+    logger.LogEvent("Engine InitWindow");
+
+    window.Init(windowName, w, h);
+    usesInternalWindow = true;
+}
+
 void Engine::Shutdown()
 {
     if (!initialized)
@@ -27,22 +33,19 @@ void Engine::Shutdown()
 
     logger.LogEvent("Engine Shutdown");
 
-    // (선택) 텍스처 먼저 해제: GPU 리소스가 texture 안에 있으니까
     textureManager.Unload();
 
-    // DX11 context state clear (안전)
     if (dxContext)
         dxContext->ClearState();
 
-    // DX11 ComPtr reset
     dxSwapChain.Reset();
     dxContext.Reset();
     dxDevice.Reset();
 
-    // Window shutdown (만약 구현되어 있으면)
-    // window.Shutdown();
+    window.Shutdown();
 
     initialized = false;
+    usesInternalWindow = false;
 }
 
 void Engine::Update()
@@ -70,23 +73,18 @@ void Engine::Update()
         frameCount = 0;
         fpsCalcTime = now;
     }
+    if (usesInternalWindow)
+    {
+        window.Update();
+    }
 
-    window.Update();
     input.Update();
-
     UpdateGameObjects(dt);
 }
 
 void Engine::Draw()
 {
-    // 여기서 실제 렌더링 호출.
-    // DX11App가 BeginFrame/EndFrame을 하고 있다면, 그 안에서 Program::Draw를 호출하는 구조일 수도 있음.
-    // 네 구조에 맞게:
-    // 1) DX11App.Update() 안에서 Present까지 처리
-    // 2) Engine::Draw()는 Program/GameState draw만 호출
-    //
-    // 예시(네가 나중에 연결할 자리):
-    // gameStateManager.Draw();
+    // gameStateManager.Draw();  // 나중에 연결
 }
 
 void Engine::AddSpriteFont(const std::filesystem::path& fileName)

@@ -35,14 +35,12 @@ public:
     static T* GetGSComponent() { return GetGameStateManager().GetGSComponent<T>(); }
 
     // =========================
-    // DX11 Access (NEW)
+    // DX11 Access
     // =========================
     static ID3D11Device* GetDXDevice() { return Instance().dxDevice.Get(); }
     static ID3D11DeviceContext* GetDXContext() { return Instance().dxContext.Get(); }
     static IDXGISwapChain* GetDXSwapChain() { return Instance().dxSwapChain.Get(); }
 
-    // DX11을 Window/DX11App 쪽에서 만들고, Engine에 주입하는 용도
-    // (RendererDX11 대신)
     static void SetDX11(ID3D11Device* device, ID3D11DeviceContext* context, IDXGISwapChain* swapChain)
     {
         Instance().dxDevice = device;
@@ -50,7 +48,10 @@ public:
         Instance().dxSwapChain = swapChain;
     }
 
-    void Init(const char* windowName);
+
+    void InitCore();
+    void InitWindow(const char* windowName, int w, int h); // lagacy
+
     void Shutdown();
 
     void Update();
@@ -73,6 +74,8 @@ private:
     bool gameFinish = false;
     bool initialized = false;
 
+    bool usesInternalWindow = false;
+
     Logger logger;
     GameStateManager gameStateManager;
     Input input;
@@ -80,7 +83,7 @@ private:
     TextureManager textureManager;
 
     // =========================
-    // DX11 members (NEW)
+    // DX11 members
     // =========================
     Microsoft::WRL::ComPtr<ID3D11Device>        dxDevice;
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> dxContext;
