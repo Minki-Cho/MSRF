@@ -50,7 +50,7 @@ public:
 
 
     void InitCore();
-    void InitWindow(const char* windowName, int w, int h); // lagacy
+    void InitWindow(const char* windowName, int w, int h); // lgacy
 
     void Shutdown();
 

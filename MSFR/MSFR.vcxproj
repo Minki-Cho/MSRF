@@ -165,6 +165,7 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="GameObjectmanager.cpp" />
     <ClCompile Include="GameStateManager.cpp" />
+    <ClCompile Include="Game\Splash.cpp" />
     <ClCompile Include="input.cpp" />
     <ClCompile Include="IProgram.cpp" />
     <ClCompile Include="Logger.cpp" />
@@ -189,7 +190,9 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
     <ClInclude Include="GameObjectManager.h" />
     <ClInclude Include="GameState.h" />
     <ClInclude Include="GameStateManager.h" />
-    <ClInclude Include="Game\GameProgrram.h" />
+    <ClInclude Include="Game\GameProgram.h" />
+    <ClInclude Include="Game\ScreenMods.h" />
+    <ClInclude Include="Game\Splash.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="IProgram.h" />
     <ClInclude Include="Logger.h" />
