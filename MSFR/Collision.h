@@ -35,7 +35,7 @@ public:
     bool DoesCollideWith(vec2 point) override;
 
 private:
-    void CreateGpuResources(); // ✅ renderer 인자 제거
+    void CreateGpuResources();
 
 private:
     GameObject* objectPtr = nullptr;

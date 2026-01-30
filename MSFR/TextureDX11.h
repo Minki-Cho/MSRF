@@ -31,7 +31,7 @@ private:
     void CreateStates(ID3D11Device* device);
     void CreateShaders(ID3D11Device* device);
 
-    // ---- GPU resources ----
+    //GPU resources
     Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer;
     Microsoft::WRL::ComPtr<ID3D11Buffer> indexBuffer;
     Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
@@ -49,7 +49,7 @@ private:
     Microsoft::WRL::ComPtr<ID3D11BlendState> blendState;
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterState;
 
-    // ---- CPU cached info ----
+    // CPU cached info
     uint32_t width = 0;
     uint32_t height = 0;
     bool enableTexel = false;

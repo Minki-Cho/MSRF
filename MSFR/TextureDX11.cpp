@@ -146,9 +146,9 @@ namespace
 
     ComPtr<ID3DBlob> CompileFromFile(const wchar_t* path, const char* entry, const char* target)
     {
-        std::wcout << L"CWD: " << std::filesystem::current_path().c_str() << L"\n";
-        std::wcout << L"Shader path: " << path << L"\n";
-        std::wcout << L"Exists? " << (std::filesystem::exists(path) ? L"YES" : L"NO") << L"\n";
+        //std::wcout << L"CWD: " << std::filesystem::current_path().c_str() << L"\n";
+        //std::wcout << L"Shader path: " << path << L"\n";
+        //std::wcout << L"Exists? " << (std::filesystem::exists(path) ? L"YES" : L"NO") << L"\n";
         UINT flags = 0;
 #if defined(_DEBUG)
         flags |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;

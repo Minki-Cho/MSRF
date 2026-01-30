@@ -69,35 +69,26 @@ void GameObject::Update(double dt)
 
 void GameObject::Draw(mat3<float> cameraMatrix)
 {
-    // 모델->월드 행렬
     const mat3<float>& modelToWorld = GetMatrix();
 
-    // 카메라까지 포함한 최종 행렬
     const mat3<float> displayMatrix = cameraMatrix * modelToWorld;
 
-    // Sprite 컴포넌트가 있으면 그리기
     if (auto* spr = GetGOComponent<Sprite>())
     {
         spr->Draw(displayMatrix);
     }
 
-    // Collision 디버그 드로우 (원하면 켜고 끄는 플래그로 감싸도 됨)
     if (auto* col = GetGOComponent<Collision>())
     {
         col->Draw(displayMatrix);
     }
 }
 
-// ---------------------------------------------
 // Transform getters
-// ---------------------------------------------
 const mat3<float>& GameObject::GetMatrix()
 {
     if (updateMatrix)
     {
-        // 보통 2D는 Scale -> Rotate -> Translate 순 (로컬 -> 월드)
-        // 네 mat3 곱셈 방향(좌/우 결합)이 엔진마다 다를 수 있는데,
-        // 기존 코드(translation * scale 등) 흐름에 맞춰 아래처럼 구성.
         const mat3<float> S = mat3<float>::build_scale(scale.x, scale.y);
         const mat3<float> R = mat3<float>::build_rotation(static_cast<float>(rotation));
         const mat3<float> T = mat3<float>::build_translation(position.x, position.y);
@@ -134,9 +125,6 @@ void GameObject::SetPosition(vec2 newPosition)
     updateMatrix = true;
 }
 
-// ---------------------------------------------
-// Destroy flag
-// ---------------------------------------------
 bool GameObject::GetDestroyed()
 {
     return shouldDestroyed;
@@ -147,9 +135,7 @@ void GameObject::SetDestroyed(bool b)
     shouldDestroyed = b;
 }
 
-// ---------------------------------------------
 // State machine
-// ---------------------------------------------
 //void GameObject::ChangeState(State* newState)
 //{
 //    if (newState == nullptr)
@@ -159,9 +145,7 @@ void GameObject::SetDestroyed(bool b)
 //    currState->Enter(this);
 //}
 
-// ---------------------------------------------
 // Transform mutators
-// ---------------------------------------------
 void GameObject::UpdatePosition(vec2 adjustPosition)
 {
     position.x += adjustPosition.x;
@@ -198,12 +182,9 @@ void GameObject::UpdateRotation(double newRotationAmount)
     updateMatrix = true;
 }
 
-// ---------------------------------------------
 // Collision
-// ---------------------------------------------
 bool GameObject::CanCollideWith(GameObjectType /*objectBType*/)
 {
-    // 기본은 충돌 가능. (자식에서 오버라이드)
     return true;
 }
 
@@ -217,8 +198,6 @@ bool GameObject::DoesCollideWith(GameObject* objectB)
     if (!colA || !colB)
         return false;
 
-    // 타입 체크/필터링은 여기서 걸어도 되고,
-    // Collision::DoesCollideWith 내부에서 타입 분기해도 됨.
     return colA->DoesCollideWith(objectB);
 }
 
@@ -233,5 +212,4 @@ bool GameObject::DoesCollideWith(vec2 point)
 
 void GameObject::ResolveCollision(GameObject* /*other*/)
 {
-    // 기본은 아무 것도 안 함. (자식에서 오버라이드)
 }

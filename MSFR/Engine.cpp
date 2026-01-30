@@ -85,7 +85,7 @@ void Engine::Update()
 
 void Engine::Draw()
 {
-    // gameStateManager.Draw();  // 나중에 연결
+    // gameStateManager.Draw();
 }
 
 void Engine::AddSpriteFont(const std::filesystem::path& fileName)

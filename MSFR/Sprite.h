@@ -34,7 +34,7 @@ private:
     vec2 GetFrameTexel(int frameNum) const;
 
 private:
-    TextureDX11* texturePtr = nullptr;  // ✅ DX11 texture
+    TextureDX11* texturePtr = nullptr;  //DX11 texture
     vec2 frameSize{ 0, 0 };
 
     std::vector<vec2> frameTexel;

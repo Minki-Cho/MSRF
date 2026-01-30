@@ -28,7 +28,7 @@ public:
     void Update();
     bool IsDone() const noexcept;
 
-    // Accessors (so your renderer/program can fetch device/context if needed)
+    // Accessors
     ID3D11Device& GetDevice() const noexcept;
     ID3D11DeviceContext& GetContext() const noexcept;
     IDXGISwapChain& GetSwapChain() const noexcept;
@@ -39,7 +39,7 @@ public:
     int  GetWidth() const noexcept;
     int  GetHeight() const noexcept;
 
-    // Optional: change clear color
+
     void SetClearColor(float r, float g, float b, float a = 1.0f) noexcept;
 
 private:
@@ -60,7 +60,6 @@ private:
     float clear_color[4] = { 0.08f, 0.08f, 0.12f, 1.0f };
 
     // D3D11 core
-    // (use raw pointers here + release in cpp to match your util::owner style elsewhere)
     util::owner<ID3D11Device*>           ptr_device = nullptr;
     util::owner<ID3D11DeviceContext*>    ptr_context = nullptr;
     util::owner<IDXGISwapChain*>         ptr_swapchain = nullptr;

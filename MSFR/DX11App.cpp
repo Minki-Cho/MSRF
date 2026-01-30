@@ -411,6 +411,6 @@ void DX11App::Update()
     //ptr_program->ImGuiDraw();
 
     // Present
-    // vsync=1 is nicer. If you want uncapped, change first arg to 0.
+    // vsync=1 is nicer. If want uncapped, change first arg to 0.
     ptr_swapchain->Present(1, 0);
 }

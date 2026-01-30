@@ -35,24 +35,15 @@ namespace
         float m[16]; // float4x4
     };
 
-    // NOTE:
-    // - HLSL: o.pos = mul(uModelToNDC, float4(pos,0,1));
-    // - HLSL matrix default is column-major.
-    // 아래는 너 mat3가 내부적으로 어떻게 저장되는지에 따라 transpose가 필요할 수 있음.
-    // 일단 "너가 OpenGL에서 uniform으로 보내던 관례"에 맞춰서 채움.
     PerDrawCB Mat3ToFloat4x4(const mat3<float>& a)
     {
         PerDrawCB o{};
 
-        // 2D affine mat3 -> 4x4 확장
+        // 2D affine mat3 
         // [ a00 a01 a02 ]
         // [ a10 a11 a12 ]
         // [ a20 a21 a22 ]
-        //
-        // float4x4:
-        // x,y축 + translation을 포함하는 형태로 매핑
-        //
-        // 필요시 아래를 transpose해서 넣어야 할 수도 있음.
+
         o.m[0] = a.elements[0][0]; o.m[1] = a.elements[0][1]; o.m[2] = 0.f; o.m[3] = a.elements[0][2];
         o.m[4] = a.elements[1][0]; o.m[5] = a.elements[1][1]; o.m[6] = 0.f; o.m[7] = a.elements[1][2];
         o.m[8] = 0.f;              o.m[9] = 0.f;              o.m[10] = 1.f; o.m[11] = 0.f;
@@ -142,11 +133,9 @@ namespace
         ctx->Unmap(cb, 0);
     }
 
-    // common debug shader path
     constexpr const wchar_t* kDebug2DShaderPath = L"assets/shaders/debug2d.hlsl";
 }
 
-// ======================= RectCollision =======================
 
 RectCollision::RectCollision(rect3 r, GameObject* obj)
     : objectPtr(obj), rect(r)
@@ -171,7 +160,6 @@ void RectCollision::CreateGpuResources()
     ThrowIfFailed(dev->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, ps.GetAddressOf()),
         "CreatePixelShader failed.");
 
-    // Input layout (two streams: slot0=pos, slot1=color)
     D3D11_INPUT_ELEMENT_DESC layout[] =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,     0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -198,7 +186,6 @@ void RectCollision::Draw(mat3<float>)
     ID3D11DeviceContext* ctx = DX11Services::Context();
     if (!ctx) return;
 
-    // ==== 너 기존 model_to_ndc 계산 로직 최대 유지 ====
     mat3<float> translation = mat3<float>::build_translation(
         GetWorldCoorRect().Left() - (1280.f - Engine::GetWindow().GetClientWidth()) / 2.f,
         GetWorldCoorRect().Bottom() - (720.f - Engine::GetWindow().GetClientHeight()) / 2.f);
@@ -267,7 +254,7 @@ bool RectCollision::DoesCollideWith(vec2 point)
         point.y >= a.Bottom() && point.y <= a.Top());
 }
 
-// ======================= CircleCollision =======================
+// CircleCollision
 
 CircleCollision::CircleCollision(double r, GameObject* obj)
     : objectPtr(obj), radius(r)
@@ -323,7 +310,6 @@ void CircleCollision::Draw(mat3<float> cameraMatrix)
     ID3D11DeviceContext* ctx = DX11Services::Context();
     if (!ctx) return;
 
-    // ==== 너 기존 계산 로직 최대 유지 ====
     mat3<float> scale = mat3<float>::build_scale((float)(radius * 2.0));
     mat3<float> translation = mat3<float>::build_translation(cameraMatrix.column2.x, cameraMatrix.column2.y);
     const mat3<float> model_to_world = translation * scale;
