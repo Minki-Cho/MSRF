@@ -17,6 +17,6 @@ public:
 	std::string GetName() override { return "Spalsh"; }
 private:
 	InputKey modeNext;
-	TextureDX11 SomeTexture_I_have_to_add_I_didnt_deside_yet;
+	TextureDX11 SomeTexture;
 	double timer;
 };

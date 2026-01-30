@@ -12,6 +12,7 @@ class TextureDX11
 public:
     TextureDX11() = default;
     
+    TextureDX11(const std::filesystem::path& filePath, bool enableTexel = false);
     TextureDX11(ID3D11Device* device, ID3D11DeviceContext* ctx,
         const std::filesystem::path& filePath, bool enableTexel);
 
@@ -21,7 +22,8 @@ public:
     void Draw(ID3D11DeviceContext* ctx, const mat3<float>& displayMatrix);
     void Draw(ID3D11DeviceContext* ctx, const mat3<float>& displayMatrix,
         vec2 texelPos, vec2 frameSize);
-
+    void Draw(const mat3<float>& displayMatrix);
+    void Draw(const mat3<float>& displayMatrix, vec2 texelPos, vec2 frameSize);
     vec2 GetSize() const;
 
 private:

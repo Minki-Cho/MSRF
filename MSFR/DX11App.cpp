@@ -62,6 +62,10 @@ DX11App::DX11App(const char* title, int desired_width, int desired_height)
     DX11Services::Init(ptr_device, ptr_context, ptr_swapchain);
 
     Engine::SetDX11(ptr_device, ptr_context, ptr_swapchain);
+    Engine::SetViewportSize(viewport_width, viewport_height);
+
+    ptr_program = create_program(viewport_width, viewport_height);
+
 
     ptr_program = create_program(viewport_width, viewport_height);
     if (ptr_program == nullptr)
@@ -332,6 +336,7 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
     switch (e.type)
     {
     case SDL_QUIT:
+        Engine::GetLogger().LogEvent("SDL_QUIT received");
         is_done = true;
         break;
 
@@ -348,6 +353,7 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
             viewport_width = newW;
             viewport_height = newH;
 
+            Engine::SetViewportSize(viewport_width, viewport_height);
             // Recreate backbuffer resources
             if (ptr_swapchain)
             {

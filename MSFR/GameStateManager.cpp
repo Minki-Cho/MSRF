@@ -83,6 +83,15 @@ void GameStateManager::Update(double dt)
 
 void GameStateManager::SetNextState(int initState)
 {
+	if (initState < 0 || initState >= static_cast<int>(gameStates.size()))
+	{
+		Engine::GetLogger().LogError(
+			"SetNextState: invalid index " + std::to_string(initState) +
+			" (size=" + std::to_string(gameStates.size()) + ")"
+		);
+		return;
+	}
+
 	nextGameState = gameStates[initState];
 }
 

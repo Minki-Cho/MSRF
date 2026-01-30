@@ -5,7 +5,8 @@
 #include <vector>
 #include <cstring>
 #include <algorithm>
-
+#include <iostream>
+#include <filesystem>
 #pragma comment(lib, "d3dcompiler.lib")
 
 #define NOMINMAX
@@ -26,7 +27,7 @@ namespace
         if (FAILED(hr)) throw std::runtime_error(msg);
     }
 
-    // --- WIC helpers ---
+    // - WIC helpers
     struct WICImageRGBA
     {
         uint32_t width = 0;
@@ -34,15 +35,12 @@ namespace
         std::vector<uint8_t> rgba; // width * height * 4
     };
 
-    // COM init: 여러 번 호출해도 안전하게(대부분 OK)
     void EnsureCOM()
     {
         static bool once = false;
         if (once) return;
 
         HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-        // S_OK / S_FALSE = OK
-        // RPC_E_CHANGED_MODE = 누군가 STA로 이미 초기화 -> 이 경우도 그냥 진행하는 편이 실무에서 흔함
         if (FAILED(hr) && hr != RPC_E_CHANGED_MODE)
         {
             ThrowIfFailed(hr, "CoInitializeEx failed.");
@@ -82,7 +80,6 @@ namespace
         ThrowIfFailed(factory->CreateFormatConverter(converter.GetAddressOf()),
             "CreateFormatConverter failed.");
 
-        // RGBA 8-bit로 통일 (DXGI_FORMAT_R8G8B8A8_UNORM에 바로 대응)
         ThrowIfFailed(converter->Initialize(
             frame.Get(),
             GUID_WICPixelFormat32bppRGBA,
@@ -111,9 +108,6 @@ namespace
         return img;
     }
 
-    // =====================
-    // 기존 렌더 코드 그대로
-    // =====================
     struct VertexPT
     {
         float px, py;
@@ -152,6 +146,9 @@ namespace
 
     ComPtr<ID3DBlob> CompileFromFile(const wchar_t* path, const char* entry, const char* target)
     {
+        std::wcout << L"CWD: " << std::filesystem::current_path().c_str() << L"\n";
+        std::wcout << L"Shader path: " << path << L"\n";
+        std::wcout << L"Exists? " << (std::filesystem::exists(path) ? L"YES" : L"NO") << L"\n";
         UINT flags = 0;
 #if defined(_DEBUG)
         flags |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
@@ -172,6 +169,29 @@ namespace
         }
         return blob;
     }
+    static mat3<float> BuildSpriteModelToNDC(
+        float x, float y, float w, float h,
+        float screenW, float screenH)
+    {
+
+        mat3<float> m; // identity
+
+        m.column0 = { (2.0f * w) / screenW, 0.0f, 0.0f };
+        m.column1 = { 0.0f, (2.0f * h) / screenH, 0.0f };
+
+        m.column2 = {
+            (-1.0f + (2.0f * x) / screenW),
+            (-1.0f + (2.0f * y) / screenH),
+            1.0f
+        };
+        return m;
+    }
+}
+
+TextureDX11::TextureDX11(const std::filesystem::path& filePath, bool enableTexel_)
+    : enableTexel(enableTexel_)
+{
+    Load(Engine::GetDXDevice(), Engine::GetDXContext(), filePath);
 }
 
 TextureDX11::TextureDX11(ID3D11Device* device, ID3D11DeviceContext* ctx,
@@ -187,16 +207,12 @@ void TextureDX11::Load(ID3D11Device* device, ID3D11DeviceContext* ctx,
     if (!device || !ctx)
         throw std::runtime_error("TextureDX11::Load: device/context is null.");
 
-    // ==========================
     // 1) CPU load image via WIC
-    // ==========================
     WICImageRGBA img = LoadImageRGBA_WIC(filePath.wstring());
     width = img.width;
     height = img.height;
 
-    // ==========================
     // 2) Create GPU texture
-    // ==========================
     D3D11_TEXTURE2D_DESC td{};
     td.Width = width;
     td.Height = height;
@@ -214,15 +230,11 @@ void TextureDX11::Load(ID3D11Device* device, ID3D11DeviceContext* ctx,
     ThrowIfFailed(device->CreateTexture2D(&td, &init, texture2D.GetAddressOf()),
         "CreateTexture2D failed.");
 
-    // ==========================
     // 3) SRV
-    // ==========================
     ThrowIfFailed(device->CreateShaderResourceView(texture2D.Get(), nullptr, srv.GetAddressOf()),
         "CreateShaderResourceView failed.");
 
-    // ==========================
-    // 4) Shared pipeline resources (once)
-    // ==========================
+    // 4) Shared pipeline resources
     if (!vertexBuffer || !indexBuffer) CreateQuad(device);
     if (!sampler || !blendState || !rasterState) CreateStates(device);
     if (!vs || !psTexture || !psTexel || !inputLayout) CreateShaders(device);
@@ -318,7 +330,8 @@ void TextureDX11::CreateShaders(ID3D11Device* device)
 {
     const auto vsBlob = CompileFromFile(L"assets/shaders/texture_dx11.hlsl", "VSMain", "vs_5_0");
     const auto psTexBlob = CompileFromFile(L"assets/shaders/texture_dx11.hlsl", "PSTexture", "ps_5_0");
-    const auto psTexelBlob = CompileFromFile(L"assets/shaders/texel_dx11.hlsl", "PSTexel", "ps_5_0");
+    const auto psTexelBlob = CompileFromFile(L"assets/shaders/texture_dx11.hlsl", "PSTexel", "ps_5_0");
+
 
     ThrowIfFailed(device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, vs.GetAddressOf()),
         "CreateVertexShader failed.");
@@ -342,24 +355,18 @@ void TextureDX11::Draw(ID3D11DeviceContext* ctx, const mat3<float>& displayMatri
 {
     if (!ctx) return;
 
-    const float transX = displayMatrix.column2.x * 2.f + (float)width;
-    const float transY = displayMatrix.column2.y * 2.f + (float)height;
+    const float screenW = (float)Engine::GetViewportWidth();
+    const float screenH = (float)Engine::GetViewportHeight();
 
-    mat3<float> translation = mat3<float>::build_translation(
-        transX - (1280.f - Engine::GetWindow().GetClientWidth()),
-        transY - (720.f - Engine::GetWindow().GetClientHeight()));
+    const float x = displayMatrix.column2.x;
+    const float y = displayMatrix.column2.y;
+    const float sx = displayMatrix.column0.x;
+    const float sy = displayMatrix.column1.y;
 
-    mat3<float> scale = mat3<float>::build_scale(
-        (float)width * displayMatrix.column0.x,
-        (float)height * displayMatrix.column1.y);
+    const float w = (float)width * sx;
+    const float h = (float)height * sy;
 
-    mat3<float> to_bottom_left = mat3<float>::build_translation(
-        -Engine::GetWindow().GetClientWidth(),
-        -Engine::GetWindow().GetClientHeight());
-
-    const mat3<float> model_to_world = translation * to_bottom_left * scale;
-    mat3<float> extent = mat3<float>::build_scale(1.f / 1280.f, 1.f / 720.f);
-    const mat3<float> model_to_ndc = extent * model_to_world;
+    const mat3<float> model_to_ndc = BuildSpriteModelToNDC(x, y, w, h, screenW, screenH);
 
     const CBPerDraw cb = MakeCB(model_to_ndc, { 0,0 }, { 1,1 });
     UpdateDynamicCB(ctx, constantBuffer.Get(), &cb, sizeof(cb));
@@ -396,23 +403,20 @@ void TextureDX11::Draw(ID3D11DeviceContext* ctx, const mat3<float>& displayMatri
 {
     if (!ctx) return;
 
-    mat3<float> translation = mat3<float>::build_translation(
-        displayMatrix.column2.x - (1280.f - Engine::GetWindow().GetClientWidth()) / 2.f,
-        displayMatrix.column2.y - (720.f - Engine::GetWindow().GetClientHeight()) / 2.f);
+    const float screenW = 1280.f;
+    const float screenH = 720.f;
 
-    mat3<float> scale = mat3<float>::build_scale(
-        (float)frameSize.x * displayMatrix.column0.x,
-        (float)frameSize.y * displayMatrix.column1.y);
+    const float x = displayMatrix.column2.x;
+    const float y = displayMatrix.column2.y;
+    const float sx = displayMatrix.column0.x;
+    const float sy = displayMatrix.column1.y;
 
-    mat3<float> to_bottom_left = mat3<float>::build_translation(
-        -Engine::GetWindow().GetClientWidth() / 2.f,
-        -Engine::GetWindow().GetClientHeight() / 2.f);
+    const float w = frameSize.x * sx;
+    const float h = frameSize.y * sy;
 
-    const mat3<float> model_to_world = translation * to_bottom_left * scale;
-    mat3<float> extent = mat3<float>::build_scale(2.f / 1280.f, 2.f / 720.f);
-    const mat3<float> model_to_ndc = extent * model_to_world;
+    const mat3<float> model_to_ndc = BuildSpriteModelToNDC(x, y, w, h, screenW, screenH);
 
-    vec2 texelPosN = { texelPos.x / (float)width, texelPos.y / (float)height };
+    vec2 texelPosN = { texelPos.x / (float)width,  texelPos.y / (float)height };
     vec2 frameSizeN = { frameSize.x / (float)width, frameSize.y / (float)height };
 
     const CBPerDraw cb = MakeCB(model_to_ndc, texelPosN, frameSizeN);
@@ -444,4 +448,15 @@ void TextureDX11::Draw(ID3D11DeviceContext* ctx, const mat3<float>& displayMatri
     ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     ctx->DrawIndexed(6, 0, 0);
+}
+
+void TextureDX11::Draw(const mat3<float>& displayMatrix)
+{
+
+    Draw(Engine::GetDXContext(), displayMatrix);
+}
+
+void TextureDX11::Draw(const mat3<float>& displayMatrix, vec2 texelPos, vec2 frameSize)
+{
+    Draw(Engine::GetDXContext(), displayMatrix, texelPos, frameSize);
 }

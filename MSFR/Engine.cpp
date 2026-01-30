@@ -53,13 +53,14 @@ void Engine::Update()
     if (!initialized)
         return;
 
-    const double dt = ComputeDeltaSeconds();
+    double dt = ComputeDeltaSeconds();
 
     const double targetStep = 1.0 / TargetFPS;
     if (dt < targetStep)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        return;
+        dt = targetStep;
+        //return;
     }
 
     // FPS telemetry

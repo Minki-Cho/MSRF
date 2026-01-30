@@ -3,17 +3,16 @@
 #include <cmath>
 #include <string>
 
-#include "Engine.h"        // Logger (선택)
-#include "Sprite.h"        // Sprite component (Draw용)
-#include "Collision.h"     // Collision component (충돌 검사/디버그 Draw용)
+#include "Engine.h"
+#include "Sprite.h"
+#include "Collision.h"
 
 
 void GameObject::ChangeState(State* newState)
 {
 }
-// ---------------------------------------------
+
 // Ctors / Dtor
-// ---------------------------------------------
 GameObject::GameObject()
     : currState(&state_nothing),
     updateMatrix(true),
@@ -49,29 +48,22 @@ GameObject::GameObject(vec2 position_, double rotation_, vec2 scale_)
 
 GameObject::~GameObject()
 {
-    // 컴포넌트 정리
     ClearGOComponents();
 }
 
-// ---------------------------------------------
-// Update / Draw
-// ---------------------------------------------
 void GameObject::Update(double dt)
 {
-    // 상태 업데이트
     if (currState)
     {
         currState->Update(this, dt);
         currState->TestForExit(this);
     }
 
-    // 물리/이동(간단)
     if (velocity.x != 0.0f || velocity.y != 0.0f)
     {
         UpdatePosition(vec2{ static_cast<float>(velocity.x * dt), static_cast<float>(velocity.y * dt) });
     }
 
-    // 컴포넌트 업데이트
     UpdateGOComponents(dt);
 }
 

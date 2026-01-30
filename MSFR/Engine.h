@@ -23,6 +23,13 @@ public:
     Engine(Engine&&) = delete;
     Engine& operator=(Engine&&) = delete;
 
+    static int GetViewportWidth() { return Instance().viewportWidth; }
+    static int GetViewportHeight() { return Instance().viewportHeight; }
+    static void SetViewportSize(int w, int h)
+    {
+        Instance().viewportWidth = (w > 0) ? w : 1;
+        Instance().viewportHeight = (h > 0) ? h : 1;
+    }
     static Engine& Instance() { static Engine instance; return instance; }
 
     static Logger& GetLogger() { return Instance().logger; }
@@ -34,9 +41,7 @@ public:
     template<typename T>
     static T* GetGSComponent() { return GetGameStateManager().GetGSComponent<T>(); }
 
-    // =========================
     // DX11 Access
-    // =========================
     static ID3D11Device* GetDXDevice() { return Instance().dxDevice.Get(); }
     static ID3D11DeviceContext* GetDXContext() { return Instance().dxContext.Get(); }
     static IDXGISwapChain* GetDXSwapChain() { return Instance().dxSwapChain.Get(); }
@@ -82,13 +87,13 @@ private:
     Window window;
     TextureManager textureManager;
 
-    // =========================
     // DX11 members
-    // =========================
     Microsoft::WRL::ComPtr<ID3D11Device>        dxDevice;
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> dxContext;
     Microsoft::WRL::ComPtr<IDXGISwapChain>      dxSwapChain;
 
     static constexpr double TargetFPS = 60.0;
     static constexpr int FPSIntervalSec = 5;
+    int viewportWidth = 1280;
+    int viewportHeight = 720;
 };
