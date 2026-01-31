@@ -21,7 +21,7 @@ void MainMenu::Load()
 	// Not yet
 
 	//timer = 5;
-	SomeTexture = TextureDX11("assets/images/1700094944318.jpg", false);
+	MainMenuImage = TextureDX11("assets/images/MainMenu.png", false);
 }
 
 void MainMenu::Update(double dt)
@@ -35,28 +35,7 @@ void MainMenu::Update(double dt)
 
 void MainMenu::Draw()
 {
-	const float screenW = (float)Engine::GetViewportWidth();
-	const float screenH = (float)Engine::GetViewportHeight();
-
-	const vec2 tex = SomeTexture.GetSize();
-
-	const float sx = screenW / tex.x;
-	const float sy = screenH / tex.y;
-	const float s = (std::min)(sx, sy);
-
-	const float drawW = tex.x * s;
-	const float drawH = tex.y * s;
-
-	const float x = (screenW - drawW) * 0.5f;
-	const float y = (screenH - drawH) * 0.5f;
-
-	mat3<float> M;
-	M.column0.x = s;
-	M.column1.y = s;
-	M.column2.x = x;
-	M.column2.y = y;
-
-	SomeTexture.Draw(M);
+	MainMenuImage.DrawFitCenter({ (float)Engine::GetViewportWidth(), (float)Engine::GetViewportHeight() });
 }
 
 void MainMenu::Unload()

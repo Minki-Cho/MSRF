@@ -256,6 +256,28 @@ vec2 TextureDX11::GetSize() const
     return { (float)width, (float)height };
 }
 
+void TextureDX11::DrawFitCenter(const vec2& viewportSize)
+{
+    const vec2 tex = GetSize();
+    const float sx = viewportSize.x / tex.x;
+    const float sy = viewportSize.y / tex.y;
+    const float s = (std::min)(sx, sy);
+
+    const float drawW = tex.x * s;
+    const float drawH = tex.y * s;
+
+    const float x = (viewportSize.x - drawW) * 0.5f;
+    const float y = (viewportSize.y - drawH) * 0.5f;
+
+    mat3<float> M;
+    M.column0.x = s;
+    M.column1.y = s;
+    M.column2.x = x;
+    M.column2.y = y;
+
+    Draw(M);
+}
+
 void TextureDX11::CreateQuad(ID3D11Device* device)
 {
     const VertexPT verts[4] =

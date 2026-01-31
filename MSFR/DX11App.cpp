@@ -53,11 +53,40 @@ namespace
         }
         return wmInfo.info.win.window;
     }
+
+    static void ForceForeground(HWND hwnd)
+    {
+        if (!hwnd) return;
+
+        ShowWindow(hwnd, SW_SHOW);
+
+        SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0,
+            SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER);
+
+        DWORD fgThread = GetWindowThreadProcessId(GetForegroundWindow(), nullptr);
+        DWORD thisThread = GetCurrentThreadId();
+
+        if (fgThread != thisThread)
+        {
+            AttachThreadInput(fgThread, thisThread, TRUE);
+            SetForegroundWindow(hwnd);
+            SetFocus(hwnd);
+            AttachThreadInput(fgThread, thisThread, FALSE);
+        }
+        else
+        {
+            SetForegroundWindow(hwnd);
+            SetFocus(hwnd);
+        }
+    }
 }
 
 DX11App::DX11App(const char* title, int desired_width, int desired_height)
 {
     InitSDLWindow(title, desired_width, desired_height);
+    HWND hwnd = GetHWNDFromSDL(ptr_window);
+    Engine::GetLogger().SetFocusRestoreHwnd(hwnd);
+    ForceForeground(hwnd);
     InitD3D11();
     DX11Services::Init(ptr_device, ptr_context, ptr_swapchain);
 
@@ -166,9 +195,17 @@ void DX11App::InitSDLWindow(const char* title, int desired_width, int desired_he
     {
         throw std::runtime_error(std::string("SDL_CreateWindow failed: ") + SDL_GetError());
     }
-
+    
+    // make window screen shown front
     viewport_width = desired_width;
     viewport_height = desired_height;
+
+    SDL_ShowWindow(ptr_window);
+    SDL_RaiseWindow(ptr_window);
+    SDL_SetWindowInputFocus(ptr_window);
+
+    HWND hwnd = GetHWNDFromSDL(ptr_window);
+    ForceForeground(hwnd);
 }
 
 void DX11App::InitD3D11()

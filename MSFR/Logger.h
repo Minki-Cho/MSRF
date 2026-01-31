@@ -2,6 +2,9 @@
 #include <string>
 #include <fstream>
 #include <chrono>
+#include <mutex>
+
+#include <Windows.h>
 
 class Logger
 {
@@ -18,22 +21,26 @@ public:
     Logger(Severity severity, bool useConsole, std::chrono::system_clock::time_point start_time);
     ~Logger();
 
-    void LogError(std::string text);
-    void LogEvent(std::string text);
-    void LogDebug(std::string text);
-    void LogVerbose(std::string text);
+    void LogError(const std::string& text);
+    void LogEvent(const std::string& text);
+    void LogDebug(const std::string& text);
+    void LogVerbose(const std::string& text);
 
-    void SetUseConsole(bool enable);
-    bool IsUsingConsole() const { return usingConsole; }
+    void SetUseConsole(bool enabled) noexcept;
+    bool IsUsingConsole() const noexcept
+        ;
+    void SetFocusRestoreHwnd(HWND hwnd) noexcept;
+private:
+    void Log(Severity severity, const std::string& displayText);
+    double GetSecondsSinceStart() const;
 
 private:
-    void Log(Severity, std::string displayText);
-    double GetSecondsSinceStart();
-
-    std::ofstream outStream;
-    std::streambuf* fileBuf = nullptr;
-    bool usingConsole = false;
-
+    std::ofstream fileStream;
     Severity minLevel;
     std::chrono::system_clock::time_point startTime;
+
+    bool useConsole = false;
+    HWND focusRestoreHwnd = nullptr;
+    mutable std::mutex mtx;
+
 };

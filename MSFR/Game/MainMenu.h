@@ -17,6 +17,6 @@ public:
 	std::string GetName() override { return "MainMenu"; }
 private:
 	InputKey modeNext;
-	TextureDX11 SomeTexture;
+	TextureDX11 MainMenuImage;
 	double timer;
 };

@@ -25,13 +25,13 @@ void Splash::Load()
 	// Not yet
 
 	timer = 5;
-	SomeTexture = TextureDX11("assets/images/1704515153572.jpg", false);
+	SplashImage = TextureDX11("assets/images/Splash.png", false);
 }
 
 void Splash::Update(double dt)
 {
 	timer -= dt;
-	if (modeNext.IsKeyReleased() == true /*|| timer < 0*/)
+	if (modeNext.IsKeyReleased() == true || timer < 0)
 	{
 		Engine::GetGameStateManager().SetNextState(static_cast<int>(ScreenMods::MainMenu));
 	}
@@ -39,28 +39,7 @@ void Splash::Update(double dt)
 
 void Splash::Draw()
 {
-	const float screenW = (float)Engine::GetViewportWidth();
-	const float screenH = (float)Engine::GetViewportHeight();
-
-	const vec2 tex = SomeTexture.GetSize();
-
-	const float sx = screenW / tex.x;
-	const float sy = screenH / tex.y;
-	const float s = (std::min)(sx, sy);
-
-	const float drawW = tex.x * s;
-	const float drawH = tex.y * s;
-
-	const float x = (screenW - drawW) * 0.5f;
-	const float y = (screenH - drawH) * 0.5f;
-
-	mat3<float> M;
-	M.column0.x = s;
-	M.column1.y = s;
-	M.column2.x = x;
-	M.column2.y = y;
-
-	SomeTexture.Draw(M);
+	SplashImage.DrawFitCenter({ (float)Engine::GetViewportWidth(), (float)Engine::GetViewportHeight() });
 }
 
 void Splash::Unload()

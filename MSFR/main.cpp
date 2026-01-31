@@ -3,13 +3,13 @@
 
 #include "DX11App.h"
 #include <exception>
+#include <windows.h>
 
 int main(int, char**)
 {
     try
     {
-        DX11App app("My game Engine", 1280, 720);
-
+        DX11App app("My game Engine", 1200, 720);
         while (!app.IsDone())
         {
             app.Update();

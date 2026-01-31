@@ -25,6 +25,7 @@ public:
     void Draw(const mat3<float>& displayMatrix);
     void Draw(const mat3<float>& displayMatrix, vec2 texelPos, vec2 frameSize);
     vec2 GetSize() const;
+    void DrawFitCenter(const vec2& viewportSize);
 
 private:
     void CreateQuad(ID3D11Device* device);
