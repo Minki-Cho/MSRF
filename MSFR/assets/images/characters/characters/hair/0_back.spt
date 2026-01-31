@@ -1,0 +1,23 @@
+assets/images/characters/hair/0_back.png
+FrameSize 70 120
+HotSpot 35 4
+Frame 0 0
+Frame 70 0
+Frame 140 0
+Frame 210 0
+Frame 0 120
+Frame 70 120
+Frame 140 120
+Frame 210 120
+Frame 0 240
+Frame 70 240
+Frame 140 240
+Anim assets/images/characters/hair/anim/none_front.anm
+Anim assets/images/characters/hair/anim/none_back.anm
+Anim assets/images/characters/hair/anim/none_left.anm
+Anim assets/images/characters/hair/anim/none_right.anm
+Anim assets/images/characters/hair/anim/character_front.anm
+Anim assets/images/characters/hair/anim/character_back.anm
+Anim assets/images/characters/hair/anim/character_left.anm
+Anim assets/images/characters/hair/anim/character_right.anm
+Anim assets/images/characters/hair/anim/character_eating.anm

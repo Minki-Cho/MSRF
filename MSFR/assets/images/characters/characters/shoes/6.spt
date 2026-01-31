@@ -1,0 +1,25 @@
+assets/images/characters/shoes/6.png
+FrameSize 70 120
+HotSpot 35 4
+Frame 0 0
+Frame 70 0
+Frame 140 0
+Frame 210 0
+Frame 280 0
+Frame 350 0
+Frame 0 120
+Frame 70 120
+Frame 140 120
+Frame 210 120
+Frame 280 120
+Frame 350 120
+Frame 420 120
+Anim assets/images/characters/none_front.anm
+Anim assets/images/characters/none_back.anm
+Anim assets/images/characters/none_left.anm
+Anim assets/images/characters/none_right.anm
+Anim assets/images/characters/character_front.anm
+Anim assets/images/characters/character_back.anm
+Anim assets/images/characters/character_left.anm
+Anim assets/images/characters/character_right.anm
+Anim assets/images/characters/shoes/character_eating.anm
