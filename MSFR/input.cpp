@@ -1,11 +1,8 @@
-#include <windowsx.h>L
+#include <windowsx.h>
 
 #include "Input.h"
-#include "Engine.h" // Engine::GetInput(), Engine::GetLogger()
+#include "Engine.h"
 
-// ------------------------
-// InputKey
-// ------------------------
 InputKey::InputKey(Keyboard button) : button(button) {}
 
 bool InputKey::IsKeyDown() const
@@ -18,18 +15,18 @@ bool InputKey::IsKeyReleased() const
     return Engine::GetInput().IsKeyReleased(button);
 }
 
-// ------------------------
-// Input
-// ------------------------
 Input::Input()
 {
-    isKeyDownList.resize(static_cast<int>(InputKey::Keyboard::Count), false);
-    wasKeyDownList.resize(static_cast<int>(InputKey::Keyboard::Count), false);
+    const int n = static_cast<int>(InputKey::Keyboard::Count);
+    isKeyDownList.assign(n, false);
+    keyReleasedThisFrame.assign(n, false);
+    keyPressedThisFrame.assign(n, false);
 }
 
 void Input::Update()
 {
-    wasKeyDownList = isKeyDownList;
+    std::fill(keyReleasedThisFrame.begin(), keyReleasedThisFrame.end(), false);
+    std::fill(keyPressedThisFrame.begin(), keyPressedThisFrame.end(), false);
 
     if (isMouseDown && isMouseUp)
     {
@@ -41,7 +38,6 @@ void Input::Update()
     {
         isMousePressed = false;
     }
-
 }
 
 bool Input::IsKeyDown(InputKey::Keyboard key) const
@@ -51,13 +47,23 @@ bool Input::IsKeyDown(InputKey::Keyboard key) const
 
 bool Input::IsKeyReleased(InputKey::Keyboard key) const
 {
-    const int idx = static_cast<int>(key);
-    return (!isKeyDownList[idx] && wasKeyDownList[idx]);
+    return keyReleasedThisFrame[static_cast<int>(key)];
 }
 
-void Input::SetKeyDown(InputKey::Keyboard key, bool value)
+void Input::OnKeyDown(InputKey::Keyboard k)
 {
-    isKeyDownList[static_cast<int>(key)] = value;
+    if (k == InputKey::Keyboard::None) return;
+    const int idx = static_cast<int>(k);
+    isKeyDownList[idx] = true;
+    keyPressedThisFrame[idx] = true;
+}
+
+void Input::OnKeyUp(InputKey::Keyboard k)
+{
+    if (k == InputKey::Keyboard::None) return;
+    const int idx = static_cast<int>(k);
+    isKeyDownList[idx] = false;
+    keyReleasedThisFrame[idx] = true;
 }
 
 InputKey::Keyboard Input::VKToKeyboard(WPARAM vk)
@@ -75,11 +81,11 @@ InputKey::Keyboard Input::VKToKeyboard(WPARAM vk)
     case VK_RIGHT:   return InputKey::Keyboard::Right;
     case VK_UP:      return InputKey::Keyboard::Up;
     case VK_DOWN:    return InputKey::Keyboard::Down;
+    case VK_F1:      return InputKey::Keyboard::F1;
     default:
         break;
     }
 
-    // A~Z
     if (vk >= 'A' && vk <= 'Z')
     {
         int offset = static_cast<int>(vk - 'A');
@@ -87,6 +93,40 @@ InputKey::Keyboard Input::VKToKeyboard(WPARAM vk)
     }
 
     return InputKey::Keyboard::None;
+}
+
+const char* Input::KeyboardToString(InputKey::Keyboard key)
+{
+    switch (key)
+    {
+    case InputKey::Keyboard::None: return "None";
+    case InputKey::Keyboard::Enter: return "Enter";
+    case InputKey::Keyboard::Escape: return "Escape";
+    case InputKey::Keyboard::Space: return "Space";
+    case InputKey::Keyboard::BackSpace: return "BackSpace";
+    case InputKey::Keyboard::Shift: return "Shift";
+    case InputKey::Keyboard::Left: return "Left";
+    case InputKey::Keyboard::Right: return "Right";
+    case InputKey::Keyboard::Up: return "Up";
+    case InputKey::Keyboard::Down: return "Down";
+    case InputKey::Keyboard::F1: return "F1";
+    default:
+        break;
+    }
+
+    const int a0 = static_cast<int>(InputKey::Keyboard::A);
+    const int z0 = static_cast<int>(InputKey::Keyboard::Z);
+    const int k = static_cast<int>(key);
+
+    if (k >= a0 && k <= z0)
+    {
+        static char buf[2] = {};
+        buf[0] = static_cast<char>('A' + (k - a0));
+        buf[1] = '\0';
+        return buf;
+    }
+
+    return "Unknown";
 }
 
 void Input::OnWin32Message(UINT msg, WPARAM wParam, LPARAM lParam)
@@ -109,9 +149,6 @@ void Input::OnWin32Message(UINT msg, WPARAM wParam, LPARAM lParam)
         pause = false;
         return;
 
-        // ------------------------
-        // Mouse
-        // ------------------------
     case WM_MOUSEMOVE:
     {
         int x = GET_X_LPARAM(lParam);
@@ -129,25 +166,34 @@ void Input::OnWin32Message(UINT msg, WPARAM wParam, LPARAM lParam)
         isMouseUp = true;
         return;
 
-        // ------------------------
-        // Keyboard
-        // ------------------------
     case WM_KEYDOWN:
     case WM_SYSKEYDOWN:
     {
-        const bool wasDown = (lParam & (1 << 30)) != 0;
-        if (wasDown)
+        const bool wasDownRepeat = (lParam & (1 << 30)) != 0;
+        if (wasDownRepeat)
             return;
 
         InputKey::Keyboard pressed = VKToKeyboard(wParam);
-        if (pressed != InputKey::Keyboard::None)
-        {
-            if (pressed != InputKey::Keyboard::Enter)
-                pause = false;
+        if (pressed == InputKey::Keyboard::None)
+            return;
 
-            SetKeyDown(pressed, true);
-            Engine::GetLogger().LogDebug("on_key_pressed");
+        if (pressed == InputKey::Keyboard::F1)
+        {
+            ToggleKeyLogging();
+            Engine::GetLogger().LogDebug(std::string("[Input] Key logging: ") + (keyLogEnabled ? "ON" : "OFF"));
+            return;
         }
+
+        if (pressed != InputKey::Keyboard::Enter)
+            pause = false;
+
+        const int idx = static_cast<int>(pressed);
+        isKeyDownList[idx] = true;
+        keyPressedThisFrame[idx] = true;
+
+        if (keyLogEnabled)
+            Engine::GetLogger().LogDebug(std::string("[Input] DOWN: ") + KeyboardToString(pressed));
+
         return;
     }
 
@@ -155,22 +201,25 @@ void Input::OnWin32Message(UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_SYSKEYUP:
     {
         InputKey::Keyboard released = VKToKeyboard(wParam);
-        if (released != InputKey::Keyboard::None)
-        {
-            SetKeyDown(released, false);
-            Engine::GetLogger().LogDebug("on_key_released");
-        }
+        if (released == InputKey::Keyboard::None)
+            return;
+
+        const int idx = static_cast<int>(released);
+        isKeyDownList[idx] = false;
+        keyReleasedThisFrame[idx] = true;
+
+        if (keyLogEnabled)
+            Engine::GetLogger().LogDebug(std::string("[Input] UP  : ") + KeyboardToString(released));
+
         return;
     }
 
     case WM_SIZE:
     {
-
         if (wParam == SIZE_MINIMIZED)
             pause = true;
         else
             pause = false;
-
         return;
     }
 

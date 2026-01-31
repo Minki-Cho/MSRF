@@ -1,7 +1,7 @@
 #include "Engine.h"
 #include <SDL2/SDL.h>
 #include "Game/Splash.h"
-//#include "Game/MainMenu.h"
+#include "Game/MainMenu.h"
 // ...
 
 class GameProgram final : public IProgram
@@ -12,7 +12,7 @@ public:
         Engine& engine = Engine::Instance();
         engine.InitCore();
         engine.GetGameStateManager().AddGameState(splash);
-        //engine.GetGameStateManager().AddGameState(mainmenu);
+        engine.GetGameStateManager().AddGameState(mainmenu);
         // ...
     }
 
@@ -22,6 +22,6 @@ public:
 
 private:
     Splash splash;
-    //MainMenu mainmenu;
+    MainMenu mainmenu;
     // ...
 };

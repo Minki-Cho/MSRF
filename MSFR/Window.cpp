@@ -1,4 +1,5 @@
 #include "Window.h"
+#include "Engine.h"
 #include <stdexcept>
 #include <cstring>
 
@@ -111,6 +112,7 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 
 LRESULT Window::HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+    Engine::GetInput().OnWin32Message(msg, wParam, lParam);
     switch (msg)
     {
     case WM_DESTROY:

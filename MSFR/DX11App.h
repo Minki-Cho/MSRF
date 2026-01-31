@@ -17,7 +17,7 @@ struct ID3D11DepthStencilView;
 class [[nodiscard]] DX11App
 {
 public:
-    DX11App(const char* title = "DX11 App", int desired_width = 800, int desired_height = 600);
+    DX11App(const char* title = "DX11 App", int desired_width = 1280, int desired_height = 720);
     ~DX11App();
 
     DX11App(const DX11App&) = delete;

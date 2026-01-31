@@ -77,6 +77,9 @@
     <ClCompile Include="Game\Splash.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
+    <ClCompile Include="Game\MainMenu.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -164,6 +167,9 @@
       <Filter>Header Files\Game</Filter>
     </ClInclude>
     <ClInclude Include="Game\ScreenMods.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\MainMenu.h">
       <Filter>Header Files\Game</Filter>
     </ClInclude>
   </ItemGroup>

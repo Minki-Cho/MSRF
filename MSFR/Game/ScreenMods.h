@@ -3,7 +3,7 @@
 enum class ScreenMods
 {
 	Splash,
-	Menu,
+	MainMenu,
 	Howtoplay,
 	Credit,
 	GameScreen,

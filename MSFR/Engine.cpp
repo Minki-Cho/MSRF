@@ -79,7 +79,6 @@ void Engine::Update()
         window.Update();
     }
 
-    input.Update();
     UpdateGameObjects(dt);
 }
 

@@ -19,7 +19,7 @@
 #include <sstream>
 #include <iomanip>
 
- // Link libs (you can also put these in project settings)
+ // Link libs
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
 
@@ -66,8 +66,6 @@ DX11App::DX11App(const char* title, int desired_width, int desired_height)
 
     ptr_program = create_program(viewport_width, viewport_height);
 
-
-    ptr_program = create_program(viewport_width, viewport_height);
     if (ptr_program == nullptr)
     {
         throw std::runtime_error("create_program returned nullptr.");
@@ -327,7 +325,7 @@ void DX11App::CreateBackBufferResources(int width, int height)
 
 void DX11App::HandleSDLEvent(const SDL_Event& e)
 {
-    // Forward to program first (lets it react even if we also handle)
+    // Forward to program first
     if (ptr_program)
     {
         ptr_program->HandleEvent(*ptr_window, e);
@@ -340,6 +338,25 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
         is_done = true;
         break;
 
+    case SDL_KEYDOWN:
+    {
+        if (e.key.repeat) break;
+
+        const SDL_Keycode k = e.key.keysym.sym;
+        if (k == SDLK_RETURN)      Engine::GetInput().OnKeyDown(InputKey::Keyboard::Enter);
+        else if (k == SDLK_ESCAPE) Engine::GetInput().OnKeyDown(InputKey::Keyboard::Escape);
+        else if (k == SDLK_SPACE)  Engine::GetInput().OnKeyDown(InputKey::Keyboard::Space);
+        break;
+    }
+
+    case SDL_KEYUP:
+    {
+        const SDL_Keycode k = e.key.keysym.sym;
+        if (k == SDLK_RETURN)      Engine::GetInput().OnKeyUp(InputKey::Keyboard::Enter);
+        else if (k == SDLK_ESCAPE) Engine::GetInput().OnKeyUp(InputKey::Keyboard::Escape);
+        else if (k == SDLK_SPACE)  Engine::GetInput().OnKeyUp(InputKey::Keyboard::Space);
+        break;
+    }
     case SDL_WINDOWEVENT:
         if (e.window.event == SDL_WINDOWEVENT_CLOSE)
         {
@@ -387,6 +404,7 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
 
 void DX11App::Update()
 {
+    Engine::GetInput().Update();
     // Events
     SDL_Event e;
     while (SDL_PollEvent(&e))

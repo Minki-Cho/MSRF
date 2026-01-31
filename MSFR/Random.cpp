@@ -9,7 +9,23 @@ namespace
 {
     using namespace std;
     using namespace chrono;
-    thread_local mt19937_64 Engine{ static_cast<unsigned long long>(system_clock::now().time_since_epoch().count()) + hash<thread::id>{}(this_thread::get_id()) };
+    inline uint64_t mix64(uint64_t x) {
+        x += 0x9e3779b97f4a7c15ull;
+        x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9ull;
+        x = (x ^ (x >> 27)) * 0x94d049bb133111ebull;
+        return x ^ (x >> 31);
+    }
+    // More powerful random (splitmix64 mixer)
+    thread_local mt19937_64 Engine = [] {
+        uint64_t t = (uint64_t)std::chrono::high_resolution_clock::now().time_since_epoch().count();
+        uint64_t tid = (uint64_t)std::hash<std::thread::id>{}(std::this_thread::get_id());
+
+        uint64_t seed64 = mix64(t ^ (tid + 0x9e3779b97f4a7c15ull));
+
+        std::mt19937_64 e;
+        e.seed(seed64);
+        return e;
+        }();
 }
 
 namespace util

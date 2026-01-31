@@ -1,43 +1,39 @@
-﻿#include "../DX11Services.h"
+#include "../DX11Services.h"
 #include "../Engine.h"
 
-#include "Splash.h"
+#include "MainMenu.h"
 #include "ScreenMods.h"
 
-#include <algorithm>
-#define NOMINMAX
-#undef min
-#undef max
 
-Splash::Splash() : modeNext(InputKey::Keyboard::Enter), timer(5.0f)
+MainMenu::MainMenu() : modeNext(InputKey::Keyboard::Enter), timer(5.0f)
 {
 	//Engine::GetWindow().SetBackgroundColor(1, 1, 1, 1);
 	//DX11Services::SetClearColor(1.f, 1.f, 1.f, 1.f);
 }
 
-Splash::~Splash()
+MainMenu::~MainMenu()
 {
 }
 
-void Splash::Load()
+void MainMenu::Load()
 {
 	//Sounds preload!
 	// Not yet
 
-	timer = 5;
-	SomeTexture = TextureDX11("assets/images/1704515153572.jpg", false);
+	//timer = 5;
+	SomeTexture = TextureDX11("assets/images/1700094944318.jpg", false);
 }
 
-void Splash::Update(double dt)
+void MainMenu::Update(double dt)
 {
-	timer -= dt;
-	if (modeNext.IsKeyReleased() == true /*|| timer < 0*/)
-	{
-		Engine::GetGameStateManager().SetNextState(static_cast<int>(ScreenMods::MainMenu));
-	}
+	//timer -= dt;
+	//if (modeNext.IsKeyReleased() == true || timer < 0)
+	//{
+	//	Engine::GetGameStateManager().SetNextState(static_cast<int>(ScreenMods::Menu));
+	//}
 }
 
-void Splash::Draw()
+void MainMenu::Draw()
 {
 	const float screenW = (float)Engine::GetViewportWidth();
 	const float screenH = (float)Engine::GetViewportHeight();
@@ -63,6 +59,6 @@ void Splash::Draw()
 	SomeTexture.Draw(M);
 }
 
-void Splash::Unload()
+void MainMenu::Unload()
 {
 }
