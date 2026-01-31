@@ -172,10 +172,22 @@
     <ClInclude Include="Game\MainMenu.h">
       <Filter>Header Files\Game</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="vec2.inl">
       <Filter>Header Files\Engine\Helpers</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="MSFR.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="bitmap1.bmp" />
+    <Image Include="..\..\..\..\Downloads\TraceLog.ico" />
+    <Image Include="assets\TraceLog_Logo.png" />
+    <Image Include="assets\TraceLog.ico" />
   </ItemGroup>
 </Project>

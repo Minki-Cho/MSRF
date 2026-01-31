@@ -7,7 +7,7 @@
 #include <Windows.h> // OutputDebugStringA
 
 Logger::Logger()
-    : Logger(Severity::Event, true, std::chrono::system_clock::now())
+    : Logger(Severity::Debug, true, std::chrono::system_clock::now())
 {
 }
 

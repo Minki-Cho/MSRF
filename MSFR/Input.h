@@ -56,6 +56,13 @@ public:
     bool IsKeyLoggingEnabled() const { return keyLogEnabled; }
     void ToggleKeyLogging() { keyLogEnabled = !keyLogEnabled; }
 
+    void OnMouseMove(float x, float y);
+    void OnMouseDown(int button); // 1=left
+    void OnMouseUp(int button);   // 1=left
+
+    bool GetMousePressedThisFrame() const { return mousePressedThisFrame; }
+    bool GetMouseReleasedThisFrame() const { return mouseReleasedThisFrame; }
+
 private:
     static InputKey::Keyboard VKToKeyboard(WPARAM vk);
     static const char* KeyboardToString(InputKey::Keyboard key);
@@ -77,4 +84,7 @@ private:
     bool fullScreen = false;
 
     bool keyLogEnabled = false;
+
+    bool mousePressedThisFrame = false;
+    bool mouseReleasedThisFrame = false;
 };

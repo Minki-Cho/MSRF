@@ -362,7 +362,6 @@ void DX11App::CreateBackBufferResources(int width, int height)
 
 void DX11App::HandleSDLEvent(const SDL_Event& e)
 {
-    // Forward to program first
     if (ptr_program)
     {
         ptr_program->HandleEvent(*ptr_window, e);
@@ -375,6 +374,26 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
         is_done = true;
         break;
 
+    case SDL_MOUSEMOTION:
+    {
+        Engine::GetInput().OnMouseMove((float)e.motion.x, (float)e.motion.y);
+        break;
+    }
+
+    case SDL_MOUSEBUTTONDOWN:
+    {
+        if (e.button.button == SDL_BUTTON_LEFT)
+            Engine::GetInput().OnMouseDown(1);
+        break;
+    }
+
+    case SDL_MOUSEBUTTONUP:
+    {
+        if (e.button.button == SDL_BUTTON_LEFT)
+            Engine::GetInput().OnMouseUp(1);
+        break;
+    }
+
     case SDL_KEYDOWN:
     {
         if (e.key.repeat) break;
@@ -385,7 +404,6 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
         {
             auto& lg = Engine::GetLogger();
             lg.SetUseConsole(!lg.IsUsingConsole());
-            lg.LogEvent(std::string("[Logger] Console ") + (lg.IsUsingConsole() ? "ON" : "OFF"));
             break;
         }
 
@@ -399,11 +417,14 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
     case SDL_KEYUP:
     {
         const SDL_Keycode k = e.key.keysym.sym;
+
         if (k == SDLK_RETURN)      Engine::GetInput().OnKeyUp(InputKey::Keyboard::Enter);
         else if (k == SDLK_ESCAPE) Engine::GetInput().OnKeyUp(InputKey::Keyboard::Escape);
         else if (k == SDLK_SPACE)  Engine::GetInput().OnKeyUp(InputKey::Keyboard::Space);
+
         break;
     }
+
     case SDL_WINDOWEVENT:
         if (e.window.event == SDL_WINDOWEVENT_CLOSE)
         {
@@ -411,26 +432,25 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
         }
         else if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
         {
-            const int newW = std::max(1, static_cast<int>(e.window.data1));
-            const int newH = std::max(1, static_cast<int>(e.window.data2));
+            const int newW = std::max(1, (int)e.window.data1);
+            const int newH = std::max(1, (int)e.window.data2);
 
             viewport_width = newW;
             viewport_height = newH;
 
             Engine::SetViewportSize(viewport_width, viewport_height);
-            // Recreate backbuffer resources
+
             if (ptr_swapchain)
             {
-                // Unbind targets before resizing
                 ID3D11RenderTargetView* nullRTV[1] = { nullptr };
                 ptr_context->OMSetRenderTargets(1, nullRTV, nullptr);
 
                 ReleaseBackBufferResources();
 
                 HRESULT hr = ptr_swapchain->ResizeBuffers(
-                    0, // keep buffer count
-                    static_cast<UINT>(viewport_width),
-                    static_cast<UINT>(viewport_height),
+                    0,
+                    (UINT)viewport_width,
+                    (UINT)viewport_height,
                     DXGI_FORMAT_UNKNOWN,
                     0);
 

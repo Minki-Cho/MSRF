@@ -28,6 +28,9 @@ void Input::Update()
     std::fill(keyReleasedThisFrame.begin(), keyReleasedThisFrame.end(), false);
     std::fill(keyPressedThisFrame.begin(), keyPressedThisFrame.end(), false);
 
+    mousePressedThisFrame = false;
+    mouseReleasedThisFrame = false;
+
     if (isMouseDown && isMouseUp)
     {
         isMousePressed = true;
@@ -129,6 +132,31 @@ const char* Input::KeyboardToString(InputKey::Keyboard key)
     return "Unknown";
 }
 
+void Input::OnMouseMove(float x, float y)
+{
+    mousePos.x = x;
+    mousePos.y = y;
+}
+
+void Input::OnMouseDown(int button)
+{
+    if (button == 1) // left
+    {
+        isMouseDown = true;
+        mousePressedThisFrame = true;
+    }
+}
+
+void Input::OnMouseUp(int button)
+{
+    if (button == 1) // left
+    {
+        isMouseDown = false;
+        mouseReleasedThisFrame = true;
+        Engine::GetLogger().LogDebug("Input LUp -> releasedThisFrame = true");
+    }
+}
+
 void Input::OnWin32Message(UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
@@ -192,7 +220,7 @@ void Input::OnWin32Message(UINT msg, WPARAM wParam, LPARAM lParam)
         keyPressedThisFrame[idx] = true;
 
         if (keyLogEnabled)
-            Engine::GetLogger().LogDebug(std::string("[Input] DOWN: ") + KeyboardToString(pressed));
+            Engine::GetLogger().LogEvent(std::string("[Input] DOWN: ") + KeyboardToString(pressed));
 
         return;
     }
@@ -209,7 +237,7 @@ void Input::OnWin32Message(UINT msg, WPARAM wParam, LPARAM lParam)
         keyReleasedThisFrame[idx] = true;
 
         if (keyLogEnabled)
-            Engine::GetLogger().LogDebug(std::string("[Input] UP  : ") + KeyboardToString(released));
+            Engine::GetLogger().LogEvent(std::string("[Input] UP  : ") + KeyboardToString(released));
 
         return;
     }

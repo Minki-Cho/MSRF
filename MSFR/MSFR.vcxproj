@@ -201,6 +201,7 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
     <ClInclude Include="owner.h" />
     <ClInclude Include="Random.h" />
     <ClInclude Include="Rect.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Sprite.h" />
     <ClInclude Include="TextureDX11.h" />
     <ClInclude Include="TextureManager.h" />
@@ -211,6 +212,15 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
   </ItemGroup>
   <ItemGroup>
     <None Include="vec2.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="MSFR.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\..\Downloads\TraceLog.ico" />
+    <Image Include="assets\TraceLog.ico" />
+    <Image Include="assets\TraceLog_Logo.png" />
+    <Image Include="bitmap1.bmp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
