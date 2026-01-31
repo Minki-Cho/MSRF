@@ -343,9 +343,19 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
         if (e.key.repeat) break;
 
         const SDL_Keycode k = e.key.keysym.sym;
+
+        if (k == SDLK_F1)
+        {
+            auto& lg = Engine::GetLogger();
+            lg.SetUseConsole(!lg.IsUsingConsole());
+            lg.LogEvent(std::string("[Logger] Console ") + (lg.IsUsingConsole() ? "ON" : "OFF"));
+            break;
+        }
+
         if (k == SDLK_RETURN)      Engine::GetInput().OnKeyDown(InputKey::Keyboard::Enter);
         else if (k == SDLK_ESCAPE) Engine::GetInput().OnKeyDown(InputKey::Keyboard::Escape);
         else if (k == SDLK_SPACE)  Engine::GetInput().OnKeyDown(InputKey::Keyboard::Space);
+
         break;
     }
 

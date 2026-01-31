@@ -1,0 +1,26 @@
+[0.0006]	Event	Engine InitCore
+[0.0153]	Event	Load Spalsh
+[0.2604]	Event	Load Complete
+[18.2851]	Event	[Logger] Console OFF
+[23.8785]	Event	[Logger] Console OFF
+[25.0192]	Event	FPS: 165.027599
+[25.5260]	Event	[Logger] Console OFF
+[30.0237]	Event	FPS: 164.653429
+[33.8654]	Event	[Logger] Console OFF
+[35.2658]	Event	[Logger] Console OFF
+[35.9981]	Event	[Logger] Console OFF
+[36.7202]	Event	[Logger] Console OFF
+[40.8150]	Event	[Logger] Console OFF
+[43.9182]	Event	[Logger] Console OFF
+[44.8713]	Event	[Logger] Console OFF
+[45.0293]	Event	FPS: 164.995357
+[45.3973]	Event	[Logger] Console OFF
+[45.7550]	Event	[Logger] Console OFF
+[46.0646]	Event	[Logger] Console OFF
+[46.2833]	Event	[Logger] Console OFF
+[46.4574]	Event	[Logger] Console OFF
+[46.6522]	Event	[Logger] Console OFF
+[46.8391]	Event	[Logger] Console OFF
+[47.0201]	Event	[Logger] Console OFF
+[50.0342]	Event	FPS: 165.040014
+[51.4200]	Event	SDL_QUIT received
