@@ -4,6 +4,7 @@
 #include "../GameState.h"
 #include "../Input.h"
 #include "../TextureDX11.h"
+#include "../GameObjectManager.h"
 
 class MainMenu : public GameState
 {
@@ -19,4 +20,5 @@ private:
 	InputKey modeNext;
 	TextureDX11 MainMenuImage;
 	double timer;
+	GameObjectManager tt;
 };

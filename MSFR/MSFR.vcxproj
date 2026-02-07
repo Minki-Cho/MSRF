@@ -169,6 +169,7 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
     <ClCompile Include="Game\Splash.cpp" />
     <ClCompile Include="input.cpp" />
     <ClCompile Include="IProgram.cpp" />
+    <ClCompile Include="JobSystem.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Random.cpp" />
@@ -197,6 +198,7 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
     <ClInclude Include="Game\Splash.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="IProgram.h" />
+    <ClInclude Include="JobSystem.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="owner.h" />
     <ClInclude Include="Random.h" />
@@ -217,10 +219,8 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
     <ResourceCompile Include="MSFR.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\..\..\Downloads\TraceLog.ico" />
     <Image Include="assets\TraceLog.ico" />
     <Image Include="assets\TraceLog_Logo.png" />
-    <Image Include="bitmap1.bmp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

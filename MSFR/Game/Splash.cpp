@@ -11,8 +11,6 @@
 
 Splash::Splash() : modeNext(InputKey::Keyboard::Enter), timer(5.0f)
 {
-	//Engine::GetWindow().SetBackgroundColor(1, 1, 1, 1);
-	//DX11Services::SetClearColor(1.f, 1.f, 1.f, 1.f);
 }
 
 Splash::~Splash()
@@ -22,7 +20,6 @@ Splash::~Splash()
 void Splash::Load()
 {
 	//Sounds preload!
-	// Not yet
 
 	timer = 5;
 	SplashImage = TextureDX11("assets/images/Splash.png", false);

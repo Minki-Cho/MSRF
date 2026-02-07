@@ -11,6 +11,7 @@
 #include "Window.h"
 #include "Logger.h"
 #include "TextureManager.h"
+#include "JobSystem.h"
 
 class Engine
 {
@@ -37,6 +38,7 @@ public:
     static Window& GetWindow() { return Instance().window; }
     static GameStateManager& GetGameStateManager() { return Instance().gameStateManager; }
     static TextureManager& GetTextureManager() { return Instance().textureManager; }
+    static JobSystem& GetJobSystem() { return Instance().jobSystem; }
 
     template<typename T>
     static T* GetGSComponent() { return GetGameStateManager().GetGSComponent<T>(); }
@@ -52,7 +54,6 @@ public:
         Instance().dxContext = context;
         Instance().dxSwapChain = swapChain;
     }
-
 
     void InitCore();
     void InitWindow(const char* windowName, int w, int h); // lgacy
@@ -86,6 +87,7 @@ private:
     Input input;
     Window window;
     TextureManager textureManager;
+    JobSystem jobSystem;
 
     // DX11 members
     Microsoft::WRL::ComPtr<ID3D11Device>        dxDevice;

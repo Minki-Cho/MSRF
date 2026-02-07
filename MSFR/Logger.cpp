@@ -4,7 +4,7 @@
 #include <iomanip>
 
 #define NOMINMAX
-#include <Windows.h> // OutputDebugStringA
+#include <Windows.h>
 
 Logger::Logger()
     : Logger(Severity::Debug, true, std::chrono::system_clock::now())

@@ -2,6 +2,8 @@
 
 #include <cmath>
 #include <string>
+#include <thread>
+#include <sstream>
 
 #include "Engine.h"
 #include "Sprite.h"

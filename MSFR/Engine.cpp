@@ -15,6 +15,9 @@ void Engine::InitCore()
 
     gameFinish = false;
     initialized = true;
+
+    jobSystem.Init();
+    logger.LogEvent("Job workers (after init) = " + std::to_string(jobSystem.GetWorkerCount()));
 }
 
 // for other graphic
@@ -24,6 +27,8 @@ void Engine::InitWindow(const char* windowName, int w, int h)
 
     window.Init(windowName, w, h);
     usesInternalWindow = true;
+
+    jobSystem.Init();
 }
 
 void Engine::Shutdown()
@@ -32,6 +37,9 @@ void Engine::Shutdown()
         return;
 
     logger.LogEvent("Engine Shutdown");
+
+    jobSystem.WaitIdle();
+    jobSystem.Shutdown();
 
     textureManager.Unload();
 

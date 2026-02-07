@@ -24,6 +24,9 @@
     <Filter Include="Header Files\Engine\Helpers">
       <UniqueIdentifier>{41b131ca-4e92-4141-bbbe-ddf0c0ebbced}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{0f5031b6-217a-4ff8-9797-ca41d933589f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -79,6 +82,9 @@
     </ClCompile>
     <ClCompile Include="Game\MainMenu.cpp">
       <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="JobSystem.cpp">
+      <Filter>Source Files\Engine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -173,7 +179,10 @@
       <Filter>Header Files\Game</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JobSystem.h">
+      <Filter>Header Files\Engine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -182,12 +191,16 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="MSFR.rc" />
+    <Image Include="assets\TraceLog.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="assets\TraceLog_Logo.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="bitmap1.bmp" />
-    <Image Include="..\..\..\..\Downloads\TraceLog.ico" />
-    <Image Include="assets\TraceLog_Logo.png" />
-    <Image Include="assets\TraceLog.ico" />
+    <ResourceCompile Include="MSFR.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

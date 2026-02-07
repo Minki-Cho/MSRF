@@ -20,6 +20,7 @@ MainMenu::MainMenu() : modeNext(InputKey::Keyboard::Enter), timer(5.0f)
 {
 	//Engine::GetWindow().SetBackgroundColor(1, 1, 1, 1);
 	//DX11Services::SetClearColor(1.f, 1.f, 1.f, 1.f);
+    
 }
 
 MainMenu::~MainMenu()
@@ -79,6 +80,8 @@ void MainMenu::Update(double dt)
     {
         Engine::GetLogger().LogEvent("[MainMenu] Quit clicked");
     }
+
+    tt.Update(dt);
 }
 
 void MainMenu::Draw()
