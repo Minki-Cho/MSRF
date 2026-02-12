@@ -1,45 +1,50 @@
-# Prerequisites
-*.d
+# =============================
+# Build Artifacts
+# =============================
 
-# Compiled Object files
+# Object files
 *.slo
 *.lo
 *.o
 *.obj
 
-# Precompiled Headers
+# Precompiled headers
 *.gch
 *.pch
 
-# Linker files
+# Linker
 *.ilk
 
-# Debugger Files
+# Debug
 *.pdb
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
+*.dwo
 
 # Executables
 *.exe
 *.out
 *.app
 
-# debug information files
-*.dwo
+# Dynamic Libraries (ignore globally)
+*.dll
+*.so
+*.dylib
 
+# Static Libraries (ignore globally)
+*.a
+*.lib
 
-MSFR/.vs
-MSFR/MSFR/x64
+# =============================
+# Visual Studio
+# =============================
+MSFR/.vs/
+MSFR/MSFR/x64/
+
+# =============================
+# Allow external libraries
+# =============================
+
+!MSFR/external/
+!MSFR/external/bin/
+!MSFR/external/lib/
+!MSFR/external/bin/**
+!MSFR/external/lib/**
