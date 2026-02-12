@@ -158,6 +158,7 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ActionSystem.cpp" />
     <ClCompile Include="Animation.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="DX11App.cpp" />
@@ -179,6 +180,8 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ActionId.h" />
+    <ClInclude Include="ActionSystem.h" />
     <ClInclude Include="angles.h" />
     <ClInclude Include="Animation.h" />
     <ClInclude Include="Collision.h" />

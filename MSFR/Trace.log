@@ -1,21 +1,8 @@
-[0.2868]	Event	Engine InitCore
-[0.3054]	Event	Job workers (after init) = 31
-[0.3192]	Event	Load Spalsh
-[0.3618]	Event	Load Complete
-[2.2666]	Event	Unload Spalsh
-[2.2671]	Event	Clear Textures
-[2.2738]	Event	Load MainMenu
-[2.3315]	Event	Load Complete
-[4.0911]	Debug	Input LUp -> releasedThisFrame = true
-[4.0927]	Event	mouse win: 574, 300
-[4.0928]	Event	[MainMenu] Play clicked
-[4.1027]	Event	Unload MainMenu
-[4.1030]	Event	Clear Textures
-[4.1083]	Event	Load Spalsh
-[4.1407]	Event	Load Complete
-[5.3077]	Event	FPS: 153.306817
-[6.2070]	Event	Unload Spalsh
-[6.2358]	Event	Clear Textures
-[6.2381]	Event	Load MainMenu
-[6.2840]	Event	Load Complete
-[10.3077]	Event	FPS: 144.998762
+[0.0886]	Event	Engine InitCore
+[0.0989]	Event	Job workers (after init) = 31
+[0.1309]	Event	Load Spalsh
+[0.1843]	Event	Load Complete
+[0.5371]	Event	Unload Spalsh
+[0.5377]	Event	Clear Textures
+[0.5486]	Event	Load MainMenu
+[0.5997]	Event	Load Complete

@@ -12,6 +12,7 @@
 #include "Logger.h"
 #include "TextureManager.h"
 #include "JobSystem.h"
+#include "ActionSystem.h"
 
 class Engine
 {
@@ -39,6 +40,7 @@ public:
     static GameStateManager& GetGameStateManager() { return Instance().gameStateManager; }
     static TextureManager& GetTextureManager() { return Instance().textureManager; }
     static JobSystem& GetJobSystem() { return Instance().jobSystem; }
+    static ActionSystem& GetActionSystem() { return Instance().actionSystem; }
 
     template<typename T>
     static T* GetGSComponent() { return GetGameStateManager().GetGSComponent<T>(); }
@@ -88,6 +90,7 @@ private:
     Window window;
     TextureManager textureManager;
     JobSystem jobSystem;
+    ActionSystem actionSystem;
 
     // DX11 members
     Microsoft::WRL::ComPtr<ID3D11Device>        dxDevice;

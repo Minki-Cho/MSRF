@@ -9,7 +9,7 @@
 #undef min
 #undef max
 
-Splash::Splash() : modeNext(InputKey::Keyboard::Enter), timer(5.0f)
+Splash::Splash() : /*modeNext(InputKey::Keyboard::Enter),*/ timer(5.0f)
 {
 }
 
@@ -27,11 +27,13 @@ void Splash::Load()
 
 void Splash::Update(double dt)
 {
-	timer -= dt;
-	if (modeNext.IsKeyReleased() == true || timer < 0)
-	{
-		Engine::GetGameStateManager().SetNextState(static_cast<int>(ScreenMods::MainMenu));
-	}
+    timer -= dt;
+
+    const bool wantSkip = Engine::GetActionSystem().Has(ActionId::Skip);
+    if (wantSkip || timer < 0)
+    {
+        Engine::GetGameStateManager().SetNextState(static_cast<int>(ScreenMods::MainMenu));
+    }
 }
 
 void Splash::Draw()

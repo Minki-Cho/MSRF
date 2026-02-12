@@ -53,6 +53,11 @@ bool Input::IsKeyReleased(InputKey::Keyboard key) const
     return keyReleasedThisFrame[static_cast<int>(key)];
 }
 
+bool Input::IsKeyPressed(InputKey::Keyboard key) const
+{
+    return keyPressedThisFrame[static_cast<int>(key)];
+}
+
 void Input::OnKeyDown(InputKey::Keyboard k)
 {
     if (k == InputKey::Keyboard::None) return;

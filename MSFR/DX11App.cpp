@@ -484,6 +484,8 @@ void DX11App::Update()
         return;
     }
 
+    Engine::GetActionSystem().PollFromInput(Engine::GetInput());
+
     // Bind + clear
     ptr_context->OMSetRenderTargets(1, &ptr_rtv, ptr_dsv);
 

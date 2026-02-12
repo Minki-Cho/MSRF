@@ -16,7 +16,7 @@ public:
 	void Unload() override;
 	std::string GetName() override { return "Spalsh"; }
 private:
-	InputKey modeNext;
+	/*InputKey modeNext;*/
 	TextureDX11 SplashImage;
 	double timer;
 };

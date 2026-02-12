@@ -86,6 +86,9 @@
     <ClCompile Include="JobSystem.cpp">
       <Filter>Source Files\Engine</Filter>
     </ClCompile>
+    <ClCompile Include="ActionSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -182,6 +185,12 @@
       <Filter>Resource Files</Filter>
     </ClInclude>
     <ClInclude Include="JobSystem.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionSystem.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionId.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
   </ItemGroup>

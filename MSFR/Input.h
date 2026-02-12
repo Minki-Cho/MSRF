@@ -36,6 +36,8 @@ public:
 
     bool IsKeyDown(InputKey::Keyboard key) const;
     bool IsKeyReleased(InputKey::Keyboard key) const;
+    bool IsKeyPressed(InputKey::Keyboard key) const;
+
 
     void OnKeyDown(InputKey::Keyboard k);
     void OnKeyUp(InputKey::Keyboard k);
