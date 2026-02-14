@@ -13,6 +13,8 @@
 #include "TextureManager.h"
 #include "JobSystem.h"
 #include "ActionSystem.h"
+#include "CommandPool.h"
+#include "Command.h"
 
 class Engine
 {
@@ -41,6 +43,7 @@ public:
     static TextureManager& GetTextureManager() { return Instance().textureManager; }
     static JobSystem& GetJobSystem() { return Instance().jobSystem; }
     static ActionSystem& GetActionSystem() { return Instance().actionSystem; }
+    static auto& GetCommandPool() { return Instance().commandPool; }
 
     template<typename T>
     static T* GetGSComponent() { return GetGameStateManager().GetGSComponent<T>(); }
@@ -91,6 +94,7 @@ private:
     TextureManager textureManager;
     JobSystem jobSystem;
     ActionSystem actionSystem;
+    CommandPool<2048, 64> commandPool;
 
     // DX11 members
     Microsoft::WRL::ComPtr<ID3D11Device>        dxDevice;

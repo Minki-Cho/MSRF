@@ -4,12 +4,8 @@
 #include "Splash.h"
 #include "ScreenMods.h"
 
-#include <algorithm>
-#define NOMINMAX
-#undef min
-#undef max
 
-Splash::Splash() : /*modeNext(InputKey::Keyboard::Enter),*/ timer(5.0f)
+Splash::Splash() : timer(5.0f)
 {
 }
 

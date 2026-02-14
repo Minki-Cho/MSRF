@@ -1,8 +1,7 @@
-[0.0886]	Event	Engine InitCore
-[0.0989]	Event	Job workers (after init) = 31
-[0.1309]	Event	Load Spalsh
-[0.1843]	Event	Load Complete
-[0.5371]	Event	Unload Spalsh
-[0.5377]	Event	Clear Textures
-[0.5486]	Event	Load MainMenu
-[0.5997]	Event	Load Complete
+[0.0655]	Event	Engine InitCore
+[0.0677]	Event	Job workers (after init) = 31
+[0.0841]	Event	Load Spalsh
+[0.1351]	Event	Load Complete
+[1.9973]	Event	Unload Spalsh
+[1.9975]	Event	Clear Textures
+[2.0032]	Event	Load MainMenu

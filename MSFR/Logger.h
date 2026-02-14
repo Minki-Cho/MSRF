@@ -27,8 +27,7 @@ public:
     void LogVerbose(const std::string& text);
 
     void SetUseConsole(bool enabled) noexcept;
-    bool IsUsingConsole() const noexcept
-        ;
+    bool IsUsingConsole() const noexcept;
     void SetFocusRestoreHwnd(HWND hwnd) noexcept;
 private:
     void Log(Severity severity, const std::string& displayText);

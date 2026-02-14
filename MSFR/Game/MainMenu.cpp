@@ -51,7 +51,6 @@ void MainMenu::Update(double dt)
         std::to_string((int)mouse.y)
     );
 
-    // === 버튼 영역 (window 기준) ===
     const RectF play{
         390.f, 220.f,
         800.f, 345.f
