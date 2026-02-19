@@ -128,4 +128,4 @@ constexpr float magnitude_squared(vec2 a) noexcept
 
 #ifdef _MSC_VER
 #pragma warning(pop)
-#endif // _MSC_VER
+#endif

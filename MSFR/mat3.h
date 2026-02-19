@@ -2,7 +2,10 @@
 #include "vec2.h"
 #include "vec3.h"
 #include <cmath>
-
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4201)
+#endif
 template <typename T>
 struct mat3
 {
@@ -133,3 +136,7 @@ constexpr vec3 operator*(const mat3<T>& m, vec3 v) noexcept
         m.storage.elements[0][2] * v.x + m.storage.elements[1][2] * v.y + m.storage.elements[2][2] * v.z
     };
 }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif

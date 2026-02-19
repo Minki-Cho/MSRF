@@ -4,7 +4,7 @@
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable : 4201) // nameless struct/union used for vector aliases
+#pragma warning(disable : 4201)
 #endif
 struct vec3
 {
