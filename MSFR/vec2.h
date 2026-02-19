@@ -1,5 +1,10 @@
 #pragma once
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4201)
+#endif
+
 struct [[nodiscard]] vec2
 {
     union
@@ -120,3 +125,7 @@ constexpr float magnitude_squared(vec2 a) noexcept
 {
     return dot(a, a);
 }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif // _MSC_VER

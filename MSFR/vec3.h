@@ -1,6 +1,11 @@
 #pragma once
 #define NOMINMAX
 #include <Windows.h>
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4201) // nameless struct/union used for vector aliases
+#endif
 struct vec3
 {
     union
@@ -80,3 +85,7 @@ constexpr vec4::vec4(float repeated_float) noexcept : vec4(repeated_float, repea
 constexpr vec4::vec4(float fx, float fy, float fz, float fw) noexcept : x(fx), y(fy), z(fz), w(fw)
 {
 }
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif // _MSC_VER
+
