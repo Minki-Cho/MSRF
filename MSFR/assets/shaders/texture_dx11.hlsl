@@ -1,6 +1,6 @@
 cbuffer PerDraw : register(b0)
 {
-    float4x4 uModelToNDC;
+    row_major float4x4 uModelToNDC;
     float2 uTexelPos;
     float2 uFrameSize;
 };

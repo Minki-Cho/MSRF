@@ -47,8 +47,8 @@ void MainMenu::Update(double dt)
 
     Engine::GetLogger().LogEvent(
         "mouse win: " +
-        std::to_string((int)mouse.x) + ", " +
-        std::to_string((int)mouse.y)
+        std::to_string((int)mouse.x()) + ", " +
+        std::to_string((int)mouse.y())
     );
 
 
@@ -67,16 +67,16 @@ void MainMenu::Update(double dt)
         800.f, 530.f + 125.f
     };
 
-    if (play.Contains(mouse.x, mouse.y))
+    if (play.Contains(mouse.x(), mouse.y()))
     {
         Engine::GetLogger().LogEvent("Play clicked");
         Engine::GetGameStateManager().SetNextState((int)ScreenMods::GamePlay1);
     }
-    else if (howToPlay.Contains(mouse.x, mouse.y))
+    else if (howToPlay.Contains(mouse.x(), mouse.y()))
     {
         Engine::GetLogger().LogEvent("[MainMenu] HowToPlay clicked");
     }
-    else if (quit.Contains(mouse.x, mouse.y))
+    else if (quit.Contains(mouse.x(), mouse.y()))
     {
         Engine::GetLogger().LogEvent("[MainMenu] Quit clicked");
     }

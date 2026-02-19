@@ -139,8 +139,8 @@ const char* Input::KeyboardToString(InputKey::Keyboard key)
 
 void Input::OnMouseMove(float x, float y)
 {
-    mousePos.x = x;
-    mousePos.y = y;
+    mousePos.x() = x;
+    mousePos.y() = y;
 }
 
 void Input::OnMouseDown(int button)
@@ -186,8 +186,8 @@ void Input::OnWin32Message(UINT msg, WPARAM wParam, LPARAM lParam)
     {
         int x = GET_X_LPARAM(lParam);
         int y = GET_Y_LPARAM(lParam);
-        mousePos.x = static_cast<float>(x);
-        mousePos.y = static_cast<float>(y);
+        mousePos.x() = static_cast<float>(x);
+        mousePos.y() = static_cast<float>(y);
         return;
     }
 

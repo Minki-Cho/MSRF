@@ -39,18 +39,22 @@ namespace
     {
         PerDrawCB o{};
 
-        // 2D affine mat3 
-        // [ a00 a01 a02 ]
-        // [ a10 a11 a12 ]
-        // [ a20 a21 a22 ]
+        const float a00 = a.e[0][0], a10 = a.e[0][1], a20 = a.e[0][2];
+        const float a01 = a.e[1][0], a11 = a.e[1][1], a21 = a.e[1][2];
+        const float a02 = a.e[2][0], a12 = a.e[2][1], a22 = a.e[2][2];
 
-        o.m[0] = a.storage.elements[0][0]; o.m[1] = a.storage.elements[0][1]; o.m[2] = 0.f; o.m[3] = a.storage.elements[0][2];
-        o.m[4] = a.storage.elements[1][0]; o.m[5] = a.storage.elements[1][1]; o.m[6] = 0.f; o.m[7] = a.storage.elements[1][2];
-        o.m[8] = 0.f;              o.m[9] = 0.f;              o.m[10] = 1.f; o.m[11] = 0.f;
-        o.m[12] = a.storage.elements[2][0]; o.m[13] = a.storage.elements[2][1]; o.m[14] = 0.f; o.m[15] = a.storage.elements[2][2];
+        // col0
+        o.m[0] = a00; o.m[1] = a10; o.m[2] = 0.f; o.m[3] = a20;
+        // col1
+        o.m[4] = a01; o.m[5] = a11; o.m[6] = 0.f; o.m[7] = a21;
+        // col2
+        o.m[8] = 0.f; o.m[9] = 0.f; o.m[10] = 1.f; o.m[11] = 0.f;
+        // col3
+        o.m[12] = a02; o.m[13] = a12; o.m[14] = 0.f; o.m[15] = a22;
 
         return o;
     }
+
 
     void CompileFromFile(const wchar_t* path, const char* entry, const char* target, ComPtr<ID3DBlob>& outBlob)
     {
@@ -190,7 +194,7 @@ void RectCollision::Draw(mat3<float>)
         GetWorldCoorRect().Left() - (1280.f - Engine::GetWindow().GetClientWidth()) / 2.f,
         GetWorldCoorRect().Bottom() - (720.f - Engine::GetWindow().GetClientHeight()) / 2.f);
 
-    mat3<float> scale = mat3<float>::build_scale(GetWorldCoorRect().Size().x, GetWorldCoorRect().Size().y);
+    mat3<float> scale = mat3<float>::build_scale(GetWorldCoorRect().Size().x(), GetWorldCoorRect().Size().y());
     mat3<float> to_bottom_left = mat3<float>::build_translation(-Engine::GetWindow().GetClientWidth() / 2.f,
         -Engine::GetWindow().GetClientHeight() / 2.f);
 
@@ -250,8 +254,8 @@ bool RectCollision::DoesCollideWith(vec2 point)
 {
     rect3 a = GetWorldCoorRect();
 
-    return (point.x >= a.Left() && point.x <= a.Right() &&
-        point.y >= a.Bottom() && point.y <= a.Top());
+    return (point.x() >= a.Left() && point.x() <= a.Right() &&
+        point.y() >= a.Bottom() && point.y() <= a.Top());
 }
 
 // CircleCollision
@@ -312,8 +316,8 @@ void CircleCollision::Draw(mat3<float> cameraMatrix)
 
     mat3<float> scale = mat3<float>::build_scale((float)(radius * 2.0));
     mat3<float> translation = mat3<float>::build_translation(
-        cameraMatrix.column2().x,
-        cameraMatrix.column2().y
+        cameraMatrix.column2().x(),
+        cameraMatrix.column2().y()
     );
     const mat3<float> model_to_world = translation * scale;
 
@@ -346,7 +350,7 @@ void CircleCollision::Draw(mat3<float> cameraMatrix)
 
 double CircleCollision::GetRadius()
 {
-    return (mat3<float>::build_scale(objectPtr->GetScale()) * vec3 { (float)radius, 0, 1.0f }).x;
+    return (mat3<float>::build_scale(objectPtr->GetScale()) * vec3 { (float)radius, 0, 1.0f }).x();
 }
 
 bool CircleCollision::DoesCollideWith(GameObject* objectB)
@@ -354,8 +358,8 @@ bool CircleCollision::DoesCollideWith(GameObject* objectB)
     if (objectB->GetGOComponent<Collision>() != nullptr &&
         objectB->GetGOComponent<Collision>()->GetCollideType() == CollideType::Circle_Collide)
     {
-        double d_x = (objectPtr->GetPosition().x - objectB->GetPosition().x);
-        double d_y = (objectPtr->GetPosition().y - objectB->GetPosition().y);
+        double d_x = (objectPtr->GetPosition().x() - objectB->GetPosition().x());
+        double d_y = (objectPtr->GetPosition().y() - objectB->GetPosition().y());
         double distance = (d_x * d_x) + (d_y * d_y);
 
         double d_r = GetRadius() + objectB->GetGOComponent<CircleCollision>()->GetRadius();
@@ -369,8 +373,8 @@ bool CircleCollision::DoesCollideWith(GameObject* objectB)
 
 bool CircleCollision::DoesCollideWith(vec2 point)
 {
-    double d_x = (objectPtr->GetPosition().x - point.x);
-    double d_y = (objectPtr->GetPosition().y - point.y);
+    double d_x = (objectPtr->GetPosition().x() - point.x());
+    double d_y = (objectPtr->GetPosition().y() - point.y());
     double distance = (d_x * d_x) + (d_y * d_y);
 
     if (distance <= GetRadius() * GetRadius())

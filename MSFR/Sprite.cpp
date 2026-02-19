@@ -116,15 +116,15 @@ void Sprite::Load(const std::filesystem::path& spriteInfoFile, GameObject* objec
     {
         if (text == "FrameSize")
         {
-            inFile >> frameSize.x;
-            inFile >> frameSize.y;
+            inFile >> frameSize.x();
+            inFile >> frameSize.y();
         }
         else if (text == "NumFrames")
         {
             int numFrames;
             inFile >> numFrames;
             for (int i = 0; i < numFrames; i++)
-                frameTexel.push_back({ frameSize.x * i, 0 });
+                frameTexel.push_back({ frameSize.x() * i, 0 });
         }
         else if (text == "Frame")
         {
@@ -148,7 +148,7 @@ void Sprite::Load(const std::filesystem::path& spriteInfoFile, GameObject* objec
         else if (text == "CollisionRect")
         {
             rect3 rect;
-            inFile >> rect.point1.x >> rect.point1.y >> rect.point2.x >> rect.point2.y;
+            inFile >> rect.point1.x() >> rect.point1.y() >> rect.point2.x() >> rect.point2.y();
 
             if (object == nullptr)
                 Engine::GetLogger().LogError("Trying to add collision to a nullobject");
@@ -189,7 +189,7 @@ void Sprite::Draw(mat3<float> displayMatrix)
 
     texturePtr->Draw(
         Engine::GetDXContext(),
-        displayMatrix * mat3<float>::build_translation(-GetHotSpot(0).x, -GetHotSpot(0).y),
+        displayMatrix * mat3<float>::build_translation(-GetHotSpot(0).x(), -GetHotSpot(0).y()),
         GetFrameTexel(animations[currAnim]->GetDisplayFrame()),
         GetFrameSize());
 }

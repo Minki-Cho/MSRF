@@ -28,7 +28,7 @@ void Player::Update(double dt)
     const float maxY = static_cast<float>(Engine::GetViewportHeight());
 
     const vec2 p = GetPosition();
-    if (p.x < minX || p.x > maxX || p.y < minY || p.y > maxY)
+    if (p.x() < minX || p.x() > maxX || p.y() < minY || p.y() > maxY)
         SetPosition(startPos);
 }
 
@@ -83,10 +83,10 @@ void Player::StateMove::Update(GameObject* object, double /*dt*/)
 
     vec2 v{ 0.f, 0.f };
 
-    if (L) v.x -= p->moveSpeed;
-    if (R) v.x += p->moveSpeed;
-    if (U) v.y += p->moveSpeed;
-    if (D) v.y -= p->moveSpeed;
+    if (L) v.x() -= p->moveSpeed;
+    if (R) v.x() += p->moveSpeed;
+    if (U) v.y() += p->moveSpeed;
+    if (D) v.y() -= p->moveSpeed;
 
     if (L) p->direction = CharacterAnim::Left;
     else if (R) p->direction = CharacterAnim::Right;

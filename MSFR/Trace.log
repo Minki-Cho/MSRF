@@ -1,9 +1,18 @@
-[0.2429]	Event	Engine InitCore
-[0.2584]	Event	Job workers (after init) = 31
-[0.2713]	Event	Load Spalsh
-[0.3052]	Event	Load Complete
-[2.1576]	Event	Unload Spalsh
-[2.1579]	Event	Clear Textures
-[2.1626]	Event	Load MainMenu
-[2.2099]	Event	Load Complete
-[5.2621]	Event	FPS: 160.654887
+[0.3329]	Event	Engine InitCore
+[0.3545]	Event	Job workers (after init) = 31
+[0.3706]	Event	Load Spalsh
+[0.4060]	Event	Load Complete
+[2.3172]	Event	Unload Spalsh
+[2.3183]	Event	Clear Textures
+[2.3250]	Event	Load MainMenu
+[2.3671]	Event	Load Complete
+[3.1036]	Debug	Input LUp -> releasedThisFrame = true
+[3.1062]	Event	mouse win: 624, 291
+[3.1065]	Event	Play clicked
+[3.1172]	Event	Unload MainMenu
+[3.1176]	Event	Clear Textures
+[3.1247]	Event	Load GamePlay1
+[3.1254]	Event	Sprite SPT: assets/images/characters/characters/thief/thief.spt
+[3.1256]	Event	Texture token: assets/images/characters/thief/thief.png
+[3.1257]	Event	Resolved texture path: assets/images/characters/characters/thief/assets/images/characters/thief/thief.png
+[3.1259]	Error	Texture file not found: assets/images/characters/characters/thief/assets/images/characters/thief/thief.png

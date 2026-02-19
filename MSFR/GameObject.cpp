@@ -61,9 +61,9 @@ void GameObject::Update(double dt)
         currState->TestForExit(this);
     }
 
-    if (velocity.x != 0.0f || velocity.y != 0.0f)
+    if (velocity.x() != 0.0f || velocity.y() != 0.0f)
     {
-        UpdatePosition(vec2{ static_cast<float>(velocity.x * dt), static_cast<float>(velocity.y * dt) });
+        UpdatePosition(vec2{ static_cast<float>(velocity.x() * dt), static_cast<float>(velocity.y() * dt) });
     }
 
     UpdateGOComponents(dt);
@@ -91,9 +91,9 @@ const mat3<float>& GameObject::GetMatrix()
 {
     if (updateMatrix)
     {
-        const mat3<float> S = mat3<float>::build_scale(scale.x, scale.y);
+        const mat3<float> S = mat3<float>::build_scale(scale.x(), scale.y());
         const mat3<float> R = mat3<float>::build_rotation(static_cast<float>(rotation));
-        const mat3<float> T = mat3<float>::build_translation(position.x, position.y);
+        const mat3<float> T = mat3<float>::build_translation(position.x(), position.y());
 
         objectMatrix = T * R * S;
         updateMatrix = false;
@@ -150,8 +150,8 @@ void GameObject::SetDestroyed(bool b)
 // Transform mutators
 void GameObject::UpdatePosition(vec2 adjustPosition)
 {
-    position.x += adjustPosition.x;
-    position.y += adjustPosition.y;
+    position.x() += adjustPosition.x();
+    position.y() += adjustPosition.y();
     updateMatrix = true;
 }
 
@@ -162,8 +162,8 @@ void GameObject::SetVelocity(vec2 newVelocity)
 
 void GameObject::UpdateVelocity(vec2 adjustVelocity)
 {
-    velocity.x += adjustVelocity.x;
-    velocity.y += adjustVelocity.y;
+    velocity.x() += adjustVelocity.x();
+    velocity.y() += adjustVelocity.y();
 }
 
 void GameObject::SetScale(vec2 newScale)

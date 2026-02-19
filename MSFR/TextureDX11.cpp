@@ -124,15 +124,21 @@ namespace
     CBPerDraw MakeCB(const mat3<float>& modelToNdc, vec2 texelPosN, vec2 frameSizeN)
     {
         CBPerDraw cb{};
-        cb.m[0] = modelToNdc.storage.elements[0][0]; cb.m[1] = modelToNdc.storage.elements[0][1]; cb.m[2] = 0.f; cb.m[3] = modelToNdc.storage.elements[0][2];
-        cb.m[4] = modelToNdc.storage.elements[1][0]; cb.m[5] = modelToNdc.storage.elements[1][1]; cb.m[6] = 0.f; cb.m[7] = modelToNdc.storage.elements[1][2];
-        cb.m[8] = 0.f;                      cb.m[9] = 0.f;                      cb.m[10] = 1.f; cb.m[11] = 0.f;
-        cb.m[12] = modelToNdc.storage.elements[2][0]; cb.m[13] = modelToNdc.storage.elements[2][1]; cb.m[14] = 0.f; cb.m[15] = modelToNdc.storage.elements[2][2];
 
-        cb.texelPos[0] = texelPosN.x;
-        cb.texelPos[1] = texelPosN.y;
-        cb.frameSize[0] = frameSizeN.x;
-        cb.frameSize[1] = frameSizeN.y;
+        const float a00 = modelToNdc.e[0][0], a01 = modelToNdc.e[1][0], a02 = modelToNdc.e[2][0];
+        const float a10 = modelToNdc.e[0][1], a11 = modelToNdc.e[1][1], a12 = modelToNdc.e[2][1];
+        const float a20 = modelToNdc.e[0][2], a21 = modelToNdc.e[1][2], a22 = modelToNdc.e[2][2];
+
+        cb.m[0] = a00; cb.m[1] = a01; cb.m[2] = 0.f; cb.m[3] = a02;
+        cb.m[4] = a10; cb.m[5] = a11; cb.m[6] = 0.f; cb.m[7] = a12;
+        cb.m[8] = 0.f; cb.m[9] = 0.f; cb.m[10] = 1.f; cb.m[11] = 0.f;
+        cb.m[12] = a20; cb.m[13] = a21; cb.m[14] = 0.f; cb.m[15] = a22;
+
+        cb.texelPos[0] = texelPosN.x();
+        cb.texelPos[1] = texelPosN.y();
+        cb.frameSize[0] = frameSizeN.x();
+        cb.frameSize[1] = frameSizeN.y();
+
         return cb;
     }
 
@@ -173,17 +179,22 @@ namespace
         float x, float y, float w, float h,
         float screenW, float screenH)
     {
+        mat3<float> m; // identity (e[0][0]=1,e[1][1]=1,e[2][2]=1)
 
-        mat3<float> m; // identity
+        // scale (column-major e[c][r])
+        m.e[0][0] = (2.0f * w) / screenW;  // sx
+        m.e[1][1] = (2.0f * h) / screenH;  // sy
 
-        m.column0() = { (2.0f * w) / screenW, 0.0f, 0.0f };
-        m.column1() = {0.0f, (2.0f * h) / screenH, 0.0f};
+        // translation
+        m.e[2][0] = (-1.0f + (2.0f * x) / screenW);
+        m.e[2][1] = (-1.0f + (2.0f * y) / screenH);
+        m.e[2][2] = 1.0f;
 
-        m.column2() = {
-            (-1.0f + (2.0f * x) / screenW),
-            (-1.0f + (2.0f * y) / screenH),
-            1.0f
-        };
+        // 나머지는 0이면 OK (identity 생성이 이미 0으로 채웠다면 괜찮음)
+        m.e[0][1] = m.e[0][2] = 0.0f;
+        m.e[1][0] = m.e[1][2] = 0.0f;
+        m.e[2][2] = 1.0f;
+
         return m;
     }
 }
@@ -259,21 +270,21 @@ vec2 TextureDX11::GetSize() const
 void TextureDX11::DrawFitCenter(const vec2& viewportSize)
 {
     const vec2 tex = GetSize();
-    const float sx = viewportSize.x / tex.x;
-    const float sy = viewportSize.y / tex.y;
+    const float sx = viewportSize.x() / tex.x();
+    const float sy = viewportSize.y() / tex.y();
     const float s = (std::min)(sx, sy);
 
-    const float drawW = tex.x * s;
-    const float drawH = tex.y * s;
+    const float drawW = tex.x() * s;
+    const float drawH = tex.y() * s;
 
-    const float x = (viewportSize.x - drawW) * 0.5f;
-    const float y = (viewportSize.y - drawH) * 0.5f;
+    const float x = (viewportSize.x() - drawW) * 0.5f;
+    const float y = (viewportSize.y() - drawH) * 0.5f;
 
-    mat3<float> M;
-    M.column0().x = s;
-    M.column1().y = s;
-    M.column2().x = x;
-    M.column2().y = y;
+    mat3<float> M;              // identity
+    M.e[0][0] = s;              // scale x
+    M.e[1][1] = s;              // scale y
+    M.e[2][0] = x;              // translate x
+    M.e[2][1] = y;              // translate y
 
     Draw(M);
 }
@@ -380,10 +391,10 @@ void TextureDX11::Draw(ID3D11DeviceContext* ctx, const mat3<float>& displayMatri
     const float screenW = (float)Engine::GetViewportWidth();
     const float screenH = (float)Engine::GetViewportHeight();
 
-    const float x = displayMatrix.column2().x;
-    const float y = displayMatrix.column2().y;
-    const float sx = displayMatrix.column0().x;
-    const float sy = displayMatrix.column1().y;
+    const float x = displayMatrix.column2().x();
+    const float y = displayMatrix.column2().y();
+    const float sx = displayMatrix.column0().x();
+    const float sy = displayMatrix.column1().y();
 
     const float w = (float)width * sx;
     const float h = (float)height * sy;
@@ -425,21 +436,21 @@ void TextureDX11::Draw(ID3D11DeviceContext* ctx, const mat3<float>& displayMatri
 {
     if (!ctx) return;
 
-    const float screenW = 1280.f;
-    const float screenH = 720.f;
+    const float screenW = (float)Engine::GetViewportWidth();
+    const float screenH = (float)Engine::GetViewportHeight();
 
-    const float x = displayMatrix.column2().x;
-    const float y = displayMatrix.column2().y;
-    const float sx = displayMatrix.column0().x;
-    const float sy = displayMatrix.column1().y;
+    const float x = displayMatrix.column2().x();
+    const float y = displayMatrix.column2().y();
+    const float sx = displayMatrix.column0().x();
+    const float sy = displayMatrix.column1().y();
 
-    const float w = frameSize.x * sx;
-    const float h = frameSize.y * sy;
+    const float w = frameSize.x() * sx;
+    const float h = frameSize.y() * sy;
 
     const mat3<float> model_to_ndc = BuildSpriteModelToNDC(x, y, w, h, screenW, screenH);
 
-    vec2 texelPosN = { texelPos.x / (float)width,  texelPos.y / (float)height };
-    vec2 frameSizeN = { frameSize.x / (float)width, frameSize.y / (float)height };
+    vec2 texelPosN = { texelPos.x() / (float)width,  texelPos.y() / (float)height };
+    vec2 frameSizeN = { frameSize.x() / (float)width, frameSize.y() / (float)height };
 
     const CBPerDraw cb = MakeCB(model_to_ndc, texelPosN, frameSizeN);
     UpdateDynamicCB(ctx, constantBuffer.Get(), &cb, sizeof(cb));
@@ -474,7 +485,6 @@ void TextureDX11::Draw(ID3D11DeviceContext* ctx, const mat3<float>& displayMatri
 
 void TextureDX11::Draw(const mat3<float>& displayMatrix)
 {
-
     Draw(Engine::GetDXContext(), displayMatrix);
 }
 

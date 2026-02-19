@@ -1,91 +1,108 @@
 #pragma once
-#define NOMINMAX
-#include <Windows.h>
+#include <cstddef>   // size_t
+#include <cassert>   // assert
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4201)
-#endif
 struct vec3
 {
-    union
+    float e[3]{};
+
+    // Ctors
+    constexpr vec3() noexcept = default;
+    constexpr explicit vec3(float s) noexcept : e{ s, s, s } {}
+    constexpr vec3(float fx, float fy, float fz) noexcept : e{ fx, fy, fz } {}
+
+    // Accessors (position)
+    constexpr float& x() noexcept { return e[0]; }
+    constexpr float& y() noexcept { return e[1]; }
+    constexpr float& z() noexcept { return e[2]; }
+    constexpr float  x() const noexcept { return e[0]; }
+    constexpr float  y() const noexcept { return e[1]; }
+    constexpr float  z() const noexcept { return e[2]; }
+
+    // Aliases (color)
+    constexpr float& red()   noexcept { return e[0]; }
+    constexpr float& green() noexcept { return e[1]; }
+    constexpr float& blue()  noexcept { return e[2]; }
+    constexpr float  red()   const noexcept { return e[0]; }
+    constexpr float  green() const noexcept { return e[1]; }
+    constexpr float  blue()  const noexcept { return e[2]; }
+
+    // Aliases (dimensions)
+    constexpr float& width()  noexcept { return e[0]; }
+    constexpr float& height() noexcept { return e[1]; }
+    constexpr float& depth()  noexcept { return e[2]; }
+    constexpr float  width()  const noexcept { return e[0]; }
+    constexpr float  height() const noexcept { return e[1]; }
+    constexpr float  depth()  const noexcept { return e[2]; }
+
+    // Indexing
+    constexpr float& operator[](std::size_t i) noexcept
     {
-        struct
-        {
-            float x, y, z;
-        };
-        struct
-        {
-            float red, green, blue;
-        };
-        struct
-        {
-            float width, height, depth;
-        };
-        float elements[3];
-    };
+        assert(i < 3);
+        return e[i];
+    }
+    constexpr float operator[](std::size_t i) const noexcept
+    {
+        assert(i < 3);
+        return e[i];
+    }
 
-    constexpr vec3() noexcept;
-    constexpr explicit vec3(float repeated_float) noexcept;
-    constexpr vec3(float fx, float fy, float fz) noexcept;
+    // Optional helpers
+    static constexpr std::size_t size() noexcept { return 3; }
+    constexpr float* data() noexcept { return e; }
+    constexpr const float* data() const noexcept { return e; }
 };
-
-////////////////////////////////////////////////////////////////////////////////////////////
-// Implementation
-////////////////////////////////////////////////////////////////////////////////////////////
-
-constexpr vec3::vec3() noexcept : vec3(0.0f)
-{
-}
-
-constexpr vec3::vec3(float repeated_float) noexcept : vec3(repeated_float, repeated_float, repeated_float)
-{
-}
-
-constexpr vec3::vec3(float fx, float fy, float fz) noexcept : x(fx), y(fy), z(fz)
-{
-}
 
 struct vec4
 {
-    union
+    float e[4]{};
+
+    // Ctors
+    constexpr vec4() noexcept = default;
+    constexpr explicit vec4(float s) noexcept : e{ s, s, s, s } {}
+    constexpr vec4(float fx, float fy, float fz, float fw) noexcept : e{ fx, fy, fz, fw } {}
+
+    // Accessors (position)
+    constexpr float& x() noexcept { return e[0]; }
+    constexpr float& y() noexcept { return e[1]; }
+    constexpr float& z() noexcept { return e[2]; }
+    constexpr float& w() noexcept { return e[3]; }
+    constexpr float  x() const noexcept { return e[0]; }
+    constexpr float  y() const noexcept { return e[1]; }
+    constexpr float  z() const noexcept { return e[2]; }
+    constexpr float  w() const noexcept { return e[3]; }
+
+    // Aliases (color)
+    constexpr float& red()   noexcept { return e[0]; }
+    constexpr float& green() noexcept { return e[1]; }
+    constexpr float& blue()  noexcept { return e[2]; }
+    constexpr float& alpha() noexcept { return e[3]; }
+    constexpr float  red()   const noexcept { return e[0]; }
+    constexpr float  green() const noexcept { return e[1]; }
+    constexpr float  blue()  const noexcept { return e[2]; }
+    constexpr float  alpha() const noexcept { return e[3]; }
+
+    // Aliases (dimensions)
+    constexpr float& width()  noexcept { return e[0]; }
+    constexpr float& height() noexcept { return e[1]; }
+    constexpr float& depth()  noexcept { return e[2]; }
+    constexpr float  width()  const noexcept { return e[0]; }
+    constexpr float  height() const noexcept { return e[1]; }
+    constexpr float  depth()  const noexcept { return e[2]; }
+
+    // Indexing
+    constexpr float& operator[](std::size_t i) noexcept
     {
-        struct
-        {
-            float x, y, z, w;
-        };
-        struct
-        {
-            float red, green, blue, alpha;
-        };
-        struct
-        {
-            float width, height, depth, w;
-        };
-        float elements[4];
-    };
+        assert(i < 4);
+        return e[i];
+    }
+    constexpr float operator[](std::size_t i) const noexcept
+    {
+        assert(i < 4);
+        return e[i];
+    }
 
-    constexpr vec4() noexcept;
-    constexpr explicit vec4(float repeated_float) noexcept;
-    constexpr vec4(float fx, float fy, float fz, float fw) noexcept;
+    static constexpr std::size_t size() noexcept { return 4; }
+    constexpr float* data() noexcept { return e; }
+    constexpr const float* data() const noexcept { return e; }
 };
-
-////////////////////////////////////////////////////////////////////////////////////////////
-// Implementation
-////////////////////////////////////////////////////////////////////////////////////////////
-
-constexpr vec4::vec4() noexcept : vec4(0.0f)
-{
-}
-
-constexpr vec4::vec4(float repeated_float) noexcept : vec4(repeated_float, repeated_float, repeated_float, repeated_float)
-{
-}
-
-constexpr vec4::vec4(float fx, float fy, float fz, float fw) noexcept : x(fx), y(fy), z(fz), w(fw)
-{
-}
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif // _MSC_VER
-

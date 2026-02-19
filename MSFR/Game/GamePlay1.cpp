@@ -31,8 +31,8 @@ void GamePlay1::Update(double dt)
 
     Engine::GetLogger().LogEvent(
         "mouse win: " +
-        std::to_string((int)mouse.x) + ", " +
-        std::to_string((int)mouse.y)
+        std::to_string((int)mouse.x()) + ", " +
+        std::to_string((int)mouse.y())
     );
 
 
