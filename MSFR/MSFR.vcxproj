@@ -166,7 +166,9 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="GameObjectmanager.cpp" />
     <ClCompile Include="GameStateManager.cpp" />
+    <ClCompile Include="Game\GamePlay1.cpp" />
     <ClCompile Include="Game\MainMenu.cpp" />
+    <ClCompile Include="Game\Player.cpp" />
     <ClCompile Include="Game\Splash.cpp" />
     <ClCompile Include="input.cpp" />
     <ClCompile Include="IProgram.cpp" />
@@ -186,6 +188,8 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
     <ClInclude Include="Animation.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="color3.h" />
+    <ClInclude Include="Command.h" />
+    <ClInclude Include="CommandPool.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="ComponentManager.h" />
     <ClInclude Include="DX11App.h" />
@@ -195,8 +199,12 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
     <ClInclude Include="GameObjectManager.h" />
     <ClInclude Include="GameState.h" />
     <ClInclude Include="GameStateManager.h" />
+    <ClInclude Include="Game\CharacterAnim.h" />
+    <ClInclude Include="Game\GameObjectType.h" />
+    <ClInclude Include="Game\GamePlay1.h" />
     <ClInclude Include="Game\GameProgram.h" />
     <ClInclude Include="Game\MainMenu.h" />
+    <ClInclude Include="Game\Player.h" />
     <ClInclude Include="Game\ScreenMods.h" />
     <ClInclude Include="Game\Splash.h" />
     <ClInclude Include="Input.h" />

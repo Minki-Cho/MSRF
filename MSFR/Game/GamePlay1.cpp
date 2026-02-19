@@ -4,7 +4,6 @@
 #include "GamePlay1.h"
 #include "ScreenMods.h"
 
-
 GamePlay1::GamePlay1() : timer(5.0f)
 {
 
@@ -16,8 +15,9 @@ GamePlay1::~GamePlay1()
 
 void GamePlay1::Load()
 {
-
-    MainMenuImage = TextureDX11("assets/images/MainMenu.png", false);
+    playerPtr = new Player(vec2{ 1120, 240 });
+	gameObjectManager->Add(playerPtr);
+    //MainMenuImage = TextureDX11("assets/images/MainMenu.png", false);
 }
 
 void GamePlay1::Update(double dt)
@@ -36,7 +36,7 @@ void GamePlay1::Update(double dt)
     );
 
 
-    tt.Update(dt);
+    gameObjectManager->Update(dt);
 }
 
 void GamePlay1::Draw()
@@ -46,4 +46,5 @@ void GamePlay1::Draw()
 
 void GamePlay1::Unload()
 {
+    playerPtr = nullptr;
 }

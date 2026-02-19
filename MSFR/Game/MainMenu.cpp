@@ -51,6 +51,7 @@ void MainMenu::Update(double dt)
         std::to_string((int)mouse.y)
     );
 
+
     const RectF play{
         390.f, 220.f,
         800.f, 345.f
@@ -68,8 +69,8 @@ void MainMenu::Update(double dt)
 
     if (play.Contains(mouse.x, mouse.y))
     {
-        Engine::GetLogger().LogEvent("[MainMenu] Play clicked");
-        Engine::GetGameStateManager().SetNextState((int)ScreenMods::Splash);
+        Engine::GetLogger().LogEvent("Play clicked");
+        Engine::GetGameStateManager().SetNextState((int)ScreenMods::GamePlay1);
     }
     else if (howToPlay.Contains(mouse.x, mouse.y))
     {

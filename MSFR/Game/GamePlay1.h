@@ -5,6 +5,7 @@
 #include "../Input.h"
 #include "../TextureDX11.h"
 #include "../GameObjectManager.h"
+#include "Player.h"
 
 class GamePlay1 : public GameState
 {
@@ -17,7 +18,8 @@ public:
 	void Unload() override;
 	std::string GetName() override { return "GamePlay1"; }
 private:
+	GameObjectManager* gameObjectManager{ nullptr };
 	TextureDX11 MainMenuImage;
 	double timer;
-	GameObjectManager tt;
+	Player* playerPtr{ nullptr };
 };
