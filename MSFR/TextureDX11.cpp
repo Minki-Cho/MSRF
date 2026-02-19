@@ -124,10 +124,10 @@ namespace
     CBPerDraw MakeCB(const mat3<float>& modelToNdc, vec2 texelPosN, vec2 frameSizeN)
     {
         CBPerDraw cb{};
-        cb.m[0] = modelToNdc.elements[0][0]; cb.m[1] = modelToNdc.elements[0][1]; cb.m[2] = 0.f; cb.m[3] = modelToNdc.elements[0][2];
-        cb.m[4] = modelToNdc.elements[1][0]; cb.m[5] = modelToNdc.elements[1][1]; cb.m[6] = 0.f; cb.m[7] = modelToNdc.elements[1][2];
+        cb.m[0] = modelToNdc.storage.elements[0][0]; cb.m[1] = modelToNdc.storage.elements[0][1]; cb.m[2] = 0.f; cb.m[3] = modelToNdc.storage.elements[0][2];
+        cb.m[4] = modelToNdc.storage.elements[1][0]; cb.m[5] = modelToNdc.storage.elements[1][1]; cb.m[6] = 0.f; cb.m[7] = modelToNdc.storage.elements[1][2];
         cb.m[8] = 0.f;                      cb.m[9] = 0.f;                      cb.m[10] = 1.f; cb.m[11] = 0.f;
-        cb.m[12] = modelToNdc.elements[2][0]; cb.m[13] = modelToNdc.elements[2][1]; cb.m[14] = 0.f; cb.m[15] = modelToNdc.elements[2][2];
+        cb.m[12] = modelToNdc.storage.elements[2][0]; cb.m[13] = modelToNdc.storage.elements[2][1]; cb.m[14] = 0.f; cb.m[15] = modelToNdc.storage.elements[2][2];
 
         cb.texelPos[0] = texelPosN.x;
         cb.texelPos[1] = texelPosN.y;
@@ -176,10 +176,10 @@ namespace
 
         mat3<float> m; // identity
 
-        m.column0 = { (2.0f * w) / screenW, 0.0f, 0.0f };
-        m.column1 = { 0.0f, (2.0f * h) / screenH, 0.0f };
+        m.column0() = { (2.0f * w) / screenW, 0.0f, 0.0f };
+        m.column1() = {0.0f, (2.0f * h) / screenH, 0.0f};
 
-        m.column2 = {
+        m.column2() = {
             (-1.0f + (2.0f * x) / screenW),
             (-1.0f + (2.0f * y) / screenH),
             1.0f
@@ -270,10 +270,10 @@ void TextureDX11::DrawFitCenter(const vec2& viewportSize)
     const float y = (viewportSize.y - drawH) * 0.5f;
 
     mat3<float> M;
-    M.column0.x = s;
-    M.column1.y = s;
-    M.column2.x = x;
-    M.column2.y = y;
+    M.column0().x = s;
+    M.column1().y = s;
+    M.column2().x = x;
+    M.column2().y = y;
 
     Draw(M);
 }
@@ -380,10 +380,10 @@ void TextureDX11::Draw(ID3D11DeviceContext* ctx, const mat3<float>& displayMatri
     const float screenW = (float)Engine::GetViewportWidth();
     const float screenH = (float)Engine::GetViewportHeight();
 
-    const float x = displayMatrix.column2.x;
-    const float y = displayMatrix.column2.y;
-    const float sx = displayMatrix.column0.x;
-    const float sy = displayMatrix.column1.y;
+    const float x = displayMatrix.column2().x;
+    const float y = displayMatrix.column2().y;
+    const float sx = displayMatrix.column0().x;
+    const float sy = displayMatrix.column1().y;
 
     const float w = (float)width * sx;
     const float h = (float)height * sy;
@@ -428,10 +428,10 @@ void TextureDX11::Draw(ID3D11DeviceContext* ctx, const mat3<float>& displayMatri
     const float screenW = 1280.f;
     const float screenH = 720.f;
 
-    const float x = displayMatrix.column2.x;
-    const float y = displayMatrix.column2.y;
-    const float sx = displayMatrix.column0.x;
-    const float sy = displayMatrix.column1.y;
+    const float x = displayMatrix.column2().x;
+    const float y = displayMatrix.column2().y;
+    const float sx = displayMatrix.column0().x;
+    const float sy = displayMatrix.column1().y;
 
     const float w = frameSize.x * sx;
     const float h = frameSize.y * sy;

@@ -10,7 +10,7 @@
 #include "Collision.h"
 
 
-void GameObject::ChangeState(State* newState)
+void GameObject::ChangeState(State* /*newState*/)
 {
 }
 

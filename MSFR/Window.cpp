@@ -110,7 +110,7 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
     return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
-LRESULT Window::HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT Window::HandleMessage(HWND hwndParam, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     Engine::GetInput().OnWin32Message(msg, wParam, lParam);
     switch (msg)
@@ -142,5 +142,5 @@ LRESULT Window::HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         break;
     }
 
-    return DefWindowProc(hWnd, msg, wParam, lParam);
+    return DefWindowProc(hwndParam, msg, wParam, lParam);
 }

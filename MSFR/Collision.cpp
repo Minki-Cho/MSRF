@@ -44,10 +44,10 @@ namespace
         // [ a10 a11 a12 ]
         // [ a20 a21 a22 ]
 
-        o.m[0] = a.elements[0][0]; o.m[1] = a.elements[0][1]; o.m[2] = 0.f; o.m[3] = a.elements[0][2];
-        o.m[4] = a.elements[1][0]; o.m[5] = a.elements[1][1]; o.m[6] = 0.f; o.m[7] = a.elements[1][2];
+        o.m[0] = a.storage.elements[0][0]; o.m[1] = a.storage.elements[0][1]; o.m[2] = 0.f; o.m[3] = a.storage.elements[0][2];
+        o.m[4] = a.storage.elements[1][0]; o.m[5] = a.storage.elements[1][1]; o.m[6] = 0.f; o.m[7] = a.storage.elements[1][2];
         o.m[8] = 0.f;              o.m[9] = 0.f;              o.m[10] = 1.f; o.m[11] = 0.f;
-        o.m[12] = a.elements[2][0]; o.m[13] = a.elements[2][1]; o.m[14] = 0.f; o.m[15] = a.elements[2][2];
+        o.m[12] = a.storage.elements[2][0]; o.m[13] = a.storage.elements[2][1]; o.m[14] = 0.f; o.m[15] = a.storage.elements[2][2];
 
         return o;
     }
@@ -311,7 +311,10 @@ void CircleCollision::Draw(mat3<float> cameraMatrix)
     if (!ctx) return;
 
     mat3<float> scale = mat3<float>::build_scale((float)(radius * 2.0));
-    mat3<float> translation = mat3<float>::build_translation(cameraMatrix.column2.x, cameraMatrix.column2.y);
+    mat3<float> translation = mat3<float>::build_translation(
+        cameraMatrix.column2().x,
+        cameraMatrix.column2().y
+    );
     const mat3<float> model_to_world = translation * scale;
 
     mat3<float> extent = mat3<float>::build_scale(1.f / Engine::GetWindow().GetClientWidth(),
