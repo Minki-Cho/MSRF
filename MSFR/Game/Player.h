@@ -11,7 +11,9 @@ public:
     ~Player() override = default;
 
     void Update(double dt) override;
-
+    bool CanCollideWith(GameObjectType objectBType) override;
+    void ResolveCollision(GameObject* objectB) override;
+    void Draw(mat3<float> TransformMatrix);
     GameObjectType GetObjectType() override { return GameObjectType::Player; }
     std::string GetObjectTypeName() override { return "Player"; }
 

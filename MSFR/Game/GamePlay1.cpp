@@ -17,7 +17,10 @@ void GamePlay1::Load()
 {
     gameObjectManager = new GameObjectManager();
     AddGSComponent(gameObjectManager);
-    //MainMenuImage = TextureDX11("assets/images/MainMenu.png", false);
+
+    playerPtr = new Player(vec2{ 1120, 240 });
+    gameObjectManager->Add(playerPtr);
+    MainMenuImage = TextureDX11("assets/images/MainMenu.png", false);
 }
 
 void GamePlay1::Update(double dt)
@@ -42,7 +45,7 @@ void GamePlay1::Update(double dt)
 
 void GamePlay1::Draw()
 {
-    MainMenuImage.DrawFitCenter({ (float)Engine::GetViewportWidth(), (float)Engine::GetViewportHeight() });
+    //MainMenuImage.DrawFitCenter({ (float)Engine::GetViewportWidth(), (float)Engine::GetViewportHeight() });
 }
 
 void GamePlay1::Unload()

@@ -32,6 +32,19 @@ void Player::Update(double dt)
         SetPosition(startPos);
 }
 
+bool Player::CanCollideWith(GameObjectType /*objectBType*/)
+{
+    return false;
+}
+
+void Player::ResolveCollision(GameObject* /*objectB*/)
+{
+}
+void Player::Draw(mat3<float> TransformMatrix)
+{
+    GetGOComponent<Timer2>()->Draw({ 100, 300 });
+    GameObject::Draw(TransformMatrix);
+}
 
 void Player::StateIdle::Enter(GameObject* object)
 {

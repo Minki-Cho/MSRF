@@ -1,15 +1,23 @@
-[0.2933]	Event	Engine InitCore
-[0.3134]	Event	Job workers (after init) = 31
-[0.3374]	Event	Load Spalsh
-[0.3883]	Event	Load Complete
-[2.2207]	Event	Unload Spalsh
-[2.2294]	Event	Clear Textures
-[2.2323]	Event	Load MainMenu
-[2.2818]	Event	Load Complete
-[3.1898]	Debug	Input LUp -> releasedThisFrame = true
-[3.1926]	Event	mouse win: 517, 280
-[3.1934]	Event	Play clicked
-[3.2020]	Event	Unload MainMenu
-[3.2024]	Event	Clear Textures
-[3.2085]	Event	Load GamePlay1
-[3.2090]	Event	Load Complete
+[0.2482]	Event	Engine InitCore
+[0.2495]	Event	Job workers (after init) = 31
+[0.2633]	Event	Load Spalsh
+[0.3023]	Event	Load Complete
+[2.1324]	Event	Unload Spalsh
+[2.1331]	Event	Clear Textures
+[2.1417]	Event	Load MainMenu
+[2.1992]	Event	Load Complete
+[2.6373]	Debug	Input LUp -> releasedThisFrame = true
+[2.6400]	Event	mouse win: 515, 252
+[2.6403]	Event	Play clicked
+[2.6470]	Event	Unload MainMenu
+[2.6474]	Event	Clear Textures
+[2.6570]	Event	Load GamePlay1
+[2.6580]	Event	Sprite SPT: assets/images/characters/characters/thief/thief.spt
+[2.6583]	Event	Texture token: assets/images/characters/characters/thief/thief.png
+[2.6587]	Event	Resolved texture path: assets/images/characters/characters/thief/thief.png
+[2.7303]	Event	Load Complete
+[4.4356]	Debug	Input LUp -> releasedThisFrame = true
+[4.4381]	Event	mouse win: 588, 299
+[4.9303]	Debug	Input LUp -> releasedThisFrame = true
+[4.9322]	Event	mouse win: 442, 356
+[5.2556]	Event	FPS: 158.382911

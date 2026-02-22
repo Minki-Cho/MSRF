@@ -144,6 +144,18 @@ namespace
 
     void UpdateDynamicCB(ID3D11DeviceContext* ctx, ID3D11Buffer* cb, const void* data, UINT bytes)
     {
+        if (!ctx) throw std::runtime_error("UpdateDynamicCB: context is null.");
+        if (!cb) throw std::runtime_error("UpdateDynamicCB: constant buffer is null.");
+        if (!data || bytes == 0) throw std::runtime_error("UpdateDynamicCB: invalid source data.");
+
+        D3D11_BUFFER_DESC desc{};
+        cb->GetDesc(&desc);
+        if (desc.ByteWidth < bytes)
+            throw std::runtime_error("UpdateDynamicCB: source bytes exceed constant buffer size.");
+
+        if (desc.Usage != D3D11_USAGE_DYNAMIC || (desc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) == 0)
+            throw std::runtime_error("UpdateDynamicCB: constant buffer must be D3D11_USAGE_DYNAMIC + D3D11_CPU_ACCESS_WRITE.");
+
         D3D11_MAPPED_SUBRESOURCE ms{};
         ThrowIfFailed(ctx->Map(cb, 0, D3D11_MAP_WRITE_DISCARD, 0, &ms), "Map(CB) failed.");
         std::memcpy(ms.pData, data, bytes);
@@ -152,9 +164,7 @@ namespace
 
     ComPtr<ID3DBlob> CompileFromFile(const wchar_t* path, const char* entry, const char* target)
     {
-        //std::wcout << L"CWD: " << std::filesystem::current_path().c_str() << L"\n";
-        //std::wcout << L"Shader path: " << path << L"\n";
-        //std::wcout << L"Exists? " << (std::filesystem::exists(path) ? L"YES" : L"NO") << L"\n";
+
         UINT flags = 0;
 #if defined(_DEBUG)
         flags |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
@@ -386,7 +396,8 @@ void TextureDX11::CreateShaders(ID3D11Device* device)
 void TextureDX11::Draw(ID3D11DeviceContext* ctx, const mat3<float>& displayMatrix)
 {
     if (!ctx) return;
-
+    if (!constantBuffer || !inputLayout || !vs || !psTexture || !srv || !sampler || !vertexBuffer || !indexBuffer)
+        throw std::runtime_error("TextureDX11::Draw: texture resources are not initialized. Call Load() first.");
     const float screenW = (float)Engine::GetViewportWidth();
     const float screenH = (float)Engine::GetViewportHeight();
 
@@ -434,7 +445,8 @@ void TextureDX11::Draw(ID3D11DeviceContext* ctx, const mat3<float>& displayMatri
     vec2 texelPos, vec2 frameSize)
 {
     if (!ctx) return;
-
+    if (!constantBuffer || !inputLayout || !vs || !psTexture || !srv || !sampler || !vertexBuffer || !indexBuffer)
+        throw std::runtime_error("TextureDX11::Draw: texture resources are not initialized. Call Load() first.");
     const float screenW = (float)Engine::GetViewportWidth();
     const float screenH = (float)Engine::GetViewportHeight();
 
