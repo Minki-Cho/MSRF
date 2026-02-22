@@ -15,8 +15,8 @@ GamePlay1::~GamePlay1()
 
 void GamePlay1::Load()
 {
-    playerPtr = new Player(vec2{ 1120, 240 });
-	gameObjectManager->Add(playerPtr);
+    gameObjectManager = new GameObjectManager();
+    AddGSComponent(gameObjectManager);
     //MainMenuImage = TextureDX11("assets/images/MainMenu.png", false);
 }
 
@@ -36,7 +36,8 @@ void GamePlay1::Update(double dt)
     );
 
 
-    gameObjectManager->Update(dt);
+    if (gameObjectManager)
+        gameObjectManager->Update(dt);
 }
 
 void GamePlay1::Draw()
@@ -46,5 +47,7 @@ void GamePlay1::Draw()
 
 void GamePlay1::Unload()
 {
+    ClearGSComponent();
+    gameObjectManager = nullptr;
     playerPtr = nullptr;
 }

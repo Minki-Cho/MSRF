@@ -54,7 +54,18 @@ namespace
 
         return o;
     }
+    static std::string HrToString(HRESULT hr)
+    {
+        char* buf = nullptr;
+        FormatMessageA(
+            FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            nullptr, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+            (LPSTR)&buf, 0, nullptr);
 
+        std::string s = buf ? buf : "";
+        if (buf) LocalFree(buf);
+        return s;
+    }
 
     void CompileFromFile(const wchar_t* path, const char* entry, const char* target, ComPtr<ID3DBlob>& outBlob)
     {
@@ -65,23 +76,17 @@ namespace
         ComPtr<ID3DBlob> err;
 
         HRESULT hr = D3DCompileFromFile(
-            path,
-            nullptr,
-            D3D_COMPILE_STANDARD_FILE_INCLUDE,
-            entry,
-            target,
-            flags,
-            0,
-            outBlob.GetAddressOf(),
-            err.GetAddressOf());
+            path, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+            entry, target, flags, 0,
+            outBlob.GetAddressOf(), err.GetAddressOf());
 
         if (FAILED(hr))
         {
             std::string msg = "D3DCompileFromFile failed: ";
-            if (err)
-            {
-                msg += (const char*)err->GetBufferPointer();
-            }
+            msg += std::string("path=") + std::string(std::filesystem::path(path).string()) + "\n";
+            msg += "hr=" + std::to_string((unsigned)hr) + " (" + HrToString(hr) + ")\n";
+
+            if (err) msg += (const char*)err->GetBufferPointer();
             throw std::runtime_error(msg);
         }
     }

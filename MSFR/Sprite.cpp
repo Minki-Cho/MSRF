@@ -1,46 +1,70 @@
-#include "Sprite.h" //Sprite
-#include "Engine.h" //GetLogger
-#include "TextureDX11.h" //texturePtr
+ï»¿#include "Sprite.h"
+#include "Engine.h"
+#include "TextureDX11.h"
 #include "Rect.h"
-#include "Animation.h" //animations
-#include "Collision.h" //Collision
+#include "Animation.h"
+#include "Collision.h"
 
 #include <fstream>
 #include <filesystem>
 #include <stdexcept>
 #include <string>
+#include <cctype> // std::isspace
 
 static std::string Trim(std::string s)
 {
     auto is_space = [](unsigned char c) { return std::isspace(c) != 0; };
-
     while (!s.empty() && is_space((unsigned char)s.front())) s.erase(s.begin());
     while (!s.empty() && is_space((unsigned char)s.back()))  s.pop_back();
     return s;
 }
 
-// Reads the first "texture path" token from the .spt.
-// Supports either:
-//   1) token style:    assets/images/player.png
-//   2) quoted style:   "assets/images/my sheet.png"
+// Reads first token or "quoted string"
 static std::string ReadFirstPathToken(std::ifstream& inFile)
 {
-    // skip leading whitespace/newlines
     inFile >> std::ws;
 
-    // If next char is quote, read until ending quote
     if (inFile.peek() == '"')
     {
-        inFile.get(); // consume opening quote
+        inFile.get();
         std::string inside;
-        std::getline(inFile, inside, '"'); // read until closing quote
+        std::getline(inFile, inside, '"');
         return Trim(inside);
     }
 
-    // Otherwise read as a normal token
     std::string token;
     inFile >> token;
     return Trim(token);
+}
+
+static std::filesystem::path ResolvePathFromSPT(
+    const std::filesystem::path& spriteInfoFile,
+    const std::string& token)
+{
+    std::filesystem::path tok = std::filesystem::path(token).lexically_normal();
+    std::filesystem::path spt = spriteInfoFile.lexically_normal();
+    std::filesystem::path dir = spt.parent_path();
+
+    // 1) absolute token
+    if (tok.is_absolute())
+        return tok;
+
+    // 2) token as-is exists (covers "assets/..." style)
+    if (std::filesystem::exists(tok))
+        return tok;
+
+    std::filesystem::path cand = (dir / tok).lexically_normal();
+    if (std::filesystem::exists(cand))
+        return cand;
+
+    {
+        const std::string d = dir.generic_string();
+        const std::string t = tok.generic_string();
+        if (!d.empty() && t.rfind(d, 0) == 0)
+            return tok; // may still not exist; caller can error
+    }
+
+    return cand; // caller will throw with a good log
 }
 
 Sprite::Sprite(const std::filesystem::path& spriteInfoFile, GameObject* object)
@@ -52,7 +76,6 @@ Sprite::~Sprite()
 {
     for (Animation* anim : animations)
         delete anim;
-
     animations.clear();
 }
 
@@ -69,20 +92,12 @@ void Sprite::Load(const std::filesystem::path& spriteInfoFile, GameObject* objec
     if (!inFile.is_open())
         throw std::runtime_error("Failed to load " + spriteInfoFile.generic_string());
 
-    // -----------------------------
-    // FIX: resolve texture path based on .spt directory
-    // -----------------------------
+    // --- texture path (first line) ---
     std::string texToken = ReadFirstPathToken(inFile);
     if (texToken.empty())
         throw std::runtime_error("Sprite file has empty texture path: " + spriteInfoFile.generic_string());
 
-    std::filesystem::path texPath = texToken;
-
-    // If it's a relative path, interpret it relative to the .spt file location
-    if (texPath.is_relative())
-        texPath = spriteInfoFile.parent_path() / texPath;
-
-    texPath = texPath.lexically_normal();
+    std::filesystem::path texPath = ResolvePathFromSPT(spriteInfoFile, texToken);
 
     Engine::GetLogger().LogEvent("Sprite SPT: " + spriteInfoFile.generic_string());
     Engine::GetLogger().LogEvent("Texture token: " + texToken);
@@ -94,7 +109,6 @@ void Sprite::Load(const std::filesystem::path& spriteInfoFile, GameObject* objec
         throw std::runtime_error("Texture file not found: " + texPath.generic_string());
     }
 
-    // TextureManager::Load°¡ stringÀ» ¹Þ´Â ¹öÀüÀÌ¸é generic_string() ³Ñ±â±â
     texturePtr = Engine::GetTextureManager().Load(
         Engine::GetDXDevice(),
         Engine::GetDXContext(),
@@ -106,13 +120,9 @@ void Sprite::Load(const std::filesystem::path& spriteInfoFile, GameObject* objec
 
     frameSize = texturePtr->GetSize();
 
-    // -----------------------------
-    // Rest of .spt parsing unchanged
-    // -----------------------------
+    // --- parse remaining directives safely ---
     std::string text;
-    inFile >> text;
-
-    while (!inFile.eof())
+    while (inFile >> text)   // âœ… eof-safe loop
     {
         if (text == "FrameSize")
         {
@@ -129,21 +139,23 @@ void Sprite::Load(const std::filesystem::path& spriteInfoFile, GameObject* objec
         else if (text == "Frame")
         {
             int frameLocationX, frameLocationY;
-            inFile >> frameLocationX;
-            inFile >> frameLocationY;
+            inFile >> frameLocationX >> frameLocationY;
             frameTexel.push_back({ (float)frameLocationX, (float)frameLocationY });
         }
         else if (text == "HotSpot")
         {
             int hotSpotX, hotSpotY;
-            inFile >> hotSpotX;
-            inFile >> hotSpotY;
+            inFile >> hotSpotX >> hotSpotY;
             hotSpotList.push_back({ (float)hotSpotX, (float)hotSpotY });
         }
         else if (text == "Anim")
         {
-            inFile >> text;
-            animations.push_back(new Animation{ text });
+            std::string animToken;
+            inFile >> animToken;
+
+            // âœ… Animë„ SPT ê¸°ì¤€ìœ¼ë¡œ resolve í•´ë‘ë©´ ë‚˜ì¤‘ì— ëœ í„°ì§
+            std::filesystem::path animPath = ResolvePathFromSPT(spriteInfoFile, animToken);
+            animations.push_back(new Animation{ animPath.generic_string() });
         }
         else if (text == "CollisionRect")
         {
@@ -169,8 +181,6 @@ void Sprite::Load(const std::filesystem::path& spriteInfoFile, GameObject* objec
         {
             Engine::GetLogger().LogError("Unknown spt command " + text);
         }
-
-        inFile >> text;
     }
 
     if (frameTexel.empty())

@@ -6,7 +6,6 @@
 #include <utility>
 #include <cassert>
 
-// Optional thread-safety policy
 struct NoLock {
     void lock() noexcept {}
     void unlock() noexcept {}
@@ -28,7 +27,6 @@ class ObjectPool
 public:
     ObjectPool()
     {
-        // Initialize freelist [0..Capacity-1]
         for (std::size_t i = 0; i < Capacity - 1; ++i)
             m_next[i] = i + 1;
         m_next[Capacity - 1] = kInvalid;
@@ -41,8 +39,6 @@ public:
 
     ~ObjectPool()
     {
-        // Destroy any still-alive objects to avoid leaks (debug friendliness)
-        // (In release you can keep it too, it's safe.)
         Clear();
     }
 
@@ -67,7 +63,7 @@ public:
         T* obj = ::new (mem) T(std::forward<Args>(args)...);
 
 #ifndef NDEBUG
-        assert(m_alive[index] == false && "ObjectPool: allocating an already-alive slot");
+        assert(m_alive[index] == false && "ObjectPool: allocating an already alive slot");
         m_alive[index] = true;
 #endif
         ++m_inUse;
@@ -113,8 +109,6 @@ public:
         }
 #else
         // In release, we don't know which are alive unless we track.
-        // So we do nothing unless user guarantees Clear() only when all freed.
-        // If you want release-safe Clear, keep the alive-tracking always on.
 #endif
 
         for (std::size_t i = 0; i < Capacity - 1; ++i)
