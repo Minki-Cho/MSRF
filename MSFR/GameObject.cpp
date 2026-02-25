@@ -66,7 +66,6 @@ void GameObject::Update(double dt)
 
 void GameObject::Draw(mat3<float> cameraMatrix)
 {
-    constexpr bool kDrawCollisionDebug = false;
     const mat3<float>& modelToWorld = GetMatrix();
 
     const mat3<float> displayMatrix = cameraMatrix * modelToWorld;
@@ -76,7 +75,7 @@ void GameObject::Draw(mat3<float> cameraMatrix)
         spr->Draw(displayMatrix);
     }
 
-    if (kDrawCollisionDebug)
+    if (Engine::IsCollisionDebugDrawEnabled())
     {
         if (auto* col = GetGOComponent<Collision>())
         {

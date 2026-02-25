@@ -11,7 +11,7 @@ public:
     enum class Keyboard
     {
         None, Enter, Escape, Space, BackSpace, Shift, Left, Up, Right, Down,
-        F1,
+        F1, Tilde,
         A, B, C, D, E, F, G, H, I, J,
         K, L, M, N, O, P, Q, R, S, T,
         U, V, W, X, Y, Z,

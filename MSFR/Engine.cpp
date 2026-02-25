@@ -87,7 +87,11 @@ void Engine::Update()
     {
         window.Update();
     }
-
+    if (input.IsKeyPressed(InputKey::Keyboard::Tilde))
+    {
+        ToggleCollisionDebugDraw();
+        logger.LogEvent(std::string("Collision debug draw: ") + (collisionDebugDrawEnabled ? "ON" : "OFF"));
+    }
     UpdateGameObjects(dt);
 }
 

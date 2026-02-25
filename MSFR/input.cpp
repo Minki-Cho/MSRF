@@ -90,6 +90,7 @@ InputKey::Keyboard Input::VKToKeyboard(WPARAM vk)
     case VK_UP:      return InputKey::Keyboard::Up;
     case VK_DOWN:    return InputKey::Keyboard::Down;
     case VK_F1:      return InputKey::Keyboard::F1;
+    case VK_OEM_3:   return InputKey::Keyboard::Tilde;
     default:
         break;
     }
@@ -118,6 +119,7 @@ const char* Input::KeyboardToString(InputKey::Keyboard key)
     case InputKey::Keyboard::Up: return "Up";
     case InputKey::Keyboard::Down: return "Down";
     case InputKey::Keyboard::F1: return "F1";
+    case InputKey::Keyboard::Tilde: return "Tilde";
     default:
         break;
     }

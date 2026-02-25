@@ -51,6 +51,11 @@ public:
     static ActionSystem& GetActionSystem() { return Instance().actionSystem; }
     static auto& GetCommandPool() { return Instance().commandPool; }
     static AnimationSpeed GetAnimationSpeedLevel() { return Instance().animationSpeedLevel; }
+    static bool IsCollisionDebugDrawEnabled() { return Instance().collisionDebugDrawEnabled; }
+    static void ToggleCollisionDebugDraw()
+    {
+        Instance().collisionDebugDrawEnabled = !Instance().collisionDebugDrawEnabled;
+    }
     static void SetAnimationSpeedLevel(AnimationSpeed level)
     {
         Instance().animationSpeedLevel = level;
@@ -127,4 +132,5 @@ private:
     int viewportWidth = 1280;
     int viewportHeight = 720;
     AnimationSpeed animationSpeedLevel = AnimationSpeed::Normal;
+    bool collisionDebugDrawEnabled = false;
 };
