@@ -179,7 +179,7 @@ void RectCollision::CreateGpuResources()
 
     // geometry: line strip box
     constexpr std::array<vec2, 4> positions = { vec2{0.f,0.f}, vec2{1.f,0.f}, vec2{1.f,1.f}, vec2{0.f,1.f} };
-    constexpr std::array<color3, 4> colors = { color3{0,0,0}, color3{0,0,0}, color3{0,0,0}, color3{0,0,0} };
+    constexpr std::array<color3, 4> colors = { color3{1,0,0}, color3{1,0,0}, color3{1,0,0}, color3{1,0,0} };
     constexpr std::array<uint16_t, 5> indices = { 0, 1, 2, 3, 0 };
 
     vbPos = CreateImmutableVB(dev, positions.data(), (UINT)(sizeof(vec2) * positions.size()));
@@ -190,23 +190,27 @@ void RectCollision::CreateGpuResources()
     cbPerDraw = CreateDynamicCB(dev, (UINT)sizeof(PerDrawCB));
 }
 
-void RectCollision::Draw(mat3<float>)
+void RectCollision::Draw(mat3<float> cameraMatrix)
 {
     ID3D11DeviceContext* ctx = DX11Services::Context();
     if (!ctx) return;
 
-    mat3<float> translation = mat3<float>::build_translation(
-        GetWorldCoorRect().Left() - (1280.f - Engine::GetWindow().GetClientWidth()) / 2.f,
-        GetWorldCoorRect().Bottom() - (720.f - Engine::GetWindow().GetClientHeight()) / 2.f);
 
-    mat3<float> scale = mat3<float>::build_scale(GetWorldCoorRect().Size().x(), GetWorldCoorRect().Size().y());
-    mat3<float> to_bottom_left = mat3<float>::build_translation(-Engine::GetWindow().GetClientWidth() / 2.f,
-        -Engine::GetWindow().GetClientHeight() / 2.f);
+    const vec3 rectSize = rect.Size();
+    const mat3<float> localRect =
+        mat3<float>::build_translation(rect.Left(), rect.Bottom()) *
+        mat3<float>::build_scale(rectSize.x(), rectSize.y());
 
-    const mat3<float> model_to_world = to_bottom_left * translation * scale;
-    const mat3<float> extent = mat3<float>::build_scale(2.f / 1280.f, 2.f / 720.f);
-    const mat3<float> model_to_ndc = extent * model_to_world;
+   
+    const mat3<float> model_to_world = cameraMatrix * localRect;
+    const mat3<float> extent = mat3<float>::build_scale(
+        2.f / static_cast<float>(Engine::GetViewportWidth()),
+        2.f / static_cast<float>(Engine::GetViewportHeight()));
+    const mat3<float> to_bottom_left = mat3<float>::build_translation(
+        -static_cast<float>(Engine::GetViewportWidth()) / 2.f,
+        -static_cast<float>(Engine::GetViewportHeight()) / 2.f);
 
+    const mat3<float> model_to_ndc = extent * to_bottom_left * model_to_world;
     // update cbuffer
     const PerDrawCB cb = Mat3ToFloat4x4(model_to_ndc);
     UpdateDynamicCB(ctx, cbPerDraw.Get(), &cb, (UINT)sizeof(cb));
@@ -319,17 +323,15 @@ void CircleCollision::Draw(mat3<float> cameraMatrix)
     ID3D11DeviceContext* ctx = DX11Services::Context();
     if (!ctx) return;
 
-    mat3<float> scale = mat3<float>::build_scale((float)(radius * 2.0));
-    mat3<float> translation = mat3<float>::build_translation(
-        cameraMatrix.column2().x(),
-        cameraMatrix.column2().y()
-    );
-    const mat3<float> model_to_world = translation * scale;
+    const mat3<float> model_to_world = cameraMatrix *
+        mat3<float>::build_scale((float)(radius * 2.0));
 
-    mat3<float> extent = mat3<float>::build_scale(1.f / Engine::GetWindow().GetClientWidth(),
-        1.f / Engine::GetWindow().GetClientHeight());
-    mat3<float> to_bottom_left = mat3<float>::build_translation(-Engine::GetWindow().GetClientWidth() / 2.f,
-        -Engine::GetWindow().GetClientHeight() / 2.f);
+    const mat3<float> extent = mat3<float>::build_scale(
+        2.f / static_cast<float>(Engine::GetViewportWidth()),
+        2.f / static_cast<float>(Engine::GetViewportHeight()));
+    const mat3<float> to_bottom_left = mat3<float>::build_translation(
+        -static_cast<float>(Engine::GetViewportWidth()) / 2.f,
+        -static_cast<float>(Engine::GetViewportHeight()) / 2.f);
 
     const mat3<float> model_to_ndc = extent * to_bottom_left * model_to_world;
 

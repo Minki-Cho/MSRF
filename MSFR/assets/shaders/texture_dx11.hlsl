@@ -30,11 +30,15 @@ VSOut VSMain(VSIn v)
 
 float4 PSTexture(VSOut i) : SV_TARGET
 {
-    return uTex.Sample(uSamp, i.uv);
+    float4 c = uTex.Sample(uSamp, i.uv);
+    clip(c.a - 0.1f);
+    return c;
 }
 
 float4 PSTexel(VSOut i) : SV_TARGET
 {
     float2 uv = uTexelPos + i.uv * uFrameSize;
-    return uTex.Sample(uSamp, uv);
+    float4 c = uTex.Sample(uSamp, uv);
+    clip(c.a - 0.1f);
+    return c;
 }
