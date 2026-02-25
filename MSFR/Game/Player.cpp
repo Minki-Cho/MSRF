@@ -42,7 +42,6 @@ void Player::ResolveCollision(GameObject* /*objectB*/)
 }
 void Player::Draw(mat3<float> TransformMatrix)
 {
-    GetGOComponent<Timer2>()->Draw({ 100, 300 });
     GameObject::Draw(TransformMatrix);
 }
 

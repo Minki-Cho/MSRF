@@ -18,8 +18,6 @@ namespace
 
 MainMenu::MainMenu() : modeNext(InputKey::Keyboard::Enter), timer(5.0f)
 {
-	//Engine::GetWindow().SetBackgroundColor(1, 1, 1, 1);
-	//DX11Services::SetClearColor(1.f, 1.f, 1.f, 1.f);
     
 }
 

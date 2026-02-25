@@ -18,13 +18,17 @@ void GamePlay1::Load()
     gameObjectManager = new GameObjectManager();
     AddGSComponent(gameObjectManager);
 
-    playerPtr = new Player(vec2{ 1120, 240 });
+    playerPtr = new Player(vec2{
+    (float)Engine::GetViewportWidth() * 0.5f,
+    (float)Engine::GetViewportHeight() * 0.5f
+        });
     gameObjectManager->Add(playerPtr);
     MainMenuImage = TextureDX11("assets/images/MainMenu.png", false);
 }
 
 void GamePlay1::Update(double dt)
 {
+    gameObjectManager->Update(dt);
     auto& input = Engine::GetInput();
 
     if (!input.GetMouseReleasedThisFrame())
@@ -32,20 +36,28 @@ void GamePlay1::Update(double dt)
 
     const vec2 mouse = input.GetMousePos();
 
-    Engine::GetLogger().LogEvent(
-        "mouse win: " +
-        std::to_string((int)mouse.x()) + ", " +
-        std::to_string((int)mouse.y())
-    );
+    if (input.GetMouseReleasedThisFrame())
+    {
+        const vec2 mouse = input.GetMousePos();
 
+        Engine::GetLogger().LogEvent(
+            "mouse win: " +
+            std::to_string((int)mouse.x()) + ", " +
+            std::to_string((int)mouse.y())
+        );
+    }
 
-    if (gameObjectManager)
-        gameObjectManager->Update(dt);
 }
 
 void GamePlay1::Draw()
 {
     //MainMenuImage.DrawFitCenter({ (float)Engine::GetViewportWidth(), (float)Engine::GetViewportHeight() });
+
+    if (gameObjectManager)
+    {
+        mat3<float> cameraMatrix;
+        gameObjectManager->DrawAll(cameraMatrix);
+    }
 }
 
 void GamePlay1::Unload()
