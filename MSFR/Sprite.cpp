@@ -120,9 +120,8 @@ void Sprite::Load(const std::filesystem::path& spriteInfoFile, GameObject* objec
 
     frameSize = texturePtr->GetSize();
 
-    // --- parse remaining directives safely ---
     std::string text;
-    while (inFile >> text)   // ✅ eof-safe loop
+    while (inFile >> text) 
     {
         if (text == "FrameSize")
         {
@@ -153,7 +152,6 @@ void Sprite::Load(const std::filesystem::path& spriteInfoFile, GameObject* objec
             std::string animToken;
             inFile >> animToken;
 
-            // ✅ Anim도 SPT 기준으로 resolve 해두면 나중에 덜 터짐
             std::filesystem::path animPath = ResolvePathFromSPT(spriteInfoFile, animToken);
             animations.push_back(new Animation{ animPath.generic_string() });
         }
@@ -221,6 +219,10 @@ vec2 Sprite::GetFrameSize() const
 
 void Sprite::PlayAnimation(int anim)
 {
+    if (anim == currAnim)
+    {
+        return;
+    }
     if (anim < 0 || animations.size() <= (size_t)anim)
     {
         Engine::GetLogger().LogError(std::to_string(anim) + " is out of index!");
@@ -235,7 +237,8 @@ void Sprite::PlayAnimation(int anim)
 
 void Sprite::Update(double dt)
 {
-    animations[currAnim]->Update(dt);
+    const double animDt = dt * Engine::GetAnimationSpeedMultiplier();
+    animations[currAnim]->Update(animDt);
 }
 
 bool Sprite::IsAnimationDone()

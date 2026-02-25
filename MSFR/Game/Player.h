@@ -18,7 +18,7 @@ public:
 
 private:
 
-    float moveSpeed = 550.0f;
+    float moveSpeed = 55.0f;
     vec2 startPos;
 
     CharacterAnim direction = CharacterAnim::None_F;

@@ -19,6 +19,12 @@
 class Engine
 {
 public:
+    enum class AnimationSpeed
+    {
+        Slow = 1,
+        Normal = 2,
+        Fast = 3,
+    };
     Engine();
     ~Engine() = default;
 
@@ -44,6 +50,21 @@ public:
     static JobSystem& GetJobSystem() { return Instance().jobSystem; }
     static ActionSystem& GetActionSystem() { return Instance().actionSystem; }
     static auto& GetCommandPool() { return Instance().commandPool; }
+    static AnimationSpeed GetAnimationSpeedLevel() { return Instance().animationSpeedLevel; }
+    static void SetAnimationSpeedLevel(AnimationSpeed level)
+    {
+        Instance().animationSpeedLevel = level;
+    }
+    static double GetAnimationSpeedMultiplier()
+    {
+        switch (Instance().animationSpeedLevel)
+        {
+        case AnimationSpeed::Slow:   return 0.25;
+        case AnimationSpeed::Normal: return 0.5; // current default
+        case AnimationSpeed::Fast:   return 1.0;
+        default:                     return 0.5;
+        }
+    }
 
     template<typename T>
     static T* GetGSComponent() { return GetGameStateManager().GetGSComponent<T>(); }
@@ -105,4 +126,5 @@ private:
     static constexpr int FPSIntervalSec = 5;
     int viewportWidth = 1280;
     int viewportHeight = 720;
+    AnimationSpeed animationSpeedLevel = AnimationSpeed::Normal;
 };

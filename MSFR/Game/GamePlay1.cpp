@@ -15,6 +15,7 @@ GamePlay1::~GamePlay1()
 
 void GamePlay1::Load()
 {
+    Engine::SetAnimationSpeedLevel(Engine::AnimationSpeed::Normal);
     gameObjectManager = new GameObjectManager();
     AddGSComponent(gameObjectManager);
 
@@ -29,23 +30,23 @@ void GamePlay1::Load()
 void GamePlay1::Update(double dt)
 {
     gameObjectManager->Update(dt);
-    auto& input = Engine::GetInput();
+    /*auto& input = Engine::GetInput();*/
 
-    if (!input.GetMouseReleasedThisFrame())
-        return;
+    //if (!input.GetMouseReleasedThisFrame())
+    //    return;
 
-    const vec2 mouse = input.GetMousePos();
+    //const vec2 mouse = input.GetMousePos();
 
-    if (input.GetMouseReleasedThisFrame())
-    {
-        const vec2 mouse = input.GetMousePos();
+    //if (input.GetMouseReleasedThisFrame())
+    //{
+    //    const vec2 mouse = input.GetMousePos();
 
-        Engine::GetLogger().LogEvent(
-            "mouse win: " +
-            std::to_string((int)mouse.x()) + ", " +
-            std::to_string((int)mouse.y())
-        );
-    }
+    //    Engine::GetLogger().LogEvent(
+    //        "mouse win: " +
+    //        std::to_string((int)mouse.x()) + ", " +
+    //        std::to_string((int)mouse.y())
+    //    );
+    //}
 
 }
 
