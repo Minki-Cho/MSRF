@@ -410,7 +410,10 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
         if (k == SDLK_RETURN)      Engine::GetInput().OnKeyDown(InputKey::Keyboard::Enter);
         else if (k == SDLK_ESCAPE) Engine::GetInput().OnKeyDown(InputKey::Keyboard::Escape);
         else if (k == SDLK_SPACE)  Engine::GetInput().OnKeyDown(InputKey::Keyboard::Space);
-
+        else if (k == SDLK_UP)     Engine::GetInput().OnKeyDown(InputKey::Keyboard::Up);
+        else if (k == SDLK_DOWN)   Engine::GetInput().OnKeyDown(InputKey::Keyboard::Down);
+        else if (k == SDLK_LEFT)   Engine::GetInput().OnKeyDown(InputKey::Keyboard::Left);
+        else if (k == SDLK_RIGHT)  Engine::GetInput().OnKeyDown(InputKey::Keyboard::Right);
         break;
     }
 
@@ -421,7 +424,10 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
         if (k == SDLK_RETURN)      Engine::GetInput().OnKeyUp(InputKey::Keyboard::Enter);
         else if (k == SDLK_ESCAPE) Engine::GetInput().OnKeyUp(InputKey::Keyboard::Escape);
         else if (k == SDLK_SPACE)  Engine::GetInput().OnKeyUp(InputKey::Keyboard::Space);
-
+        else if (k == SDLK_UP)     Engine::GetInput().OnKeyUp(InputKey::Keyboard::Up);
+        else if (k == SDLK_DOWN)   Engine::GetInput().OnKeyUp(InputKey::Keyboard::Down);
+        else if (k == SDLK_LEFT)   Engine::GetInput().OnKeyUp(InputKey::Keyboard::Left);
+        else if (k == SDLK_RIGHT)  Engine::GetInput().OnKeyUp(InputKey::Keyboard::Right);
         break;
     }
 

@@ -5,6 +5,19 @@ void ActionSystem::PollFromInput(const Input& input)
 {
     fired_.clear();
 
+
+    if (input.IsKeyDown(InputKey::Keyboard::Up))
+        fired_.push_back(ActionId::Up);
+
+    if (input.IsKeyDown(InputKey::Keyboard::Down))
+        fired_.push_back(ActionId::Down);
+
+    if (input.IsKeyDown(InputKey::Keyboard::Left))
+        fired_.push_back(ActionId::Left);
+
+    if (input.IsKeyDown(InputKey::Keyboard::Right))
+        fired_.push_back(ActionId::Right);
+
     // === Splash Skip Mapping ===
     // Enter Released
     if (input.IsKeyReleased(InputKey::Keyboard::Enter))

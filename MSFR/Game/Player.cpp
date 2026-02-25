@@ -2,13 +2,7 @@
 #include "../Engine.h"
 #include "../Sprite.h"
 
-Player::Player(vec2 startPos_)
-    : Up(InputKey::Keyboard::Up)
-    , Down(InputKey::Keyboard::Down)
-    , Left(InputKey::Keyboard::Left)
-    , Right(InputKey::Keyboard::Right)
-    , startPos(startPos_)
-    , GameObject(startPos_)
+Player::Player(vec2 startPos_) : startPos(startPos_), GameObject(startPos_)
 {
     
     AddGOComponent(new Sprite("assets/images/characters/characters/thief/thief.spt", this));
@@ -64,10 +58,11 @@ void Player::StateIdle::TestForExit(GameObject* object)
 {
     Player* p = static_cast<Player*>(object);
 
-    const bool L = p->Left.IsKeyDown();
-    const bool R = p->Right.IsKeyDown();
-    const bool U = p->Up.IsKeyDown();
-    const bool D = p->Down.IsKeyDown();
+    ActionSystem& actions = Engine::GetActionSystem();
+    const bool L = actions.Has(ActionId::Left);
+    const bool R = actions.Has(ActionId::Right);
+    const bool U = actions.Has(ActionId::Up);
+    const bool D = actions.Has(ActionId::Down);
 
     if (L || R || U || D)
         p->ChangeState(&p->stateMove);
@@ -88,10 +83,11 @@ void Player::StateMove::Update(GameObject* object, double /*dt*/)
 {
     Player* p = static_cast<Player*>(object);
 
-    const bool L = p->Left.IsKeyDown();
-    const bool R = p->Right.IsKeyDown();
-    const bool U = p->Up.IsKeyDown();
-    const bool D = p->Down.IsKeyDown();
+    ActionSystem& actions = Engine::GetActionSystem();
+    const bool L = actions.Has(ActionId::Left);
+    const bool R = actions.Has(ActionId::Right);
+    const bool U = actions.Has(ActionId::Up);
+    const bool D = actions.Has(ActionId::Down);
 
     vec2 v{ 0.f, 0.f };
 
@@ -128,10 +124,11 @@ void Player::StateMove::TestForExit(GameObject* object)
 {
     Player* p = static_cast<Player*>(object);
 
-    const bool L = p->Left.IsKeyDown();
-    const bool R = p->Right.IsKeyDown();
-    const bool U = p->Up.IsKeyDown();
-    const bool D = p->Down.IsKeyDown();
+    ActionSystem& actions = Engine::GetActionSystem();
+    const bool L = actions.Has(ActionId::Left);
+    const bool R = actions.Has(ActionId::Right);
+    const bool U = actions.Has(ActionId::Up);
+    const bool D = actions.Has(ActionId::Down);
 
     if (!L && !R && !U && !D)
         p->ChangeState(&p->stateIdle);

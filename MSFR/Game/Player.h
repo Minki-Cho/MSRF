@@ -1,6 +1,5 @@
 #pragma once
 #include "../GameObject.h"
-#include "../Input.h"
 #include "CharacterAnim.h"
 #include "GameObjectType.h"
 
@@ -18,7 +17,6 @@ public:
     std::string GetObjectTypeName() override { return "Player"; }
 
 private:
-    InputKey Up, Down, Left, Right;
 
     float moveSpeed = 550.0f;
     vec2 startPos;

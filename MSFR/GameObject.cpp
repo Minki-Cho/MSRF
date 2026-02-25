@@ -9,11 +9,6 @@
 #include "Sprite.h"
 #include "Collision.h"
 
-
-void GameObject::ChangeState(State* /*newState*/)
-{
-}
-
 // Ctors / Dtor
 GameObject::GameObject()
     : currState(&state_nothing),
@@ -138,14 +133,14 @@ void GameObject::SetDestroyed(bool b)
 }
 
 // State machine
-//void GameObject::ChangeState(State* newState)
-//{
-//    if (newState == nullptr)
-//        newState = &state_nothing;
-//
-//    currState = newState;
-//    currState->Enter(this);
-//}
+void GameObject::ChangeState(State* newState)
+{
+    if (newState == nullptr)
+        newState = &state_nothing;
+
+    currState = newState;
+    currState->Enter(this);
+}
 
 // Transform mutators
 void GameObject::UpdatePosition(vec2 adjustPosition)
