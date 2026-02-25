@@ -24,7 +24,7 @@ void GamePlay1::Load()
     (float)Engine::GetViewportHeight() * 0.5f
         });
     gameObjectManager->Add(playerPtr);
-    MainMenuImage = TextureDX11("assets/images/MainMenu.png", false);
+    MainMenuImage = TextureDX11("assets/images/map.png", false);
 }
 
 void GamePlay1::Update(double dt)
@@ -52,13 +52,14 @@ void GamePlay1::Update(double dt)
 
 void GamePlay1::Draw()
 {
-    //MainMenuImage.DrawFitCenter({ (float)Engine::GetViewportWidth(), (float)Engine::GetViewportHeight() });
+    
 
     if (gameObjectManager)
     {
         mat3<float> cameraMatrix;
         gameObjectManager->DrawAll(cameraMatrix);
     }
+    MainMenuImage.DrawFitCenter({ (float)Engine::GetViewportWidth(), (float)Engine::GetViewportHeight() });
 }
 
 void GamePlay1::Unload()
