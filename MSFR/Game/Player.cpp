@@ -2,6 +2,25 @@
 #include "../Engine.h"
 #include "../Sprite.h"
 
+namespace
+{
+    int ToAnimActionId(CharacterAnim anim)
+    {
+        switch (anim)
+        {
+        case CharacterAnim::None_F: return 0;
+        case CharacterAnim::None_B: return 1;
+        case CharacterAnim::None_L: return 2;
+        case CharacterAnim::None_R: return 3;
+        case CharacterAnim::Front:  return 4;
+        case CharacterAnim::Back:   return 5;
+        case CharacterAnim::Left:   return 6;
+        case CharacterAnim::Right:  return 7;
+        default:                    return 0;
+        }
+    }
+}
+
 Player::Player(vec2 startPos_) : startPos(startPos_), GameObject(startPos_)
 {
     
@@ -45,7 +64,7 @@ void Player::StateIdle::Enter(GameObject* object)
     player->SetVelocity(vec2{ 0.f, 0.f });
 
     if (auto* spr = player->GetGOComponent<Sprite>())
-        spr->PlayAnimation(static_cast<int>(player->direction));
+        spr->PlayAnimation(ToAnimActionId(player->direction));
 }
 
 void Player::StateIdle::Update(GameObject* object, double /*dt*/)
@@ -74,16 +93,15 @@ void Player::StateMove::Enter(GameObject* object)
 {
     Player* p = static_cast<Player*>(object);
 
-
     if (auto* spr = p->GetGOComponent<Sprite>())
-        spr->PlayAnimation(static_cast<int>(p->direction));
+        spr->PlayAnimation(ToAnimActionId(p->direction));
 }
 
 void Player::StateMove::Update(GameObject* object, double /*dt*/)
 {
     Player* p = static_cast<Player*>(object);
 
-    ActionSystem& actions = Engine::GetActionSystem();
+    auto& actions = Engine::GetActionSystem();
     const bool L = actions.Has(ActionId::Left);
     const bool R = actions.Has(ActionId::Right);
     const bool U = actions.Has(ActionId::Up);
@@ -96,10 +114,10 @@ void Player::StateMove::Update(GameObject* object, double /*dt*/)
     if (U) v.y() += p->moveSpeed;
     if (D) v.y() -= p->moveSpeed;
 
-    if (L) p->direction = CharacterAnim::Left;
-    else if (R) p->direction = CharacterAnim::Right;
-    else if (U) p->direction = CharacterAnim::Back;
-    else if (D) p->direction = CharacterAnim::Front;
+    if (L) p->direction = CharacterAnim::Front;
+    else if (R) p->direction = CharacterAnim::Back;
+    else if (U) p->direction = CharacterAnim::Right;
+    else if (D) p->direction = CharacterAnim::Left;
 
 
     if (!L && !R && !U && !D)
@@ -117,7 +135,7 @@ void Player::StateMove::Update(GameObject* object, double /*dt*/)
     p->SetVelocity(v);
 
     if (auto* spr = p->GetGOComponent<Sprite>())
-        spr->PlayAnimation(static_cast<int>(p->direction));
+        spr->PlayAnimation(ToAnimActionId(p->direction));
 }
 
 void Player::StateMove::TestForExit(GameObject* object)
