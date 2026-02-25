@@ -1,29 +1,44 @@
-[0.2896]	Event	Engine InitCore
-[0.3042]	Event	Job workers (after init) = 31
-[0.3208]	Event	Load Spalsh
-[0.3753]	Event	Load Complete
-[2.1937]	Event	Unload Spalsh
-[2.1939]	Event	Clear Textures
-[2.1977]	Event	Load MainMenu
-[2.2458]	Event	Load Complete
-[2.6524]	Debug	Input LUp -> releasedThisFrame = true
-[2.6550]	Event	mouse win: 588, 295
-[2.6554]	Event	Play clicked
-[2.6655]	Event	Unload MainMenu
-[2.6657]	Event	Clear Textures
-[2.6711]	Event	Load GamePlay1
-[2.6718]	Event	Sprite SPT: assets/images/characters/characters/thief/thief.spt
-[2.6721]	Event	Texture token: assets/images/characters/characters/thief/thief.png
-[2.6725]	Event	Resolved texture path: assets/images/characters/characters/thief/thief.png
-[2.7627]	Event	Load Complete
-[4.1371]	Event	Collision debug draw: ON
-[4.4958]	Event	Collision debug draw: OFF
-[4.9153]	Event	Collision debug draw: ON
-[5.1183]	Event	Collision debug draw: OFF
-[5.3069]	Event	FPS: 158.892150
-[5.8951]	Event	Collision debug draw: ON
-[8.5158]	Event	Collision debug draw: OFF
-[8.7065]	Event	Collision debug draw: ON
-[10.2481]	Event	Collision debug draw: OFF
-[10.3151]	Event	FPS: 164.529132
-[15.3178]	Event	FPS: 164.512631
+[0.2734]	Event	Engine InitCore
+[0.2887]	Event	Job workers (after init) = 31
+[0.3042]	Event	Load Spalsh
+[0.3426]	Event	Load Complete
+[2.1764]	Event	Unload Spalsh
+[2.1771]	Event	Clear Textures
+[2.1820]	Event	Load MainMenu
+[2.2355]	Event	Load Complete
+[2.8286]	Debug	Input LUp -> releasedThisFrame = true
+[2.8313]	Event	mouse win: 645, 291
+[2.8317]	Event	Play clicked
+[2.8433]	Event	Unload MainMenu
+[2.8437]	Event	Clear Textures
+[2.8483]	Event	Load GamePlay1
+[2.8493]	Event	Sprite SPT: assets/images/characters/characters/thief/thief.spt
+[2.8496]	Event	Texture token: assets/images/characters/characters/thief/thief.png
+[2.8499]	Event	Resolved texture path: assets/images/characters/characters/thief/thief.png
+[2.9271]	Event	Load Complete
+[3.5146]	Event	Collision debug draw: ON
+[5.2910]	Event	FPS: 159.701458
+[5.4626]	Event	Collision debug draw: OFF
+[5.7328]	Event	Collision debug draw: ON
+[5.9154]	Event	Collision debug draw: OFF
+[5.9448]	Event	Collision debug draw: ON
+[6.0364]	Event	Collision debug draw: OFF
+[6.1281]	Event	Collision debug draw: ON
+[6.2431]	Event	Collision debug draw: OFF
+[6.3458]	Event	Collision debug draw: ON
+[7.0662]	Event	Collision debug draw: OFF
+[7.2110]	Event	Collision debug draw: ON
+[7.6908]	Event	Collision debug draw: OFF
+[7.9585]	Event	Collision debug draw: ON
+[8.1521]	Event	Collision debug draw: OFF
+[8.2300]	Event	Collision debug draw: ON
+[8.3453]	Event	Collision debug draw: OFF
+[8.4365]	Event	Collision debug draw: ON
+[8.6106]	Event	Collision debug draw: OFF
+[8.7934]	Event	Collision debug draw: ON
+[9.0254]	Event	Collision debug draw: OFF
+[9.1330]	Event	Collision debug draw: ON
+[10.2959]	Event	FPS: 164.637572
+[10.3323]	Event	Collision debug draw: OFF
+[10.4491]	Event	Collision debug draw: ON
+[10.7809]	Event	Collision debug draw: OFF

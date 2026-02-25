@@ -39,18 +39,16 @@ namespace
     {
         PerDrawCB o{};
 
-        const float a00 = a.e[0][0], a10 = a.e[0][1], a20 = a.e[0][2];
-        const float a01 = a.e[1][0], a11 = a.e[1][1], a21 = a.e[1][2];
-        const float a02 = a.e[2][0], a12 = a.e[2][1], a22 = a.e[2][2];
+        const float a00 = a.e[0][0], a01 = a.e[1][0], a02 = a.e[2][0];
+        const float a10 = a.e[0][1], a11 = a.e[1][1], a12 = a.e[2][1];
+        const float a20 = a.e[0][2], a21 = a.e[1][2], a22 = a.e[2][2];
 
-        // col0
-        o.m[0] = a00; o.m[1] = a10; o.m[2] = 0.f; o.m[3] = a20;
-        // col1
-        o.m[4] = a01; o.m[5] = a11; o.m[6] = 0.f; o.m[7] = a21;
-        // col2
+        // Matches the row_major float4x4 packing used by TextureDX11.
+        o.m[0] = a00; o.m[1] = a01; o.m[2] = 0.f; o.m[3] = a02;
+        o.m[4] = a10; o.m[5] = a11; o.m[6] = 0.f; o.m[7] = a12;
         o.m[8] = 0.f; o.m[9] = 0.f; o.m[10] = 1.f; o.m[11] = 0.f;
-        // col3
-        o.m[12] = a02; o.m[13] = a12; o.m[14] = 0.f; o.m[15] = a22;
+        o.m[8] = 0.f; o.m[9] = 0.f; o.m[10] = 1.f; o.m[11] = 0.f;
+        o.m[12] = a20; o.m[13] = a21; o.m[14] = 0.f; o.m[15] = a22;
 
         return o;
     }
