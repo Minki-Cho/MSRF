@@ -1,6 +1,6 @@
 #include "Player.h"
-#include "../Engine.h"
-#include "../Sprite.h"
+#include "../Engine/Engine.h"
+#include "../Engine/Sprite.h"
 
 namespace
 {
@@ -34,15 +34,34 @@ Player::Player(vec2 startPos_) : startPos(startPos_), GameObject(startPos_)
 void Player::Update(double dt)
 {
     GameObject::Update(dt);
+    const float mapWidth = static_cast<float>(Engine::GetViewportWidth());
+    const float mapHeight = static_cast<float>(Engine::GetViewportHeight());
 
-    const float minX = 0.0f;
-    const float minY = 0.0f;
-    const float maxX = static_cast<float>(Engine::GetViewportWidth());
-    const float maxY = static_cast<float>(Engine::GetViewportHeight());
+    const float worldMinX = -mapWidth;
+    const float worldMinY = -mapHeight;
+    const float worldMaxX = mapWidth * 2.0f;
+    const float worldMaxY = mapHeight * 2.0f;
 
-    const vec2 p = GetPosition();
-    if (p.x() < minX || p.x() > maxX || p.y() < minY || p.y() > maxY)
-        SetPosition(startPos);
+    float edgeOffsetX = 0.0f;
+    float edgeOffsetY = 0.0f;
+    if (auto* spr = GetGOComponent<Sprite>())
+    {
+        const vec2 frameSize = spr->GetFrameSize();
+        edgeOffsetX = frameSize.x();
+        edgeOffsetY = frameSize.y();
+    }
+
+    const float minX = worldMinX + edgeOffsetX;
+    const float minY = worldMinY + edgeOffsetY;
+    const float maxX = worldMaxX - edgeOffsetX;
+    const float maxY = worldMaxY - edgeOffsetY;
+
+    vec2 p = GetPosition();
+    if (p.x() < minX) p.x() = minX;
+    if (p.x() > maxX) p.x() = maxX;
+    if (p.y() < minY) p.y() = minY;
+    if (p.y() > maxY) p.y() = maxY;
+    SetPosition(p);
 }
 
 bool Player::CanCollideWith(GameObjectType /*objectBType*/)
