@@ -1,5 +1,5 @@
 #include "IProgram.h"
-#include "Game/GameProgram.h"
+#include "GameProgram.h"
 
 util::owner<IProgram*> create_program(int viewport_width, int viewport_height)
 {

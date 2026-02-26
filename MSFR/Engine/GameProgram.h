@@ -1,8 +1,9 @@
 #include "Engine.h"
 #include <SDL2/SDL.h>
-#include "Game/Splash.h"
-#include "Game/MainMenu.h"
-#include "Game/GamePlay1.h"
+#include "../Game/Splash.h"
+#include "../Game/MainMenu.h"
+#include "../Game/GamePlay1.h"
+#include "IProgram.h"
 // ...
 
 class GameProgram final : public IProgram

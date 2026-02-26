@@ -1,9 +1,9 @@
 #pragma once
 #include <memory>
 
-#include "../GameState.h"
-#include "../Input.h"
-#include "../TextureDX11.h"
+#include "../Engine/GameState.h"
+#include "../Engine/Input.h"
+#include "../Engine/TextureDX11.h"
 
 class Splash : public GameState
 {

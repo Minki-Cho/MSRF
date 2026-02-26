@@ -1,10 +1,10 @@
 #pragma once
 #include <memory>
 
-#include "../GameState.h"
-#include "../Input.h"
-#include "../TextureDX11.h"
-#include "../GameObjectManager.h"
+#include "../Engine/GameState.h"
+#include "../Engine/Input.h"
+#include "../Engine/TextureDX11.h"
+#include "../Engine/GameObjectManager.h"
 #include "Player.h"
 
 class GamePlay1 : public GameState

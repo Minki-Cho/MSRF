@@ -1,7 +1,7 @@
 #include <fstream> //ifstream
 #include <filesystem> //filesystem path
-#include "Engine.h" //GetLogger
-#include "Animation.h" //Animation
+#include "../Engine/Engine.h" //GetLogger
+#include "../Engine/Animation.h" //Animation
 
 Animation::Animation() : Animation("./assets/images/characters/none_front.anm") {}
 
