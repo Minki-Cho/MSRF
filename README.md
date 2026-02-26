@@ -1,8 +1,9 @@
 # MSFR - DirectX11-Based 2D Game Framework Portfolio
+<img width="1536" height="1024" alt="Splash" src="https://github.com/user-attachments/assets/0705bf37-f5fa-4c27-809d-92fb945d9078" />
 
 ## 1. Project Overview
 
-MSFR is a personal game framework/prototype built with **C++17, SDL2, and DirectX11**.  
+MSFR(Multithreaded Simulation Rendering Framework) is a personal game framework/prototype built with **C++17, SDL2, and DirectX11**.  
 Instead of stopping at basic window rendering, this project focuses on implementing a practical game-development workflow end to end.
 
 Implemented areas include:
