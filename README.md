@@ -1,4 +1,4 @@
-# MSFR - DirectX11-Based 2D Game Framework Portfolio
+# MSFR - DirectX11-Based 2D Game Framework
 <img width="1536" height="1024" alt="Splash" src="https://github.com/user-attachments/assets/0705bf37-f5fa-4c27-809d-92fb945d9078" />
 
 ## 1. Project Overview
