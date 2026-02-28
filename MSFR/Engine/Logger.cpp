@@ -2,9 +2,27 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <thread>
 
 #define NOMINMAX
 #include <Windows.h>
+
+namespace
+{
+    const char* ToTag(Logger::Severity severity)
+    {
+        switch (severity)
+        {
+        case Logger::Severity::Verbose: return "Verb";
+        case Logger::Severity::Debug:   return "Debug";
+        case Logger::Severity::Event:   return "Event";
+        case Logger::Severity::Warning: return "Warn";
+        case Logger::Severity::Error:   return "Error";
+        case Logger::Severity::Fatal:   return "Fatal";
+        default:                        return "Unknown";
+        }
+    }
+}
 
 Logger::Logger()
     : Logger(Severity::Debug, true, std::chrono::system_clock::now())
@@ -52,25 +70,48 @@ void Logger::LogError(const std::string& text) { Log(Severity::Error, text); }
 void Logger::LogEvent(const std::string& text) { Log(Severity::Event, text); }
 void Logger::LogDebug(const std::string& text) { Log(Severity::Debug, text); }
 void Logger::LogVerbose(const std::string& text) { Log(Severity::Verbose, text); }
+void Logger::LogWarning(const std::string& text) { Log(Severity::Warning, text); }
+void Logger::LogFatal(const std::string& text) { Log(Severity::Fatal, text); }
+
+void Logger::LogWithContext(Severity severity, const std::string& message, const Context& context)
+{
+    std::ostringstream oss;
+    oss << '[' << context.subsystem << "] " << message;
+    oss << " | thread=" << std::this_thread::get_id();
+
+    if (context.state && context.state[0] != '\0')
+    {
+        oss << '\n' << " | state=" << context.state;
+    }
+    if (context.code != 0)
+    {
+        oss << " | code=0x" << std::hex << std::uppercase << static_cast<unsigned long>(context.code) << std::dec;
+    }
+
+    if (context.file && context.file[0] != '\0')
+    {
+        oss << " | at " << context.file;
+        if (context.line > 0)
+        {
+            oss << ':' << context.line;
+        }
+
+        if (context.function && context.function[0] != '\0')
+        {
+            oss << " (" << context.function << ')';
+        }
+    }
+
+    Log(severity, oss.str());
+}
 
 void Logger::Log(Logger::Severity severity, const std::string& message)
 {
     if (severity < minLevel) return;
-
-    const char* tag = "????";
-    switch (severity)
-    {
-    case Severity::Verbose: tag = "Verb";  break;
-    case Severity::Debug:   tag = "Debug"; break;
-    case Severity::Event:   tag = "Event"; break;
-    case Severity::Error:   tag = "Error"; break;
-    }
-
     std::ostringstream oss;
     oss << std::fixed << std::setprecision(4)
         << '[' << GetSecondsSinceStart() << "]\t"
-        << tag << '\t' << message << '\n';
-
+        << ToTag(severity) << '\t' << message << '\n';
     const std::string line = oss.str();
 
     std::lock_guard<std::mutex> lock(mtx);

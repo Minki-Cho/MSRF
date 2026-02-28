@@ -43,6 +43,13 @@ namespace
         return std::runtime_error(oss.str());
     }
 
+    [[noreturn]] void LogAndThrowHRESULT(const char* where, HRESULT hr)
+    {
+        ENGINE_LOG_HRESULT(Engine::GetLogger(), Logger::Severity::Fatal, "Renderer", where, hr);
+        throw MakeError(where, hr);
+    }
+
+
     HWND GetHWNDFromSDL(SDL_Window* window)
     {
         SDL_SysWMinfo wmInfo;
@@ -178,6 +185,7 @@ void DX11App::InitSDLWindow(const char* title, int desired_width, int desired_he
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0)
     {
+        ENGINE_LOG_CTX(Engine::GetLogger(), Logger::Severity::Fatal, "Platform", std::string("SDL_Init failed: ") + SDL_GetError());
         throw std::runtime_error(std::string("SDL_Init failed: ") + SDL_GetError());
     }
 
@@ -193,6 +201,7 @@ void DX11App::InitSDLWindow(const char* title, int desired_width, int desired_he
 
     if (ptr_window == nullptr)
     {
+        ENGINE_LOG_CTX(Engine::GetLogger(), Logger::Severity::Fatal, "Platform", std::string("SDL_CreateWindow failed: ") + SDL_GetError());
         throw std::runtime_error(std::string("SDL_CreateWindow failed: ") + SDL_GetError());
     }
     
@@ -239,7 +248,7 @@ void DX11App::InitD3D11()
 
     if (FAILED(hr))
     {
-        throw MakeError("D3D11CreateDevice", hr);
+        LogAndThrowHRESULT("D3D11CreateDevice", hr);
     }
 
     // Build swapchain via DXGI factory from device
@@ -247,7 +256,7 @@ void DX11App::InitD3D11()
     hr = ptr_device->QueryInterface(__uuidof(IDXGIDevice), (void**)&dxgiDevice);
     if (FAILED(hr) || dxgiDevice == nullptr)
     {
-        throw MakeError("QueryInterface(IDXGIDevice)", hr);
+        LogAndThrowHRESULT("QueryInterface(IDXGIDevice)", hr);
     }
 
     IDXGIAdapter* adapter = nullptr;
@@ -255,7 +264,7 @@ void DX11App::InitD3D11()
     SafeRelease(dxgiDevice);
     if (FAILED(hr) || adapter == nullptr)
     {
-        throw MakeError("IDXGIDevice::GetAdapter", hr);
+        LogAndThrowHRESULT("IDXGIDevice::GetAdapter", hr);
     }
 
     IDXGIFactory* factory = nullptr;
@@ -263,7 +272,7 @@ void DX11App::InitD3D11()
     SafeRelease(adapter);
     if (FAILED(hr) || factory == nullptr)
     {
-        throw MakeError("IDXGIAdapter::GetParent(IDXGIFactory)", hr);
+        LogAndThrowHRESULT("IDXGIAdapter::GetParent(IDXGIFactory)", hr);
     }
 
     HWND hwnd = GetHWNDFromSDL(ptr_window);
@@ -287,7 +296,7 @@ void DX11App::InitD3D11()
     SafeRelease(factory);
     if (FAILED(hr))
     {
-        throw MakeError("IDXGIFactory::CreateSwapChain", hr);
+        LogAndThrowHRESULT("IDXGIFactory::CreateSwapChain", hr);
     }
 
     // Disable alt-enter fullscreen toggling (SDL handles windowing)
@@ -312,14 +321,14 @@ void DX11App::CreateBackBufferResources(int width, int height)
     HRESULT hr = ptr_swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer);
     if (FAILED(hr) || backBuffer == nullptr)
     {
-        throw MakeError("IDXGISwapChain::GetBuffer(backbuffer)", hr);
+        LogAndThrowHRESULT("IDXGISwapChain::GetBuffer(backbuffer)", hr);
     }
 
     hr = ptr_device->CreateRenderTargetView(backBuffer, nullptr, &ptr_rtv);
     SafeRelease(backBuffer);
     if (FAILED(hr))
     {
-        throw MakeError("ID3D11Device::CreateRenderTargetView", hr);
+        LogAndThrowHRESULT("ID3D11Device::CreateRenderTargetView", hr);
     }
 
     // Depth buffer + DSV
@@ -338,14 +347,14 @@ void DX11App::CreateBackBufferResources(int width, int height)
     hr = ptr_device->CreateTexture2D(&depthDesc, nullptr, &depthTex);
     if (FAILED(hr) || depthTex == nullptr)
     {
-        throw MakeError("ID3D11Device::CreateTexture2D(depth)", hr);
+        LogAndThrowHRESULT("ID3D11Device::CreateTexture2D(depth)", hr);
     }
 
     hr = ptr_device->CreateDepthStencilView(depthTex, nullptr, &ptr_dsv);
     SafeRelease(depthTex);
     if (FAILED(hr))
     {
-        throw MakeError("ID3D11Device::CreateDepthStencilView", hr);
+        LogAndThrowHRESULT("ID3D11Device::CreateDepthStencilView", hr);
     }
 
     // Viewport
@@ -423,7 +432,7 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
         const SDL_Keycode k = e.key.keysym.sym;
 
         if (k == SDLK_RETURN)      Engine::GetInput().OnKeyUp(InputKey::Keyboard::Enter);
-        else if (k == SDLK_BACKQUOTE) Engine::GetInput().OnKeyDown(InputKey::Keyboard::Tilde);
+        else if (k == SDLK_BACKQUOTE) Engine::GetInput().OnKeyUp(InputKey::Keyboard::Tilde);
         else if (k == SDLK_ESCAPE) Engine::GetInput().OnKeyUp(InputKey::Keyboard::Escape);
         else if (k == SDLK_SPACE)  Engine::GetInput().OnKeyUp(InputKey::Keyboard::Space);
         else if (k == SDLK_UP)     Engine::GetInput().OnKeyUp(InputKey::Keyboard::Up);
@@ -464,7 +473,7 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
 
                 if (FAILED(hr))
                 {
-                    throw MakeError("IDXGISwapChain::ResizeBuffers", hr);
+                    LogAndThrowHRESULT("IDXGISwapChain::ResizeBuffers", hr);
                 }
 
                 CreateBackBufferResources(viewport_width, viewport_height);

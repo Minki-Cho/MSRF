@@ -23,7 +23,7 @@ void GameStateManager::Update(double dt)
 	case State::START:
 		if (gameStates.empty())
 		{
-			Engine::GetLogger().LogError("Empty!");
+			ENGINE_LOG_CTX(Engine::GetLogger(), Logger::Severity::Fatal, "State", "No registered game states. Entering shutdown.");
 			state = State::SHUTDOWN;
 		}
 		else
@@ -35,9 +35,9 @@ void GameStateManager::Update(double dt)
 
 	case State::LOAD:
 		currGameState = nextGameState;
-		Engine::GetLogger().LogEvent("Load " + currGameState->GetName());
+		ENGINE_LOG_CTX(Engine::GetLogger(), Logger::Severity::Event, "State", "Load " + currGameState->GetName());
 		currGameState->Load();
-		Engine::GetLogger().LogEvent("Load Complete");
+		ENGINE_LOG_CTX(Engine::GetLogger(), Logger::Severity::Event, "State", "Load Complete");
 		state = State::UPDATE;
 		break;
 
@@ -48,7 +48,7 @@ void GameStateManager::Update(double dt)
 		}
 		else
 		{
-			Engine::GetLogger().LogVerbose("Update " + currGameState->GetName());
+			ENGINE_LOG_CTX(Engine::GetLogger(), Logger::Severity::Verbose, "State", "Update " + currGameState->GetName());
 			currGameState->Update(dt);
 			if (Engine::GetGSComponent<GameObjectManager>() != nullptr)
 			{
@@ -59,7 +59,7 @@ void GameStateManager::Update(double dt)
 		break;
 
 	case State::UNLOAD:
-		Engine::GetLogger().LogEvent("Unload " + currGameState->GetName());
+		ENGINE_LOG_CTX(Engine::GetLogger(), Logger::Severity::Event, "State", "Unload " + currGameState->GetName());
 		Engine::GetTextureManager().Unload();
 		currGameState->Unload();
 		if (nextGameState == nullptr)
@@ -85,7 +85,10 @@ void GameStateManager::SetNextState(int initState)
 {
 	if (initState < 0 || initState >= static_cast<int>(gameStates.size()))
 	{
-		Engine::GetLogger().LogError(
+		ENGINE_LOG_CTX(
+			Engine::GetLogger(),
+			Logger::Severity::Warning,
+			"State",
 			"SetNextState: invalid index " + std::to_string(initState) +
 			" (size=" + std::to_string(gameStates.size()) + ")"
 		);

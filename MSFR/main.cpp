@@ -2,6 +2,7 @@
 #include <SDL2/SDL.h>
 
 #include "Engine/DX11App.h"
+#include "Engine/Engine.h"
 #include <exception>
 #include <windows.h>
 
@@ -17,6 +18,7 @@ int main(int, char**)
     }
     catch (const std::exception& e)
     {
+        ENGINE_LOG_CTX(Engine::GetLogger(), Logger::Severity::Fatal, "App", std::string("Unhandled exception: ") + e.what());
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal Error", e.what(), nullptr);
         return 1;
     }
