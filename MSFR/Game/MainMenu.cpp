@@ -1,24 +1,25 @@
 #include "../Engine/DX11Services.h"
 #include "../Engine/Engine.h"
+#include "../Engine/EventTypes.h"
 
 #include "MainMenu.h"
 #include "ScreenMods.h"
 
 namespace
 {
-	struct RectF
-	{
-		float l, t, r, b;
-		bool Contains(float x, float y) const
-		{
-			return x >= l && x <= r && y >= t && y <= b;
-		}
-	};
+    struct RectF
+    {
+        float l, t, r, b;
+        bool Contains(float x, float y) const
+        {
+            return x >= l && x <= r && y >= t && y <= b;
+        }
+    };
 }
 
 MainMenu::MainMenu() : modeNext(InputKey::Keyboard::Enter), timer(5.0f)
 {
-    
+
 }
 
 MainMenu::~MainMenu()
@@ -27,11 +28,11 @@ MainMenu::~MainMenu()
 
 void MainMenu::Load()
 {
-	//Sounds preload!
-	// Not yet
+    //Sounds preload!
+    // Not yet
 
-	//timer = 5;
-	MainMenuImage = TextureDX11("assets/images/MainMenu.png", false);
+    //timer = 5;
+    MainMenuImage = TextureDX11("assets/images/MainMenu.png", false);
 }
 
 void MainMenu::Update(double dt)
@@ -67,16 +68,16 @@ void MainMenu::Update(double dt)
 
     if (play.Contains(mouse.x(), mouse.y()))
     {
-        Engine::GetLogger().LogEvent("Play clicked");
-        Engine::GetGameStateManager().SetNextState((int)ScreenMods::GamePlay1);
+        Engine::GetEventBus().Publish(MenuActionEvent{ MenuActionType::Play });
+        Engine::GetEventBus().Publish(RequestStateChangeEvent{ (int)ScreenMods::GamePlay1 });
     }
     else if (howToPlay.Contains(mouse.x(), mouse.y()))
     {
-        Engine::GetLogger().LogEvent("[MainMenu] HowToPlay clicked");
+        Engine::GetEventBus().Publish(MenuActionEvent{ MenuActionType::HowToPlay });
     }
     else if (quit.Contains(mouse.x(), mouse.y()))
     {
-        Engine::GetLogger().LogEvent("[MainMenu] Quit clicked");
+        Engine::GetEventBus().Publish(MenuActionEvent{ MenuActionType::Quit });
     }
 
     tt.Update(dt);
@@ -84,7 +85,7 @@ void MainMenu::Update(double dt)
 
 void MainMenu::Draw()
 {
-	MainMenuImage.DrawFitCenter({ (float)Engine::GetViewportWidth(), (float)Engine::GetViewportHeight() });
+    MainMenuImage.DrawFitCenter({ (float)Engine::GetViewportWidth(), (float)Engine::GetViewportHeight() });
 }
 
 void MainMenu::Unload()

@@ -42,6 +42,8 @@ void Engine::Shutdown()
     jobSystem.WaitIdle();
     jobSystem.Shutdown();
 
+    eventBus.Clear();
+
     textureManager.Unload();
 
     if (dxContext)
@@ -92,7 +94,10 @@ void Engine::Update()
         ToggleCollisionDebugDraw();
         logger.LogEvent(std::string("Collision debug draw: ") + (collisionDebugDrawEnabled ? "ON" : "OFF"));
     }
+
+    eventBus.DispatchQueued();
     UpdateGameObjects(dt);
+    eventBus.DispatchQueued();
 }
 
 void Engine::Draw()

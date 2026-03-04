@@ -15,6 +15,7 @@
 #include "ActionSystem.h"
 #include "CommandPool.h"
 #include "Command.h"
+#include "EventBus.h"
 
 class Engine
 {
@@ -50,6 +51,7 @@ public:
     static JobSystem& GetJobSystem() { return Instance().jobSystem; }
     static ActionSystem& GetActionSystem() { return Instance().actionSystem; }
     static auto& GetCommandPool() { return Instance().commandPool; }
+    static EventBus& GetEventBus() { return Instance().eventBus; }
     static AnimationSpeed GetAnimationSpeedLevel() { return Instance().animationSpeedLevel; }
     static bool IsCollisionDebugDrawEnabled() { return Instance().collisionDebugDrawEnabled; }
     static void ToggleCollisionDebugDraw()
@@ -121,6 +123,7 @@ private:
     JobSystem jobSystem;
     ActionSystem actionSystem;
     CommandPool<2048, 64> commandPool;
+    EventBus eventBus;
 
     // DX11 members
     Microsoft::WRL::ComPtr<ID3D11Device>        dxDevice;
