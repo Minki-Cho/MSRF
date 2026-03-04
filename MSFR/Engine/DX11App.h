@@ -7,6 +7,7 @@ union SDL_Event;
 class IProgram;
 
 #include <cstdint>
+#include <array>
 
 struct ID3D11Device;
 struct ID3D11DeviceContext;
@@ -49,6 +50,11 @@ private:
     void ReleaseBackBufferResources();
     void HandleSDLEvent(const SDL_Event& e);
 
+    void InitImGui();
+    void ShutdownImGui();
+    void BeginImGuiFrame();
+    void DrawProfilerOverlay();
+
 private:
     util::owner<IProgram*>   ptr_program = nullptr;
     util::owner<SDL_Window*> ptr_window = nullptr;
@@ -67,4 +73,13 @@ private:
     // Backbuffer-dependent
     util::owner<ID3D11RenderTargetView*> ptr_rtv = nullptr;
     util::owner<ID3D11DepthStencilView*> ptr_dsv = nullptr;
+
+    bool imguiInitialized = false;
+    bool showProfiler = true;
+    std::array<float, 240> frameMsHistory{};
+    int frameHistoryOffset = 0;
 };
+
+
+
+

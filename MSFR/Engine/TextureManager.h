@@ -1,6 +1,7 @@
 #pragma once
 #include <filesystem>
 #include <map>
+#include <memory>
 #include <utility>
 
 class TextureDX11;
@@ -15,8 +16,8 @@ public:
     TextureDX11* Load(const std::filesystem::path& filePath, bool enableTexel);
 
     void Unload();
-    
+
 private:
     using Key = std::pair<std::filesystem::path, bool>;
-    std::map<Key, TextureDX11*> pathToTexture;
+    std::map<Key, std::unique_ptr<TextureDX11>> pathToTexture;
 };

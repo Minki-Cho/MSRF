@@ -1,60 +1,49 @@
-#include <thread>
 #include <sstream>
+#include <thread>
 
 #include "GameObjectManager.h"
-#include "GameObject.h"
-#include "Engine.h"
 #include "Collision.h"
+#include "Engine.h"
+#include "GameObject.h"
 
-GameObjectManager::~GameObjectManager()
+void GameObjectManager::Add(std::unique_ptr<GameObject> obj)
 {
-    for (GameObject* objects : gameObjects)
-        delete objects;
+    if (!obj)
+        return;
 
-    gameObjects.clear();
-
-    for (GameObject* obj : pendingAdd)
-        delete obj;
-    pendingAdd.clear();
+    std::lock_guard<std::mutex> lock(pendingMutex);
+    pendingAdd.push_back(std::move(obj));
 }
 
 void GameObjectManager::Add(GameObject* obj)
 {
-    if (!obj) return;
-
-    std::lock_guard<std::mutex> lock(pendingMutex);
-    pendingAdd.push_back(obj);
+    Add(std::unique_ptr<GameObject>(obj));
 }
 
 void GameObjectManager::FlushPendingAdds()
 {
-    // main-thread only
-    std::vector<GameObject*> local;
+    std::vector<std::unique_ptr<GameObject>> local;
     {
         std::lock_guard<std::mutex> lock(pendingMutex);
         local.swap(pendingAdd);
     }
 
-    for (GameObject* obj : local)
-        gameObjects.push_back(obj);
+    for (auto& obj : local)
+        gameObjects.push_back(std::move(obj));
 }
 
 void GameObjectManager::Update(double dt)
 {
-    //Engine::GetLogger().LogEvent("Job workers = " + std::to_string(Engine::GetJobSystem().GetWorkerCount()));
-
     FlushPendingAdds();
 
     const bool paused = Engine::GetInput().getPause();
     if (paused)
     {
-        // Destroy
-        for (auto it = gameObjects.begin(); it != gameObjects.end(); )
+        for (auto it = gameObjects.begin(); it != gameObjects.end();)
         {
-            GameObject* obj = *it;
+            GameObject* obj = it->get();
             if (obj && obj->GetDestroyed())
             {
-                delete obj;
                 it = gameObjects.erase(it);
             }
             else
@@ -69,17 +58,15 @@ void GameObjectManager::Update(double dt)
 
     isUpdating.store(true, std::memory_order_release);
 
-    // snapshot
     std::vector<GameObject*> snapshot;
     snapshot.reserve(gameObjects.size());
-    for (GameObject* obj : gameObjects)
-        snapshot.push_back(obj);
+    for (const auto& obj : gameObjects)
+        snapshot.push_back(obj.get());
 
-    // parallel update
     auto& js = Engine::GetJobSystem();
 
     const uint32_t count = static_cast<uint32_t>(snapshot.size());
-    js.Dispatch(count, 64, [&](uint32_t i) // use 64 bit for test
+    js.Dispatch(count, 64, [&](uint32_t i)
         {
             GameObject* obj = snapshot[i];
             if (obj)
@@ -90,13 +77,11 @@ void GameObjectManager::Update(double dt)
 
     isUpdating.store(false, std::memory_order_release);
 
-    // main-thread destroy sweep
-    for (auto it = gameObjects.begin(); it != gameObjects.end(); )
+    for (auto it = gameObjects.begin(); it != gameObjects.end();)
     {
-        GameObject* obj = *it;
+        GameObject* obj = it->get();
         if (obj && obj->GetDestroyed())
         {
-            delete obj;
             it = gameObjects.erase(it);
         }
         else
@@ -112,18 +97,21 @@ void GameObjectManager::DrawAll(mat3<float>& cameraMatrix)
 {
     FlushPendingAdds();
 
-    for (GameObject* objects : gameObjects)
-        objects->Draw(cameraMatrix);
+    for (const auto& object : gameObjects)
+        object->Draw(cameraMatrix);
 }
 
 void GameObjectManager::CollideTest()
 {
     FlushPendingAdds();
 
-    for (GameObject* objectA : gameObjects)
+    for (const auto& objectAOwner : gameObjects)
     {
-        for (GameObject* objectB : gameObjects)
+        GameObject* objectA = objectAOwner.get();
+        for (const auto& objectBOwner : gameObjects)
         {
+            GameObject* objectB = objectBOwner.get();
+
             if (objectA->GetGOComponent<Collision>() != nullptr && objectB->GetGOComponent<Collision>() != nullptr)
             {
                 if (objectA->CanCollideWith(objectB->GetObjectType()))
@@ -142,7 +130,7 @@ void GameObjectManager::CollideTest()
     }
 }
 
-const std::list<GameObject*>& GameObjectManager::Objects()
+const std::list<std::unique_ptr<GameObject>>& GameObjectManager::Objects() const
 {
     return gameObjects;
 }

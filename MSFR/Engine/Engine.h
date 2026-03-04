@@ -72,6 +72,9 @@ public:
         default:                     return 0.5;
         }
     }
+    static double GetLastFrameDt() { return Instance().lastFrameDt; }
+    static double GetLastFrameMs() { return Instance().lastFrameDt * 1000.0; }
+    static double GetLastFrameFps() { return (Instance().lastFrameDt > 0.0) ? (1.0 / Instance().lastFrameDt) : 0.0; }
 
     template<typename T>
     static T* GetGSComponent() { return GetGameStateManager().GetGSComponent<T>(); }
@@ -109,6 +112,7 @@ private:
     Clock::time_point lastTick = Clock::now();
     Clock::time_point fpsCalcTime = Clock::now();
     int frameCount = 0;
+    double lastFrameDt = 1.0 / 60.0;
 
     bool gameFinish = false;
     bool initialized = false;
@@ -137,3 +141,5 @@ private:
     AnimationSpeed animationSpeedLevel = AnimationSpeed::Normal;
     bool collisionDebugDrawEnabled = false;
 };
+
+

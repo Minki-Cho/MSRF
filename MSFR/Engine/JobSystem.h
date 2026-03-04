@@ -61,6 +61,7 @@ public:
     }
 
     uint32_t GetWorkerCount() const noexcept { return static_cast<uint32_t>(workers.size()); }
+    uint32_t GetPendingJobs() const noexcept { return pendingJobs.load(std::memory_order_acquire); }
 
 private:
     void WorkerLoop();
@@ -79,3 +80,4 @@ private:
     std::atomic<bool> running{ false };
     std::atomic<uint32_t> pendingJobs{ 0 }; // jobs not yet finished
 };
+

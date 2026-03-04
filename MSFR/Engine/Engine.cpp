@@ -13,6 +13,7 @@ void Engine::InitCore()
     lastTick = Clock::now();
     fpsCalcTime = lastTick;
     frameCount = 0;
+    lastFrameDt = 1.0 / TargetFPS;
 
     gameFinish = false;
     initialized = true;
@@ -85,6 +86,8 @@ void Engine::Update()
         frameCount = 0;
         fpsCalcTime = now;
     }
+    lastFrameDt = dt;
+
     if (usesInternalWindow)
     {
         window.Update();
@@ -125,3 +128,5 @@ void Engine::UpdateGameObjects(double dt)
 {
     gameStateManager.Update(dt);
 }
+
+

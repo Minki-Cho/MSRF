@@ -11,11 +11,12 @@ TextureDX11* TextureManager::Load(ID3D11Device* device, ID3D11DeviceContext* ctx
     auto it = pathToTexture.find(key);
     if (it == pathToTexture.end())
     {
-        auto* tex = new TextureDX11(device, ctx, filePath, enableTexel);
-        pathToTexture.emplace(key, tex);
-        return tex;
+        auto tex = std::make_unique<TextureDX11>(device, ctx, filePath, enableTexel);
+        TextureDX11* raw = tex.get();
+        pathToTexture.emplace(std::move(key), std::move(tex));
+        return raw;
     }
-    return it->second;
+    return it->second.get();
 }
 
 TextureDX11* TextureManager::Load(const std::filesystem::path& filePath, bool enableTexel)
@@ -26,11 +27,5 @@ TextureDX11* TextureManager::Load(const std::filesystem::path& filePath, bool en
 void TextureManager::Unload()
 {
     Engine::GetLogger().LogEvent("Clear Textures");
-
-    for (auto& [key, tex] : pathToTexture)
-    {
-        delete tex;
-        tex = nullptr;
-    }
     pathToTexture.clear();
 }

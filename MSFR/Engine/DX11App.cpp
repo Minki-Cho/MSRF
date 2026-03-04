@@ -18,7 +18,11 @@
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
+#include <array>
 
+#include "../external/imgui/imgui.h"
+#include "../external/imgui/backends/imgui_impl_sdl2.h"
+#include "../external/imgui/backends/imgui_impl_dx11.h"
  // Link libs
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -106,6 +110,8 @@ DX11App::DX11App(const char* title, int desired_width, int desired_height)
     {
         throw std::runtime_error("create_program returned nullptr.");
     }
+
+    InitImGui();
 }
 
 DX11App::~DX11App()
@@ -116,6 +122,8 @@ DX11App::~DX11App()
         delete ptr_program;
         ptr_program = nullptr;
     }
+
+    ShutdownImGui();
 
     // Release backbuffer resources before swapchain/device
     ReleaseBackBufferResources();
@@ -133,6 +141,85 @@ DX11App::~DX11App()
     SDL_Quit();
 }
 
+void DX11App::InitImGui()
+{
+    if (imguiInitialized)
+        return;
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplSDL2_InitForD3D(ptr_window);
+    ImGui_ImplDX11_Init(ptr_device, ptr_context);
+
+    frameMsHistory.fill(0.0f);
+    frameHistoryOffset = 0;
+    imguiInitialized = true;
+}
+
+void DX11App::ShutdownImGui()
+{
+    if (!imguiInitialized)
+        return;
+
+    ImGui_ImplDX11_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+    imguiInitialized = false;
+}
+
+void DX11App::BeginImGuiFrame()
+{
+    if (!imguiInitialized)
+        return;
+
+    ImGui_ImplDX11_NewFrame();
+    ImGui_ImplSDL2_NewFrame();
+    ImGui::NewFrame();
+}
+
+void DX11App::DrawProfilerOverlay()
+{
+    if (!imguiInitialized)
+        return;
+
+    const float frameMs = static_cast<float>(Engine::GetLastFrameMs());
+    frameMsHistory[frameHistoryOffset] = frameMs;
+    frameHistoryOffset = (frameHistoryOffset + 1) % static_cast<int>(frameMsHistory.size());
+
+    if (showProfiler)
+    {
+        ImGui::SetNextWindowBgAlpha(0.88f);
+        ImGui::SetNextWindowPos(ImVec2(12.0f, 12.0f), ImGuiCond_Once);
+
+        if (ImGui::Begin("MSFR Profiler", &showProfiler, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::Text("Toggle overlay: F2");
+            ImGui::Separator();
+
+            ImGui::Text("Frame: %.2f ms (%.1f FPS)", Engine::GetLastFrameMs(), Engine::GetLastFrameFps());
+            ImGui::PlotLines("Frame Time (ms)", frameMsHistory.data(), static_cast<int>(frameMsHistory.size()), frameHistoryOffset, nullptr, 0.0f, 40.0f, ImVec2(280.0f, 80.0f));
+
+            auto& js = Engine::GetJobSystem();
+            ImGui::Text("Job Workers: %u", js.GetWorkerCount());
+            ImGui::Text("Pending Jobs: %u", js.GetPendingJobs());
+
+            auto& pool = Engine::GetCommandPool();
+            ImGui::Text("CommandPool: %zu / %zu in-use", pool.InUse(), pool.InUse() + pool.Available());
+
+            ImGui::Text("Viewport: %d x %d", Engine::GetViewportWidth(), Engine::GetViewportHeight());
+        }
+        ImGui::End();
+    }
+
+    ImGui::Render();
+    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+}
 bool DX11App::IsDone() const noexcept
 {
     return is_done;
@@ -300,7 +387,7 @@ void DX11App::InitD3D11()
     }
 
     // Disable alt-enter fullscreen toggling (SDL handles windowing)
-    // (If this fails, it¡¯s not fatal)
+    // (If this fails, it?s not fatal)
     // Note: need IDXGIFactory again to call MakeWindowAssociation; skip to keep minimal.
 
     CreateBackBufferResources(viewport_width, viewport_height);
@@ -371,6 +458,11 @@ void DX11App::CreateBackBufferResources(int width, int height)
 
 void DX11App::HandleSDLEvent(const SDL_Event& e)
 {
+    if (imguiInitialized)
+    {
+        ImGui_ImplSDL2_ProcessEvent(&e);
+    }
+
     if (ptr_program)
     {
         ptr_program->HandleEvent(*ptr_window, e);
@@ -413,6 +505,12 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
         {
             auto& lg = Engine::GetLogger();
             lg.SetUseConsole(!lg.IsUsingConsole());
+            break;
+        }
+
+        if (k == SDLK_F2)
+        {
+            showProfiler = !showProfiler;
             break;
         }
 
@@ -459,6 +557,11 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
 
             if (ptr_swapchain)
             {
+                if (imguiInitialized)
+                {
+                    ImGui_ImplDX11_InvalidateDeviceObjects();
+                }
+
                 ID3D11RenderTargetView* nullRTV[1] = { nullptr };
                 ptr_context->OMSetRenderTargets(1, nullRTV, nullptr);
 
@@ -477,6 +580,11 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
                 }
 
                 CreateBackBufferResources(viewport_width, viewport_height);
+
+                if (imguiInitialized)
+                {
+                    ImGui_ImplDX11_CreateDeviceObjects();
+                }
             }
         }
         break;
@@ -512,9 +620,19 @@ void DX11App::Update()
     // User program
     ptr_program->Update();
     ptr_program->Draw();
-    //ptr_program->ImGuiDraw();
+
+    BeginImGuiFrame();
+    DrawProfilerOverlay();
 
     // Present
     // vsync=1 is nicer. If want uncapped, change first arg to 0.
     ptr_swapchain->Present(1, 0);
 }
+
+
+
+
+
+
+
+

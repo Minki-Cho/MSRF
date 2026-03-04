@@ -1,20 +1,18 @@
 #pragma once
-#include <algorithm> //algorithm
-#include <vector> //components
-#include <memory> //memory
+#include <algorithm>
+#include <memory>
+#include <vector>
 
-#include "Component.h" //Component
+#include "Component.h"
 
 class ComponentManager
 {
 public:
-    ~ComponentManager()
-    {
-        Clear();
-    }
+    ~ComponentManager() = default;
+
     void UpdateAll(double dt)
     {
-        for (Component* component : components)
+        for (const auto& component : components)
         {
             component->Update(dt);
         }
@@ -23,9 +21,9 @@ public:
     template<typename T>
     T* GetComponent()
     {
-        for (Component* component : components)
+        for (const auto& component : components)
         {
-            T* ptr = dynamic_cast<T*>(component);
+            T* ptr = dynamic_cast<T*>(component.get());
             if (ptr != nullptr)
             {
                 return ptr;
@@ -34,29 +32,36 @@ public:
         return nullptr;
     }
 
+    void AddComponent(std::unique_ptr<Component> component)
+    {
+        if (!component)
+            return;
+        components.push_back(std::move(component));
+    }
+
     void AddComponent(Component* component)
     {
-        components.push_back(component);
+        AddComponent(std::unique_ptr<Component>(component));
     }
 
     template<typename T>
     void RemoveComponent()
     {
-        auto it = std::find_if(components.begin(), components.end(), [](Component* element) {
-            return (dynamic_cast<T*>(element) != nullptr);
+        auto it = std::find_if(components.begin(), components.end(), [](const std::unique_ptr<Component>& element) {
+            return dynamic_cast<T*>(element.get()) != nullptr;
             });
-        delete* it;
-        components.erase(it);
+
+        if (it != components.end())
+        {
+            components.erase(it);
+        }
     }
 
     void Clear()
     {
-        for (Component* component : components)
-        {
-            delete component;
-        }
         components.clear();
     }
+
 private:
-    std::vector<Component*> components;
+    std::vector<std::unique_ptr<Component>> components;
 };

@@ -1,10 +1,11 @@
 #pragma once
-#include <vector>
-#include <mutex>
 #include <atomic>
 #include <list>
+#include <memory>
+#include <mutex>
+#include <vector>
 
-#include "Component.h" //Component inheritance
+#include "Component.h"
 #include "mat3.h"
 
 class GameObject;
@@ -12,23 +13,24 @@ class GameObject;
 class GameObjectManager : public Component
 {
 public:
-    ~GameObjectManager();
+    ~GameObjectManager() override = default;
 
+    void Add(std::unique_ptr<GameObject> obj);
     void Add(GameObject* obj);
 
     void Update(double dt) override;
     void DrawAll(mat3<float>& cameraMatrix);
     void CollideTest();
-    const std::list<GameObject*>& Objects();
+    const std::list<std::unique_ptr<GameObject>>& Objects() const;
 
 private:
-    void FlushPendingAdds(); // main-thread only
+    void FlushPendingAdds();
 
 private:
-    std::list<GameObject*> gameObjects;
+    std::list<std::unique_ptr<GameObject>> gameObjects;
 
     std::mutex pendingMutex;
-    std::vector<GameObject*> pendingAdd;
+    std::vector<std::unique_ptr<GameObject>> pendingAdd;
 
     std::atomic<bool> isUpdating{ false };
 };

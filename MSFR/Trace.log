@@ -1,23 +1,29 @@
-[0.2757]	Event	Engine InitCore
-[0.2768]	Event	Job workers (after init) = 31
-[0.2975]	Event	[State] Load Spalsh | thread=25288 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
-[0.3540]	Event	[State] Load Complete | thread=25288 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
-[2.1862]	Event	[EventBus] RequestStateChange -> 1
-[2.2292]	Event	[State] Unload Spalsh | thread=25288 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:62 (GameStateManager::Update)
-[2.2329]	Event	Clear Textures
-[2.2372]	Event	[State] Load MainMenu | thread=25288 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
-[2.3156]	Event	[State] Load Complete | thread=25288 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
-[5.2833]	Event	FPS: 151.981870
-[7.5325]	Debug	Input LUp -> releasedThisFrame = true
-[7.5362]	Event	mouse win: 541, 274
-[7.5366]	Event	[EventBus] MenuAction -> Play
-[7.5369]	Event	[EventBus] RequestStateChange -> 2
-[7.5469]	Event	[State] Unload MainMenu | thread=25288 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:62 (GameStateManager::Update)
-[7.5473]	Event	Clear Textures
-[7.5517]	Event	[State] Load GamePlay1 | thread=25288 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
-[7.5648]	Event	Sprite SPT: assets/images/characters/characters/thief/thief.spt
-[7.5653]	Event	Texture token: assets/images/characters/characters/thief/thief.png
-[7.5657]	Event	Resolved texture path: assets/images/characters/characters/thief/thief.png
-[7.7006]	Event	[State] Load Complete | thread=25288 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
-[10.2856]	Event	FPS: 157.326607
-[11.1741]	Event	SDL_QUIT received
+[0.2530]	Event	Engine InitCore
+[0.2669]	Event	Job workers (after init) = 31
+[0.2856]	Event	[State] Load Spalsh | thread=9388 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[0.3169]	Event	[State] Load Complete | thread=9388 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
+[2.1271]	Event	[EventBus] RequestStateChange -> 1
+[2.1362]	Event	[State] Unload Spalsh | thread=9388 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:62 (GameStateManager::Update)
+[2.1366]	Event	Clear Textures
+[2.1421]	Event	[State] Load MainMenu | thread=9388 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[2.1819]	Event	[State] Load Complete | thread=9388 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
+[5.1275]	Debug	Input LUp -> releasedThisFrame = true
+[5.1289]	Event	mouse win: 501, 283
+[5.1291]	Event	[EventBus] MenuAction -> Play
+[5.1294]	Event	[EventBus] RequestStateChange -> 2
+[5.1420]	Event	[State] Unload MainMenu | thread=9388 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:62 (GameStateManager::Update)
+[5.1423]	Event	Clear Textures
+[5.1471]	Event	[State] Load GamePlay1 | thread=9388 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[5.1476]	Event	Sprite SPT: assets/images/characters/characters/thief/thief.spt
+[5.1478]	Event	Texture token: assets/images/characters/characters/thief/thief.png
+[5.1481]	Event	Resolved texture path: assets/images/characters/characters/thief/thief.png
+[5.2070]	Event	[State] Load Complete | thread=9388 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
+[5.2679]	Event	FPS: 160.945790
+[10.2775]	Event	FPS: 151.909231
+[10.6990]	Debug	Input LUp -> releasedThisFrame = true
+[11.0743]	Debug	Input LUp -> releasedThisFrame = true
+[11.2311]	Debug	Input LUp -> releasedThisFrame = true
+[11.4428]	Debug	Input LUp -> releasedThisFrame = true
+[11.5940]	Debug	Input LUp -> releasedThisFrame = true
+[11.8067]	Debug	Input LUp -> releasedThisFrame = true
+[11.9779]	Debug	Input LUp -> releasedThisFrame = true

@@ -4,9 +4,10 @@
 #include "GamePlay1.h"
 #include "ScreenMods.h"
 #include <algorithm>
+#include <memory>
+
 GamePlay1::GamePlay1() : timer(5.0f)
 {
-
 }
 
 GamePlay1::~GamePlay1()
@@ -16,38 +17,25 @@ GamePlay1::~GamePlay1()
 void GamePlay1::Load()
 {
     Engine::SetAnimationSpeedLevel(Engine::AnimationSpeed::Normal);
-    gameObjectManager = new GameObjectManager();
-    AddGSComponent(gameObjectManager);
 
-    playerPtr = new Player(vec2{
-    (float)Engine::GetViewportWidth() * 0.5f,
-    (float)Engine::GetViewportHeight() * 0.5f
+    auto manager = std::make_unique<GameObjectManager>();
+    gameObjectManager = manager.get();
+    AddGSComponent(std::move(manager));
+
+    auto player = std::make_unique<Player>(vec2{
+        (float)Engine::GetViewportWidth() * 0.5f,
+        (float)Engine::GetViewportHeight() * 0.5f
         });
-    gameObjectManager->Add(playerPtr);
+    playerPtr = player.get();
+    gameObjectManager->Add(std::move(player));
+
     MainMenuImage = TextureDX11("assets/images/map.png", false);
 }
 
 void GamePlay1::Update(double dt)
 {
-    gameObjectManager->Update(dt);
-    /*auto& input = Engine::GetInput();*/
-
-    //if (!input.GetMouseReleasedThisFrame())
-    //    return;
-
-    //const vec2 mouse = input.GetMousePos();
-
-    //if (input.GetMouseReleasedThisFrame())
-    //{
-    //    const vec2 mouse = input.GetMousePos();
-
-    //    Engine::GetLogger().LogEvent(
-    //        "mouse win: " +
-    //        std::to_string((int)mouse.x()) + ", " +
-    //        std::to_string((int)mouse.y())
-    //    );
-    //}
-
+    if (gameObjectManager)
+        gameObjectManager->Update(dt);
 }
 
 void GamePlay1::Draw()
@@ -63,7 +51,6 @@ void GamePlay1::Draw()
         const float desiredCameraX = viewportWidth * 0.5f - playerPos.x();
         const float desiredCameraY = viewportHeight * 0.5f - playerPos.y();
 
-        // 플레이어 이동 가능 범위와 동일한 월드 경계(3배 영역)
         const float worldMinX = -viewportWidth;
         const float worldMinY = -viewportHeight;
         const float worldMaxX = viewportWidth * 2.0f;
@@ -85,8 +72,7 @@ void GamePlay1::Draw()
         gameObjectManager->DrawAll(cameraMatrix);
     }
 
-    const mat3<float> mapMatrix = cameraMatrix *
-        mat3<float>::build_scale(1.0f, 1.0f);
+    const mat3<float> mapMatrix = cameraMatrix * mat3<float>::build_scale(1.0f, 1.0f);
     MainMenuImage.Draw(mapMatrix);
 }
 
