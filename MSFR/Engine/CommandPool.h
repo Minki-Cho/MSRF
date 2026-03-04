@@ -116,15 +116,17 @@ private:
         const std::size_t slotSize = sizeof(Slot);
         const std::size_t idx = static_cast<std::size_t>(diff / slotSize);
         assert(idx < Capacity);
-
-        const auto slotBase = reinterpret_cast<const std::byte*>(&slots[idx]);
+#ifndef NDEBUG
         const auto storageBase = reinterpret_cast<const std::byte*>(slots[idx].storage.data());
         const auto storageEnd = storageBase + MaxBytes;
 
         assert(reinterpret_cast<const std::byte*>(cmd) >= storageBase &&
             reinterpret_cast<const std::byte*>(cmd) < storageEnd &&
             "CommandPool: pointer not inside slot storage");
+#endif
 
         return idx;
     }
 };
+
+

@@ -1,24 +1,24 @@
-[0.2734]	Event	Engine InitCore
-[0.2897]	Event	Job workers (after init) = 31
-[0.3168]	Event	[State] Load Spalsh | thread=43948 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
-[0.3572]	Event	[State] Load Complete | thread=43948 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
-[2.1651]	Event	[EventBus] RequestStateChange -> 1
-[2.1785]	Event	[State] Unload Spalsh | thread=43948 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:62 (GameStateManager::Update)
-[2.1788]	Event	Clear Textures
-[2.1834]	Event	[State] Load MainMenu | thread=43948 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
-[2.2247]	Event	[State] Load Complete | thread=43948 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
-[3.7393]	Debug	Input LUp -> releasedThisFrame = true
-[3.7408]	Event	mouse win: 556, 277
-[3.7411]	Event	[EventBus] MenuAction -> Play
-[3.7412]	Event	[EventBus] RequestStateChange -> 2
-[3.7518]	Event	[State] Unload MainMenu | thread=43948 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:62 (GameStateManager::Update)
-[3.7521]	Event	Clear Textures
-[3.7598]	Event	[State] Load GamePlay1 | thread=43948 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
-[3.7616]	Event	Sprite SPT: assets/images/characters/characters/thief/thief.spt
-[3.7621]	Event	Texture token: assets/images/characters/characters/thief/thief.png
-[3.7622]	Event	Resolved texture path: assets/images/characters/characters/thief/thief.png
-[3.8509]	Event	[State] Load Complete | thread=43948 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
-[4.5268]	Debug	Input LUp -> releasedThisFrame = true
-[5.2928]	Event	FPS: 158.483030
-[10.2929]	Event	FPS: 147.196467
-[15.2941]	Event	FPS: 157.562150
+[0.2625]	Event	Engine InitCore
+[0.2784]	Event	Job workers (after init) = 31
+[0.3050]	Event	[State] Load Spalsh | thread=18072 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[0.3446]	Event	[State] Load Complete | thread=18072 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
+[2.1712]	Event	[Command] RequestStateChange -> 1
+[2.1827]	Event	[State] Unload Spalsh | thread=18072 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:62 (GameStateManager::Update)
+[2.1923]	Event	Clear Textures
+[2.1963]	Event	[State] Load MainMenu | thread=18072 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[2.2462]	Event	[State] Load Complete | thread=18072 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
+[3.9088]	Debug	Input LUp -> releasedThisFrame = true
+[3.9106]	Event	mouse win: 576, 295
+[3.9110]	Event	[Command] MenuAction -> Play
+[3.9114]	Event	[Command] RequestStateChange -> 2
+[3.9219]	Event	[State] Unload MainMenu | thread=18072 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:62 (GameStateManager::Update)
+[3.9222]	Event	Clear Textures
+[3.9280]	Event	[State] Load GamePlay1 | thread=18072 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[3.9295]	Event	Sprite SPT: assets/images/characters/characters/thief/thief.spt
+[3.9298]	Event	Texture token: assets/images/characters/characters/thief/thief.png
+[3.9300]	Event	Resolved texture path: assets/images/characters/characters/thief/thief.png
+[4.0142]	Event	[State] Load Complete | thread=18072 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
+[5.0024]	Debug	Input LUp -> releasedThisFrame = true
+[5.2798]	Event	FPS: 155.324335
+[5.6698]	Debug	Input LUp -> releasedThisFrame = true
+[7.0750]	Event	SDL_QUIT received

@@ -1,12 +1,30 @@
 #include "Engine.h"
 #include "EventTypes.h"
+#include "GameCommands.h"
 #include <SDL2/SDL.h>
 #include "../Game/Splash.h"
 #include "../Game/MainMenu.h"
 #include "../Game/GamePlay1.h"
 #include "IProgram.h"
 #include <string>
-// ...
+
+namespace
+{
+    template<typename Cmd, typename... Args>
+    void ExecutePooledCommand(Args&&... args)
+    {
+        auto& pool = Engine::GetCommandPool();
+        Cmd* cmd = pool.Create<Cmd>(std::forward<Args>(args)...);
+        if (!cmd)
+        {
+            Engine::GetLogger().LogError("[CommandPool] Allocation failed");
+            return;
+        }
+
+        cmd->Execute();
+        pool.Destroy(cmd);
+    }
+}
 
 class GameProgram final : public IProgram
 {
@@ -21,21 +39,12 @@ public:
 
         auto& bus = Engine::GetEventBus();
         stateChangeSubscription = bus.Subscribe<RequestStateChangeEvent>([](const RequestStateChangeEvent& e) {
-            Engine::GetLogger().LogEvent("[EventBus] RequestStateChange -> " + std::to_string(e.nextStateIndex));
-            Engine::GetGameStateManager().SetNextState(e.nextStateIndex);
+            ExecutePooledCommand<RequestStateChangeCommand>(e.nextStateIndex);
         });
 
         menuActionSubscription = bus.Subscribe<MenuActionEvent>([](const MenuActionEvent& e) {
-            const char* action = "Unknown";
-            switch (e.action)
-            {
-            case MenuActionType::Play: action = "Play"; break;
-            case MenuActionType::HowToPlay: action = "HowToPlay"; break;
-            case MenuActionType::Quit: action = "Quit"; break;
-            }
-            Engine::GetLogger().LogEvent(std::string("[EventBus] MenuAction -> ") + action);
+            ExecutePooledCommand<LogMenuActionCommand>(e.action);
         });
-        // ...
     }
 
     ~GameProgram() override
@@ -55,5 +64,4 @@ private:
     GamePlay1 play;
     EventBus::SubscriptionId stateChangeSubscription = 0;
     EventBus::SubscriptionId menuActionSubscription = 0;
-    // ...
 };
