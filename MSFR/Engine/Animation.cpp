@@ -1,142 +1,163 @@
-#include <fstream> //ifstream
-#include <filesystem> //filesystem path
-#include "../Engine/Engine.h" //GetLogger
-#include "../Engine/Animation.h" //Animation
+#include <fstream>
+#include <memory>
+
+#include "../Engine/Animation.h"
+#include "../Engine/Engine.h"
 
 Animation::Animation() : Animation("./assets/images/characters/none_front.anm") {}
 
 Animation::Animation(const std::filesystem::path& fileName) : animSequenceIndex(0)
 {
-	if (fileName.extension() != ".anm")
-	{
-		throw std::runtime_error("Bad Filetype.  " + fileName.generic_string() + " not a sprite info file (.anm)");
-	}
-	std::ifstream inFile(fileName);
-	if (inFile.is_open() == false)
-	{
-		throw std::runtime_error("Failed to load " + fileName.generic_string());
-	}
+    if (fileName.extension() != ".anm")
+    {
+        throw std::runtime_error("Bad Filetype.  " + fileName.generic_string() + " not a sprite info file (.anm)");
+    }
 
-	std::string label;
-	while (inFile.eof() == false)
-	{
-		inFile >> label;
-		if (label == "PlayFrame")
-		{
-			int frame;
-			float targetTime;
-			inFile >> frame;
-			inFile >> targetTime;
+    std::ifstream inFile(fileName);
+    if (!inFile.is_open())
+    {
+        throw std::runtime_error("Failed to load " + fileName.generic_string());
+    }
 
-			animations.push_back(new PlayFrame(frame, targetTime));
-		}
-		else if (label == "Loop")
-		{
-			int loopToFrame;
-			inFile >> loopToFrame;
-			animations.push_back(new Loop(loopToFrame));
-		}
-		else if (label == "End")
-		{
-			animations.push_back(new End());
-		}
-		else {
-			Engine::GetLogger().LogError("Unknown command " + label + " in anm file " + fileName.generic_string());
-		}
-	}
-	ResetAnimation();
-}
+    std::string label;
+    while (!inFile.eof())
+    {
+        inFile >> label;
+        if (label == "PlayFrame")
+        {
+            int frame;
+            float targetTime;
+            inFile >> frame;
+            inFile >> targetTime;
 
-Animation::~Animation()
-{
-	for (CommandData* command : animations)
-	{
-		delete command;
-	}
-	animations.clear();
+            animations.push_back(std::make_unique<PlayFrame>(frame, targetTime));
+        }
+        else if (label == "Loop")
+        {
+            int loopToFrame;
+            inFile >> loopToFrame;
+            animations.push_back(std::make_unique<Loop>(loopToFrame));
+        }
+        else if (label == "End")
+        {
+            animations.push_back(std::make_unique<End>());
+        }
+        else
+        {
+            Engine::GetLogger().LogError("Unknown command " + label + " in anm file " + fileName.generic_string());
+        }
+    }
+
+    ResetAnimation();
 }
 
 void Animation::Update(double dt)
 {
-	currPlayFrameData->Update(dt);
-	if (currPlayFrameData->IsFrameDone() == true)
-	{
-		currPlayFrameData->ResetTime();
-		++animSequenceIndex;
-		if (animations[animSequenceIndex]->GetType() == Command::PlayFrame)
-		{
-			currPlayFrameData = static_cast<PlayFrame*>(animations[animSequenceIndex]);
-		}
-		else if (animations[animSequenceIndex]->GetType() == Command::Loop)
-		{
-			Loop* loopData = static_cast<Loop*>(animations[animSequenceIndex]);
-			animSequenceIndex = loopData->GetLoopToIndex();
-			if (animations[animSequenceIndex]->GetType() == Command::PlayFrame)
-			{
-				currPlayFrameData = static_cast<PlayFrame*>(animations[animSequenceIndex]);
-			}
-			else
-			{
-				Engine::GetLogger().LogError("Loop does not go to PlayFrame");
-				ResetAnimation();
-			}
-		}
-		else if (animations[animSequenceIndex]->GetType() == Command::End)
-		{
-			isAnimationDone = true;
-			return;
-		}
-	}
+    if (!currPlayFrameData)
+        return;
+
+    currPlayFrameData->Update(dt);
+    if (currPlayFrameData->IsFrameDone())
+    {
+        currPlayFrameData->ResetTime();
+        ++animSequenceIndex;
+
+        if (animSequenceIndex < 0 || animations.size() <= static_cast<size_t>(animSequenceIndex))
+        {
+            isAnimationDone = true;
+            return;
+        }
+
+        if (animations[animSequenceIndex]->GetType() == Command::PlayFrame)
+        {
+            currPlayFrameData = static_cast<PlayFrame*>(animations[animSequenceIndex].get());
+        }
+        else if (animations[animSequenceIndex]->GetType() == Command::Loop)
+        {
+            Loop* loopData = static_cast<Loop*>(animations[animSequenceIndex].get());
+            animSequenceIndex = loopData->GetLoopToIndex();
+
+            if (animSequenceIndex >= 0 && animations.size() > static_cast<size_t>(animSequenceIndex) &&
+                animations[animSequenceIndex]->GetType() == Command::PlayFrame)
+            {
+                currPlayFrameData = static_cast<PlayFrame*>(animations[animSequenceIndex].get());
+            }
+            else
+            {
+                Engine::GetLogger().LogError("Loop does not go to PlayFrame");
+                ResetAnimation();
+            }
+        }
+        else if (animations[animSequenceIndex]->GetType() == Command::End)
+        {
+            isAnimationDone = true;
+            return;
+        }
+    }
 }
 
 int Animation::GetDisplayFrame()
 {
-	return currPlayFrameData->GetFrameNum();
+    return currPlayFrameData ? currPlayFrameData->GetFrameNum() : 0;
 }
 
 void Animation::ResetAnimation()
 {
-	animSequenceIndex = 0;
-	currPlayFrameData = static_cast<PlayFrame*>(animations[animSequenceIndex]);
-	isAnimationDone = false;
+    animSequenceIndex = 0;
+    isAnimationDone = false;
+
+    if (animations.empty())
+    {
+        currPlayFrameData = nullptr;
+        isAnimationDone = true;
+        return;
+    }
+
+    if (animations[animSequenceIndex]->GetType() == Command::PlayFrame)
+    {
+        currPlayFrameData = static_cast<PlayFrame*>(animations[animSequenceIndex].get());
+        currPlayFrameData->ResetTime();
+        return;
+    }
+
+    Engine::GetLogger().LogError("Animation start command is not PlayFrame");
+    currPlayFrameData = nullptr;
+    isAnimationDone = true;
 }
 
 bool Animation::IsAnimationDone()
 {
-	return isAnimationDone;
+    return isAnimationDone;
 }
 
 Animation::PlayFrame::PlayFrame(int frame, double duration)
-	: frame(frame), targetTime(duration), timer(0) {
+    : frame(frame), targetTime(duration), timer(0)
+{
 }
 
 void Animation::PlayFrame::Update(double dt)
 {
-	timer += dt;
+    timer += dt;
 }
 
 bool Animation::PlayFrame::IsFrameDone()
 {
-	if (timer >= targetTime)
-	{
-		return true;
-	}
-	return false;
+    return timer >= targetTime;
 }
 
 void Animation::PlayFrame::ResetTime()
 {
-	timer = 0;
+    timer = 0;
 }
 
 int Animation::PlayFrame::GetFrameNum()
 {
-	return frame;
+    return frame;
 }
 
 Animation::Loop::Loop(int loopToIndex) : loopToIndex(loopToIndex) {}
 
 int Animation::Loop::GetLoopToIndex()
 {
-	return loopToIndex;
+    return loopToIndex;
 }

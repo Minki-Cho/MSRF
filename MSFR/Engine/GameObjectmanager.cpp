@@ -6,6 +6,8 @@
 #include "Engine.h"
 #include "GameObject.h"
 
+GameObjectManager::~GameObjectManager() = default;
+
 void GameObjectManager::Add(std::unique_ptr<GameObject> obj)
 {
     if (!obj)

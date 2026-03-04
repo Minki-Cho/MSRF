@@ -1,65 +1,70 @@
 #pragma once
-#include <vector> //vector array
+#include <filesystem>
+#include <memory>
+#include <vector>
 
 class Animation
 {
 public:
-	Animation();
-	Animation(const std::filesystem::path& fileName);
-	~Animation();
-	void Update(double dt);
-	int GetDisplayFrame();
-	void ResetAnimation();
-	bool IsAnimationDone();
+    Animation();
+    explicit Animation(const std::filesystem::path& fileName);
+    ~Animation() = default;
+
+    void Update(double dt);
+    int GetDisplayFrame();
+    void ResetAnimation();
+    bool IsAnimationDone();
 
 private:
-	enum class Command
-	{
-		PlayFrame,
-		Loop,
-		End,
-	};
+    enum class Command
+    {
+        PlayFrame,
+        Loop,
+        End,
+    };
 
-	class CommandData
-	{
-	public:
-		virtual ~CommandData() {}
-		virtual Command GetType() = 0;
-	};
+    class CommandData
+    {
+    public:
+        virtual ~CommandData() = default;
+        virtual Command GetType() = 0;
+    };
 
-	class PlayFrame : public CommandData
-	{
-	public:
-		PlayFrame(int frame, double duration);
-		virtual Command GetType() override { return Command::PlayFrame; }
-		void Update(double dt);
-		bool IsFrameDone();
-		void ResetTime();
-		int GetFrameNum();
-	private:
-		int frame;
-		double targetTime;
-		double timer;
-	};
+    class PlayFrame : public CommandData
+    {
+    public:
+        PlayFrame(int frame, double duration);
+        Command GetType() override { return Command::PlayFrame; }
+        void Update(double dt);
+        bool IsFrameDone();
+        void ResetTime();
+        int GetFrameNum();
 
-	class Loop : public CommandData
-	{
-	public:
-		Loop(int loopToIndex);
-		virtual Command GetType() override { return Command::Loop; }
-		int GetLoopToIndex();
-	private:
-		int loopToIndex;
-	};
+    private:
+        int frame;
+        double targetTime;
+        double timer;
+    };
 
-	class End : public CommandData
-	{
-	public:
-		virtual Command GetType() override { return Command::End; }
-	};
+    class Loop : public CommandData
+    {
+    public:
+        explicit Loop(int loopToIndex);
+        Command GetType() override { return Command::Loop; }
+        int GetLoopToIndex();
 
-	bool isAnimationDone;
-	int animSequenceIndex;
-	PlayFrame* currPlayFrameData;
-	std::vector<CommandData*> animations;
+    private:
+        int loopToIndex;
+    };
+
+    class End : public CommandData
+    {
+    public:
+        Command GetType() override { return Command::End; }
+    };
+
+    bool isAnimationDone = false;
+    int animSequenceIndex = 0;
+    PlayFrame* currPlayFrameData = nullptr;
+    std::vector<std::unique_ptr<CommandData>> animations;
 };

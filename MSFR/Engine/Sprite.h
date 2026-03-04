@@ -1,22 +1,23 @@
-﻿#pragma once
+#pragma once
 #include <filesystem>
+#include <memory>
 #include <string>
 #include <vector>
 
-#include "vec2.h"
-#include "mat3.h"
 #include "Component.h"
 #include "GameObject.h"
+#include "mat3.h"
+#include "vec2.h"
 
-class TextureDX11;
 class Animation;
 class GameObject;
+class TextureDX11;
 
 class Sprite : public Component
 {
 public:
     Sprite(const std::filesystem::path& spriteInfoFile, GameObject* object);
-    ~Sprite();
+    ~Sprite() override;
 
     void Load(const std::filesystem::path& spriteInfoFile, GameObject* object);
     void Draw(mat3<float> displayMatrix);
@@ -24,7 +25,6 @@ public:
     vec2 GetHotSpot(int index);
     vec2 GetFrameSize() const;
 
-    // animation
     void PlayAnimation(int anim);
     void Update(double dt) override;
     bool IsAnimationDone();
@@ -34,12 +34,12 @@ private:
     vec2 GetFrameTexel(int frameNum) const;
 
 private:
-    TextureDX11* texturePtr = nullptr;  //DX11 texture
+    TextureDX11* texturePtr = nullptr;
     vec2 frameSize{ 0, 0 };
 
     std::vector<vec2> frameTexel;
     std::vector<vec2> hotSpotList;
 
     int currAnim = 0;
-    std::vector<Animation*> animations;
+    std::vector<std::unique_ptr<Animation>> animations;
 };

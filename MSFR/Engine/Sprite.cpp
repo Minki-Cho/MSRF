@@ -1,15 +1,16 @@
-﻿#include "Sprite.h"
-#include "Engine.h"
-#include "TextureDX11.h"
-#include "Rect.h"
+#include "Sprite.h"
 #include "Animation.h"
 #include "Collision.h"
+#include "Engine.h"
+#include "Rect.h"
+#include "TextureDX11.h"
 
-#include <fstream>
+#include <cctype>
 #include <filesystem>
+#include <fstream>
+#include <memory>
 #include <stdexcept>
 #include <string>
-#include <cctype> // std::isspace
 
 static std::string Trim(std::string s)
 {
@@ -19,7 +20,6 @@ static std::string Trim(std::string s)
     return s;
 }
 
-// Reads first token or "quoted string"
 static std::string ReadFirstPathToken(std::ifstream& inFile)
 {
     inFile >> std::ws;
@@ -45,11 +45,9 @@ static std::filesystem::path ResolvePathFromSPT(
     std::filesystem::path spt = spriteInfoFile.lexically_normal();
     std::filesystem::path dir = spt.parent_path();
 
-    // 1) absolute token
     if (tok.is_absolute())
         return tok;
 
-    // 2) token as-is exists (covers "assets/..." style)
     if (std::filesystem::exists(tok))
         return tok;
 
@@ -61,10 +59,10 @@ static std::filesystem::path ResolvePathFromSPT(
         const std::string d = dir.generic_string();
         const std::string t = tok.generic_string();
         if (!d.empty() && t.rfind(d, 0) == 0)
-            return tok; // may still not exist; caller can error
+            return tok;
     }
 
-    return cand; // caller will throw with a good log
+    return cand;
 }
 
 Sprite::Sprite(const std::filesystem::path& spriteInfoFile, GameObject* object)
@@ -72,12 +70,7 @@ Sprite::Sprite(const std::filesystem::path& spriteInfoFile, GameObject* object)
     Load(spriteInfoFile, object);
 }
 
-Sprite::~Sprite()
-{
-    for (Animation* anim : animations)
-        delete anim;
-    animations.clear();
-}
+Sprite::~Sprite() = default;
 
 void Sprite::Load(const std::filesystem::path& spriteInfoFile, GameObject* object)
 {
@@ -92,7 +85,6 @@ void Sprite::Load(const std::filesystem::path& spriteInfoFile, GameObject* objec
     if (!inFile.is_open())
         throw std::runtime_error("Failed to load " + spriteInfoFile.generic_string());
 
-    // --- texture path (first line) ---
     std::string texToken = ReadFirstPathToken(inFile);
     if (texToken.empty())
         throw std::runtime_error("Sprite file has empty texture path: " + spriteInfoFile.generic_string());
@@ -121,7 +113,7 @@ void Sprite::Load(const std::filesystem::path& spriteInfoFile, GameObject* objec
     frameSize = texturePtr->GetSize();
 
     std::string text;
-    while (inFile >> text) 
+    while (inFile >> text)
     {
         if (text == "FrameSize")
         {
@@ -153,7 +145,7 @@ void Sprite::Load(const std::filesystem::path& spriteInfoFile, GameObject* objec
             inFile >> animToken;
 
             std::filesystem::path animPath = ResolvePathFromSPT(spriteInfoFile, animToken);
-            animations.push_back(new Animation{ animPath.generic_string() });
+            animations.push_back(std::make_unique<Animation>(animPath.generic_string()));
         }
         else if (text == "CollisionRect")
         {
@@ -186,14 +178,15 @@ void Sprite::Load(const std::filesystem::path& spriteInfoFile, GameObject* objec
 
     if (animations.empty())
     {
-        animations.push_back(new Animation{});
+        animations.push_back(std::make_unique<Animation>());
         PlayAnimation(0);
     }
 }
 
 void Sprite::Draw(mat3<float> displayMatrix)
 {
-    if (!texturePtr) return;
+    if (!texturePtr || animations.empty())
+        return;
 
     texturePtr->Draw(
         Engine::GetDXContext(),
@@ -219,10 +212,12 @@ vec2 Sprite::GetFrameSize() const
 
 void Sprite::PlayAnimation(int anim)
 {
-    if (anim == currAnim)
-    {
+    if (animations.empty())
         return;
-    }
+
+    if (anim == currAnim)
+        return;
+
     if (anim < 0 || animations.size() <= (size_t)anim)
     {
         Engine::GetLogger().LogError(std::to_string(anim) + " is out of index!");
@@ -237,12 +232,18 @@ void Sprite::PlayAnimation(int anim)
 
 void Sprite::Update(double dt)
 {
+    if (animations.empty())
+        return;
+
     const double animDt = dt * Engine::GetAnimationSpeedMultiplier();
     animations[currAnim]->Update(animDt);
 }
 
 bool Sprite::IsAnimationDone()
 {
+    if (animations.empty())
+        return true;
+
     return animations[currAnim]->IsAnimationDone();
 }
 

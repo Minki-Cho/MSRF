@@ -3,6 +3,8 @@
 #include "Engine.h"
 #include "TextureDX11.h"
 
+TextureManager::~TextureManager() = default;
+
 TextureDX11* TextureManager::Load(ID3D11Device* device, ID3D11DeviceContext* ctx,
     const std::filesystem::path& filePath, bool enableTexel)
 {

@@ -6,14 +6,13 @@
 #include <vector>
 
 #include "Component.h"
+#include "GameObject.h"
 #include "mat3.h"
-
-class GameObject;
 
 class GameObjectManager : public Component
 {
 public:
-    ~GameObjectManager() override = default;
+    ~GameObjectManager() override;
 
     void Add(std::unique_ptr<GameObject> obj);
     void Add(GameObject* obj);

@@ -4,13 +4,16 @@
 #include <memory>
 #include <utility>
 
-class TextureDX11;
+#include "TextureDX11.h"
+
 struct ID3D11Device;
 struct ID3D11DeviceContext;
 
 class TextureManager
 {
 public:
+    ~TextureManager();
+
     TextureDX11* Load(ID3D11Device* device, ID3D11DeviceContext* ctx,
         const std::filesystem::path& filePath, bool enableTexel);
     TextureDX11* Load(const std::filesystem::path& filePath, bool enableTexel);
