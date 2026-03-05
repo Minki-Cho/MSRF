@@ -8,6 +8,10 @@ on:
 jobs:
   build-and-smoke:
     runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [Debug, Release]
 
     steps:
       - name: Checkout
@@ -16,41 +20,19 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      - name: Build (Release|x64)
+      - name: Build (${{ matrix.configuration }}|x64)
         run: |
-          msbuild MSFR/MSFR.sln /m /p:Configuration=Release /p:Platform=x64
+          msbuild MSFR/MSFR.sln /m /p:Configuration=${{ matrix.configuration }} /p:Platform=x64
 
-      - name: Locate executable
-        id: locate
+      - name: Demo smoke run (auto-exit)
         shell: pwsh
         run: |
-          $exe = Get-ChildItem -Path MSFR -Recurse -Filter MSFR.exe |
-            Where-Object { $_.FullName -like '*x64*Release*' } |
-            Select-Object -First 1
+          ./scripts/demo-smoke.ps1 -Configuration ${{ matrix.configuration }} -AutoExitMs 7000
 
-          if (-not $exe) {
-            throw 'MSFR.exe not found after build.'
-          }
-
-          "exe=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          Write-Host "Found executable: $($exe.FullName)"
-
-      - name: Demo smoke run (launch for 5s)
-        shell: pwsh
-        run: |
-          $exe = '${{ steps.locate.outputs.exe }}'
-          Write-Host "Launching: $exe"
-
-          $proc = Start-Process -FilePath $exe -PassThru
-          Start-Sleep -Seconds 5
-
-          if ($proc.HasExited) {
-            if ($proc.ExitCode -ne 0) {
-              throw "Process exited early with non-zero code: $($proc.ExitCode)"
-            }
-            Write-Host 'Process exited quickly with code 0 (acceptable).'
-          }
-          else {
-            Stop-Process -Id $proc.Id -Force
-            Write-Host 'Process launched successfully and was stopped after smoke window.'
-          }
+      - name: Upload Trace log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trace-log-${{ matrix.configuration }}
+          path: MSFR/Trace.log
+          if-no-files-found: ignore

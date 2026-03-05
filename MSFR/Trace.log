@@ -1,136 +1,22 @@
-[0.2939]	Event	Engine InitCore
-[0.3104]	Event	Job workers (after init) = 31
-[0.3316]	Event	[State] Load Spalsh | thread=12352 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
-[0.3968]	Event	[State] Load Complete | thread=12352 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
-[2.2071]	Event	[Command] RequestStateChange -> 1
-[2.2191]	Event	[State] Unload Spalsh | thread=12352 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:62 (GameStateManager::Update)
-[2.2202]	Event	Clear Textures
-[2.2260]	Event	[State] Load MainMenu | thread=12352 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
-[2.2807]	Event	[State] Load Complete | thread=12352 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
-[4.8061]	Debug	Input LUp -> releasedThisFrame = true
-[4.8089]	Event	mouse win: 193, 128
-[5.2110]	Debug	Input LUp -> releasedThisFrame = true
-[5.2135]	Event	mouse win: 264, 132
-[5.3103]	Event	FPS: 160.372990
-[5.6237]	Debug	Input LUp -> releasedThisFrame = true
-[5.6256]	Event	mouse win: 277, 144
-[7.5807]	Debug	Input LUp -> releasedThisFrame = true
-[7.5844]	Event	mouse win: 173, 147
-[7.7329]	Debug	Input LUp -> releasedThisFrame = true
-[7.7347]	Event	mouse win: 116, 124
-[8.3992]	Debug	Input LUp -> releasedThisFrame = true
-[8.4014]	Event	mouse win: 20, 20
-[8.7008]	Debug	Input LUp -> releasedThisFrame = true
-[8.7033]	Event	mouse win: 20, 20
-[10.3158]	Event	FPS: 164.620120
-[15.3199]	Event	FPS: 165.063684
-[20.3259]	Event	FPS: 165.003702
-[25.3330]	Event	FPS: 164.766868
-[30.3356]	Event	FPS: 164.713693
-[35.3410]	Event	FPS: 165.021018
-[40.3477]	Event	FPS: 164.578392
-[45.3478]	Event	FPS: 164.996017
-[50.3517]	Event	FPS: 165.072897
-[55.3568]	Event	FPS: 165.030069
-[60.3634]	Event	FPS: 164.983914
-[65.3680]	Event	FPS: 164.847763
-[70.3733]	Event	FPS: 164.625020
-[75.3809]	Event	FPS: 164.950134
-[80.3844]	Event	FPS: 165.095379
-[85.3895]	Event	FPS: 165.018951
-[90.3972]	Event	FPS: 164.948846
-[95.4002]	Event	FPS: 165.097936
-[100.4057]	Event	FPS: 165.019756
-[105.4119]	Event	FPS: 164.994473
-[110.4165]	Event	FPS: 165.050952
-[115.4165]	Event	FPS: 164.998040
-[120.4213]	Event	FPS: 164.641335
-[125.4267]	Event	FPS: 165.023108
-[130.4316]	Event	FPS: 164.836693
-[135.4318]	Event	FPS: 164.995040
-[140.4363]	Event	FPS: 165.050632
-[145.4418]	Event	FPS: 165.018579
-[150.4495]	Event	FPS: 164.944728
-[155.4528]	Event	FPS: 164.893156
-[160.4580]	Event	FPS: 165.026669
-[165.4580]	Event	FPS: 164.399928
-[170.4634]	Event	FPS: 165.023283
-[175.4683]	Event	FPS: 165.037112
-[180.4736]	Event	FPS: 165.026063
-[185.4807]	Event	FPS: 164.964816
-[190.4853]	Event	FPS: 164.850155
-[195.4900]	Event	FPS: 165.044627
-[200.4965]	Event	FPS: 164.985436
-[205.4966]	Event	FPS: 164.997769
-[210.5002]	Event	FPS: 165.080472
-[215.5007]	Event	FPS: 164.983320
-[220.5050]	Event	FPS: 164.658808
-[225.5100]	Event	FPS: 165.034701
-[230.5171]	Event	FPS: 164.966381
-[235.5206]	Event	FPS: 165.082102
-[240.5264]	Event	FPS: 165.014540
-[245.5322]	Event	FPS: 165.002459
-[250.5323]	Event	FPS: 164.797185
-[255.5369]	Event	FPS: 164.850484
-[260.5419]	Event	FPS: 165.032723
-[265.5482]	Event	FPS: 164.792915
-[270.5528]	Event	FPS: 165.048403
-[275.5582]	Event	FPS: 165.022512
-[280.5649]	Event	FPS: 164.980203
-[285.5685]	Event	FPS: 165.077512
-[290.5740]	Event	FPS: 165.018918
-[295.5802]	Event	FPS: 164.997858
-[300.5851]	Event	FPS: 165.036535
-[305.5917]	Event	FPS: 164.984491
-[310.5970]	Event	FPS: 164.824610
-[315.6009]	Event	FPS: 164.470456
-[320.6065]	Event	FPS: 165.016337
-[325.6128]	Event	FPS: 164.591039
-[330.6129]	Event	FPS: 164.995687
-[335.6189]	Event	FPS: 164.803604
-[340.6225]	Event	FPS: 165.081660
-[345.6271]	Event	FPS: 164.250237
-[350.6346]	Event	FPS: 164.951010
-[355.6380]	Event	FPS: 164.488904
-[360.6382]	Event	FPS: 164.591003
-[365.6386]	Event	FPS: 164.189528
-[366.2921]	Debug	Input LUp -> releasedThisFrame = true
-[366.2940]	Event	mouse win: 613, 443
-[366.2947]	Event	[Command] MenuAction -> HowToPlay
-[367.2187]	Debug	Input LUp -> releasedThisFrame = true
-[367.2211]	Event	mouse win: 559, 590
-[367.2215]	Event	[Command] MenuAction -> Quit
-[367.6049]	Debug	Input LUp -> releasedThisFrame = true
-[367.6068]	Event	mouse win: 513, 441
-[367.6074]	Event	[Command] MenuAction -> HowToPlay
-[367.8795]	Debug	Input LUp -> releasedThisFrame = true
-[367.8821]	Event	mouse win: 520, 577
-[367.8824]	Event	[Command] MenuAction -> Quit
-[368.0860]	Debug	Input LUp -> releasedThisFrame = true
-[368.0890]	Event	mouse win: 514, 603
-[368.0894]	Event	[Command] MenuAction -> Quit
-[368.2609]	Debug	Input LUp -> releasedThisFrame = true
-[368.2630]	Event	mouse win: 514, 574
-[368.2635]	Event	[Command] MenuAction -> Quit
-[368.4424]	Debug	Input LUp -> releasedThisFrame = true
-[368.4450]	Event	mouse win: 501, 460
-[368.4454]	Event	[Command] MenuAction -> HowToPlay
-[368.6074]	Debug	Input LUp -> releasedThisFrame = true
-[368.6101]	Event	mouse win: 501, 449
-[368.6104]	Event	[Command] MenuAction -> HowToPlay
-[368.7575]	Debug	Input LUp -> releasedThisFrame = true
-[368.7600]	Event	mouse win: 502, 440
-[368.7603]	Event	[Command] MenuAction -> HowToPlay
-[369.0480]	Debug	Input LUp -> releasedThisFrame = true
-[369.0503]	Event	mouse win: 531, 314
-[369.0507]	Event	[Command] MenuAction -> Play
-[369.0510]	Event	[Command] RequestStateChange -> 2
-[369.0613]	Event	[State] Unload MainMenu | thread=12352 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:62 (GameStateManager::Update)
-[369.0616]	Event	Clear Textures
-[369.0678]	Event	[State] Load GamePlay1 | thread=12352 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
-[369.0689]	Event	Sprite SPT: assets/images/characters/characters/thief/thief.spt
-[369.0692]	Event	Texture token: assets/images/characters/characters/thief/thief.png
-[369.0694]	Event	Resolved texture path: assets/images/characters/characters/thief/thief.png
-[369.1579]	Event	[State] Load Complete | thread=12352 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
-[370.6437]	Event	FPS: 161.833962
-[371.0087]	Event	SDL_QUIT received
+[0.2751]	Event	Engine InitCore
+[0.2920]	Event	Job workers (after init) = 31
+[0.3182]	Event	[State] Load Spalsh | thread=2716 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[0.3589]	Event	[State] Load Complete | thread=2716 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
+[2.1775]	Event	[Command] RequestStateChange -> 1
+[2.1904]	Event	[State] Unload Spalsh | thread=2716 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:62 (GameStateManager::Update)
+[2.1905]	Event	Clear Textures
+[2.1953]	Event	[State] Load MainMenu | thread=2716 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[2.2408]	Event	[State] Load Complete | thread=2716 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
+[3.1276]	Debug	Input LUp -> releasedThisFrame = true
+[3.1298]	Event	mouse win: 530, 288
+[3.1302]	Event	[Command] MenuAction -> Play
+[3.1307]	Event	[Command] RequestStateChange -> 2
+[3.1427]	Event	[State] Unload MainMenu | thread=2716 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:62 (GameStateManager::Update)
+[3.1430]	Event	Clear Textures
+[3.1467]	Event	[State] Load GamePlay1 | thread=2716 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[3.1476]	Event	Sprite SPT: assets/images/characters/characters/thief/thief.spt
+[3.1479]	Event	Texture token: assets/images/characters/characters/thief/thief.png
+[3.1480]	Event	Resolved texture path: assets/images/characters/characters/thief/thief.png
+[3.2325]	Event	[State] Load Complete | thread=2716 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
+[5.3017]	Event	FPS: 155.877903
+[6.1379]	Event	SDL_QUIT received

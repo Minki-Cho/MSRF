@@ -1,0 +1,4 @@
+[0.2603]	Event	Engine InitCore
+[0.2617]	Event	Job workers (after init) = 31
+[0.2856]	Event	[State] Load Spalsh | thread=44160 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[0.3242]	Fatal	[App] Unhandled exception: CreateDecoderFromFilename failed. | thread=44160 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\main.cpp:67 (main)
