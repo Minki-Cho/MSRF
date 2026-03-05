@@ -11,6 +11,7 @@
 #include <array>
 #include <vector>
 #include <cmath>
+#include <algorithm>
 #include <cstring>
 #include <stdexcept>
 #include <string>
@@ -140,6 +141,16 @@ namespace
         ctx->Unmap(cb, 0);
     }
 
+    bool CircleIntersectsRect(const vec2& center, float radius, const rect3& rect)
+    {
+        const float nearestX = (std::max)(rect.Left(), (std::min)(center.x(), rect.Right()));
+        const float nearestY = (std::max)(rect.Bottom(), (std::min)(center.y(), rect.Top()));
+
+        const float dx = center.x() - nearestX;
+        const float dy = center.y() - nearestY;
+        return (dx * dx + dy * dy) <= (radius * radius);
+    }
+
     constexpr const wchar_t* kDebug2DShaderPath = L"assets/shaders/debug2d.hlsl";
 }
 
@@ -254,6 +265,17 @@ bool RectCollision::DoesCollideWith(GameObject* objectB)
             }
         }
     }
+
+    if (objectB->GetGOComponent<Collision>() != nullptr &&
+        objectB->GetGOComponent<Collision>()->GetCollideType() == CollideType::Circle_Collide)
+    {
+        auto* circle = objectB->GetGOComponent<CircleCollision>();
+        if (!circle)
+            return false;
+
+        return CircleIntersectsRect(objectB->GetPosition(), static_cast<float>(circle->GetRadius()), GetWorldCoorRect());
+    }
+
     return false;
 }
 
@@ -373,6 +395,17 @@ bool CircleCollision::DoesCollideWith(GameObject* objectB)
             return true;
         }
     }
+
+    if (objectB->GetGOComponent<Collision>() != nullptr &&
+        objectB->GetGOComponent<Collision>()->GetCollideType() == CollideType::Rect_Collide)
+    {
+        auto* rect = objectB->GetGOComponent<RectCollision>();
+        if (!rect)
+            return false;
+
+        return CircleIntersectsRect(objectPtr->GetPosition(), static_cast<float>(GetRadius()), rect->GetWorldCoorRect());
+    }
+
     return false;
 }
 
@@ -388,3 +421,5 @@ bool CircleCollision::DoesCollideWith(vec2 point)
     }
     return false;
 }
+
+

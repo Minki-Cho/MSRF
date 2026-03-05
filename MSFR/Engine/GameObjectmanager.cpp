@@ -100,7 +100,12 @@ void GameObjectManager::DrawAll(mat3<float>& cameraMatrix)
     FlushPendingAdds();
 
     for (const auto& object : gameObjects)
+    {
+        if (!object || object->GetDestroyed())
+            continue;
+
         object->Draw(cameraMatrix);
+    }
 }
 
 void GameObjectManager::CollideTest()

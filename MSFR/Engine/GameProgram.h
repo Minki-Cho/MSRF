@@ -1,10 +1,12 @@
 #include "Engine.h"
 #include "EventTypes.h"
 #include "GameCommands.h"
+#include "TextureDX11.h"
 #include <SDL2/SDL.h>
 #include "../Game/Splash.h"
 #include "../Game/MainMenu.h"
 #include "../Game/GamePlay1.h"
+#include "../Game/ScreenMods.h"
 #include "IProgram.h"
 #include <string>
 
@@ -26,6 +28,43 @@ namespace
     }
 }
 
+class Credit : public GameState
+{
+public:
+    void Load() override
+    {
+        timer = 0.0;
+        creditImage = TextureDX11("assets/images/Credit.png", false);
+    }
+
+    void Draw() override
+    {
+        creditImage.DrawFitCenter({ (float)Engine::GetViewportWidth(), (float)Engine::GetViewportHeight() });
+    }
+
+    void Update(double dt) override
+    {
+        timer += dt;
+
+        const bool skip = Engine::GetActionSystem().Has(ActionId::Skip);
+        const bool click = Engine::GetInput().GetMouseReleasedThisFrame();
+        if (skip || click || timer > 8.0)
+        {
+            Engine::GetEventBus().Publish(RequestStateChangeEvent{ static_cast<int>(ScreenMods::MainMenu) });
+        }
+    }
+
+    void Unload() override
+    {
+    }
+
+    std::string GetName() override { return "Credit"; }
+
+private:
+    TextureDX11 creditImage;
+    double timer = 0.0;
+};
+
 class GameProgram final : public IProgram
 {
 public:
@@ -36,6 +75,7 @@ public:
         engine.GetGameStateManager().AddGameState(splash);
         engine.GetGameStateManager().AddGameState(mainmenu);
         engine.GetGameStateManager().AddGameState(play);
+        engine.GetGameStateManager().AddGameState(credit);
 
         auto& bus = Engine::GetEventBus();
         stateChangeSubscription = bus.Subscribe<RequestStateChangeEvent>([](const RequestStateChangeEvent& e) {
@@ -63,6 +103,7 @@ private:
     Splash splash;
     MainMenu mainmenu;
     GamePlay1 play;
+    Credit credit;
     EventBus::SubscriptionId stateChangeSubscription = 0;
     EventBus::SubscriptionId menuActionSubscription = 0;
 };

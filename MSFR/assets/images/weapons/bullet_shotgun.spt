@@ -1,0 +1,5 @@
+assets/images/weapons/bullet_shotgun.png
+FrameSize 16 16
+HotSpot 8 8
+Frame 0 0
+Anim assets/images/weapons/bullet_shotgun_idle.anm

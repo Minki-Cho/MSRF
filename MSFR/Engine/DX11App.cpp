@@ -522,6 +522,8 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
         else if (k == SDLK_DOWN)   Engine::GetInput().OnKeyDown(InputKey::Keyboard::Down);
         else if (k == SDLK_LEFT)   Engine::GetInput().OnKeyDown(InputKey::Keyboard::Left);
         else if (k == SDLK_RIGHT)  Engine::GetInput().OnKeyDown(InputKey::Keyboard::Right);
+        else if (k == SDLK_1)      Engine::GetInput().OnKeyDown(InputKey::Keyboard::Num1);
+        else if (k == SDLK_2)      Engine::GetInput().OnKeyDown(InputKey::Keyboard::Num2);
         break;
     }
 
@@ -537,6 +539,8 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
         else if (k == SDLK_DOWN)   Engine::GetInput().OnKeyUp(InputKey::Keyboard::Down);
         else if (k == SDLK_LEFT)   Engine::GetInput().OnKeyUp(InputKey::Keyboard::Left);
         else if (k == SDLK_RIGHT)  Engine::GetInput().OnKeyUp(InputKey::Keyboard::Right);
+        else if (k == SDLK_1)      Engine::GetInput().OnKeyUp(InputKey::Keyboard::Num1);
+        else if (k == SDLK_2)      Engine::GetInput().OnKeyUp(InputKey::Keyboard::Num2);
         break;
     }
 
@@ -630,6 +634,8 @@ void DX11App::Update()
     // vsync=1 is nicer. If want uncapped, change first arg to 0.
     ptr_swapchain->Present(1, 0);
 }
+
+
 
 
 

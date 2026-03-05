@@ -92,6 +92,8 @@ InputKey::Keyboard Input::VKToKeyboard(std::uintptr_t vk)
     case VK_DOWN:    return InputKey::Keyboard::Down;
     case VK_F1:      return InputKey::Keyboard::F1;
     case VK_OEM_3:   return InputKey::Keyboard::Tilde;
+    case '1':      return InputKey::Keyboard::Num1;
+    case '2':      return InputKey::Keyboard::Num2;
     default:
         break;
     }
@@ -121,6 +123,8 @@ const char* Input::KeyboardToString(InputKey::Keyboard key)
     case InputKey::Keyboard::Down: return "Down";
     case InputKey::Keyboard::F1: return "F1";
     case InputKey::Keyboard::Tilde: return "Tilde";
+    case InputKey::Keyboard::Num1: return "1";
+    case InputKey::Keyboard::Num2: return "2";
     default:
         break;
     }
@@ -268,3 +272,5 @@ void Input::OnWin32Message(std::uint32_t msg, std::uintptr_t wParam, std::intptr
         return;
     }
 }
+
+

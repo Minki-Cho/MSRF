@@ -15,6 +15,7 @@ public:
     void Draw(mat3<float> TransformMatrix);
     GameObjectType GetObjectType() override { return GameObjectType::Player; }
     std::string GetObjectTypeName() override { return "Player"; }
+    CharacterAnim GetDirection() const { return direction; }
 
 private:
 
@@ -44,3 +45,5 @@ private:
     StateIdle stateIdle;
     StateMove stateMove;
 };
+
+
