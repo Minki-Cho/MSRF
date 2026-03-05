@@ -73,7 +73,8 @@ void GameObjectManager::Update(double dt)
             GameObject* obj = snapshot[i];
             if (obj)
                 obj->Update(dt);
-        });
+        }, "GameObject.Update");
+
 
     js.WaitIdle();
 
@@ -141,3 +142,9 @@ const std::list<std::unique_ptr<GameObject>>& GameObjectManager::Objects() const
 {
     return gameObjects;
 }
+
+
+
+
+
+

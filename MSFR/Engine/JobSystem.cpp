@@ -46,10 +46,9 @@ void JobSystem::Shutdown()
     }
     workers.clear();
 
-    // Clear queue. If you want strict shutdown, call WaitIdle() before Shutdown().
     {
         std::lock_guard<std::mutex> lock(queueMutex);
-        std::queue<std::function<void()>> empty;
+        std::queue<QueueItem> empty;
         queue.swap(empty);
     }
 
@@ -57,7 +56,7 @@ void JobSystem::Shutdown()
     workerStats.clear();
 }
 
-void JobSystem::Enqueue(std::function<void()> job)
+void JobSystem::Enqueue(std::function<void()> job, const char* label)
 {
     if (!job)
         return;
@@ -71,15 +70,18 @@ void JobSystem::Enqueue(std::function<void()> job)
 
     pendingJobs.fetch_add(1, std::memory_order_relaxed);
 
-    // Wrap so we always decrement pendingJobs exactly once.
     auto wrapped = [this, job = std::move(job)]() mutable {
         job();
         FinishOneJob();
         };
 
+    QueueItem item;
+    item.fn = std::move(wrapped);
+    item.label = (label && *label) ? label : "Generic";
+
     {
         std::lock_guard<std::mutex> lock(queueMutex);
-        queue.push(std::move(wrapped));
+        queue.push(std::move(item));
     }
 
     cvWork.notify_one();
@@ -115,11 +117,18 @@ std::vector<JobSystem::WorkerStatSnapshot> JobSystem::GetWorkerStatsSnapshot() c
         WorkerStatSnapshot s;
         s.workerIndex = i;
         s.completedJobs = completed;
-        s.totalBusyMs = static_cast<double>(busyNs) / 1'000'000.0;
+        s.totalBusyMs = static_cast<double>(busyNs) / 1000000.0;
         s.avgJobMs = (completed > 0) ? (s.totalBusyMs / static_cast<double>(completed)) : 0.0;
-        s.lastJobMs = static_cast<double>(lastNs) / 1'000'000.0;
+        s.lastJobMs = static_cast<double>(lastNs) / 1000000.0;
         s.busy = busy;
-        out.push_back(s);
+
+        {
+            std::lock_guard<std::mutex> lock(ws->labelMutex);
+            s.activeTask = ws->activeTask;
+            s.lastTask = ws->lastTask;
+        }
+
+        out.push_back(std::move(s));
     }
 
     return out;
@@ -133,7 +142,7 @@ void JobSystem::WorkerLoop(uint32_t workerIndex)
 
     while (running.load(std::memory_order_acquire))
     {
-        std::function<void()> job;
+        QueueItem item;
 
         {
             std::unique_lock<std::mutex> lock(queueMutex);
@@ -144,19 +153,23 @@ void JobSystem::WorkerLoop(uint32_t workerIndex)
             if (!running.load(std::memory_order_acquire))
                 return;
 
-            job = std::move(queue.front());
+            item = std::move(queue.front());
             queue.pop();
         }
 
-        if (job)
+        if (item.fn)
         {
             using Clock = std::chrono::steady_clock;
 
             if (stats)
+            {
                 stats->activeJobs.fetch_add(1, std::memory_order_relaxed);
+                std::lock_guard<std::mutex> lock(stats->labelMutex);
+                stats->activeTask = item.label;
+            }
 
             const Clock::time_point begin = Clock::now();
-            job();
+            item.fn();
             const uint64_t elapsedNs = static_cast<uint64_t>(
                 std::chrono::duration_cast<std::chrono::nanoseconds>(Clock::now() - begin).count());
 
@@ -166,6 +179,10 @@ void JobSystem::WorkerLoop(uint32_t workerIndex)
                 stats->busyTimeNs.fetch_add(elapsedNs, std::memory_order_relaxed);
                 stats->lastJobNs.store(elapsedNs, std::memory_order_relaxed);
                 stats->activeJobs.fetch_sub(1, std::memory_order_relaxed);
+
+                std::lock_guard<std::mutex> lock(stats->labelMutex);
+                stats->lastTask = item.label;
+                stats->activeTask = "Idle";
             }
         }
     }

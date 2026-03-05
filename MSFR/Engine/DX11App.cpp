@@ -19,6 +19,7 @@
 #include <sstream>
 #include <iomanip>
 #include <array>
+#include <cmath>
 
 #include "../external/imgui/imgui.h"
 #include "../external/imgui/backends/imgui_impl_sdl2.h"
@@ -215,6 +216,7 @@ void DX11App::DrawProfilerOverlay()
         if (ImGui::Begin("MSFR Profiler", &showProfiler, ImGuiWindowFlags_AlwaysAutoResize))
         {
             ImGui::Text("Toggle overlay: F2");
+            ImGui::Text("Stress test toggle: F3");
             ImGui::Separator();
 
             ImGui::Text("Frame: %.2f ms (%.1f FPS)", Engine::GetLastFrameMs(), Engine::GetLastFrameFps());
@@ -228,6 +230,10 @@ void DX11App::DrawProfilerOverlay()
             ImGui::Text("CommandPool: %zu / %zu in-use", pool.InUse(), pool.InUse() + pool.Available());
 
             ImGui::Text("Viewport: %d x %d", Engine::GetViewportWidth(), Engine::GetViewportHeight());
+            ImGui::Text("Thread Stress (F3): %s", stressTestEnabled ? "ON" : "OFF");
+            ImGui::Text("Stress Accumulator: %llu", static_cast<unsigned long long>(stressAccumulator.load(std::memory_order_relaxed)));
+            ImGui::SliderInt("Stress Jobs/Worker", &stressJobsPerWorker, 1, 32);
+            ImGui::SliderInt("Stress Iter/Job (K)", &stressIterationsK, 1, 120);
 #ifdef ImGuiConfigFlags_ViewportsEnable
             ImGui::TextUnformatted("Multi-Viewport: Enabled (drag this window out)");
 #else
@@ -240,7 +246,7 @@ void DX11App::DrawProfilerOverlay()
                 ImGui::Separator();
                 ImGui::Text("CPU Thread Profiler");
 
-                if (ImGui::BeginTable("JobWorkerStats", 6, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit))
+                if (ImGui::BeginTable("JobWorkerStats", 7, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit))
                 {
                     ImGui::TableSetupColumn("Worker");
                     ImGui::TableSetupColumn("Jobs");
@@ -248,6 +254,7 @@ void DX11App::DrawProfilerOverlay()
                     ImGui::TableSetupColumn("Avg Job (ms)");
                     ImGui::TableSetupColumn("Last Job (ms)");
                     ImGui::TableSetupColumn("State");
+                    ImGui::TableSetupColumn("Task");
                     ImGui::TableHeadersRow();
 
                     for (const auto& s : workerStats)
@@ -259,6 +266,9 @@ void DX11App::DrawProfilerOverlay()
                         ImGui::TableSetColumnIndex(3); ImGui::Text("%.3f", s.avgJobMs);
                         ImGui::TableSetColumnIndex(4); ImGui::Text("%.3f", s.lastJobMs);
                         ImGui::TableSetColumnIndex(5); ImGui::TextUnformatted(s.busy ? "Running" : "Idle");
+                        ImGui::TableSetColumnIndex(6);
+                        const std::string taskLabel = s.busy ? s.activeTask : s.lastTask;
+                        ImGui::TextUnformatted(taskLabel.empty() ? "-" : taskLabel.c_str());
                     }
 
                     ImGui::EndTable();
@@ -577,6 +587,13 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
             break;
         }
 
+        if (k == SDLK_F3)
+        {
+            stressTestEnabled = !stressTestEnabled;
+            Engine::GetLogger().LogEvent(std::string("[Profiler] Thread stress: ") + (stressTestEnabled ? "ON" : "OFF"));
+            break;
+        }
+
         if (k == SDLK_RETURN)      Engine::GetInput().OnKeyDown(InputKey::Keyboard::Enter);
         else if (k == SDLK_BACKQUOTE) Engine::GetInput().OnKeyDown(InputKey::Keyboard::Tilde);
         else if (k == SDLK_ESCAPE) Engine::GetInput().OnKeyDown(InputKey::Keyboard::Escape);
@@ -587,6 +604,7 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
         else if (k == SDLK_RIGHT)  Engine::GetInput().OnKeyDown(InputKey::Keyboard::Right);
         else if (k == SDLK_1)      Engine::GetInput().OnKeyDown(InputKey::Keyboard::Num1);
         else if (k == SDLK_2)      Engine::GetInput().OnKeyDown(InputKey::Keyboard::Num2);
+        else if (k == SDLK_F3)     Engine::GetInput().OnKeyDown(InputKey::Keyboard::F3);
         break;
     }
 
@@ -604,6 +622,7 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
         else if (k == SDLK_RIGHT)  Engine::GetInput().OnKeyUp(InputKey::Keyboard::Right);
         else if (k == SDLK_1)      Engine::GetInput().OnKeyUp(InputKey::Keyboard::Num1);
         else if (k == SDLK_2)      Engine::GetInput().OnKeyUp(InputKey::Keyboard::Num2);
+        else if (k == SDLK_F3)     Engine::GetInput().OnKeyUp(InputKey::Keyboard::F3);
         break;
     }
 
@@ -661,6 +680,37 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
     }
 }
 
+void DX11App::RunThreadStressStep()
+{
+    if (!stressTestEnabled)
+        return;
+
+    auto& js = Engine::GetJobSystem();
+    const uint32_t workers = (std::max)(1u, js.GetWorkerCount());
+    const uint32_t jobsPerWorker = static_cast<uint32_t>((std::max)(1, stressJobsPerWorker));
+    const uint32_t jobCount = workers * jobsPerWorker;
+    const uint32_t kIterationsPerJob = static_cast<uint32_t>((std::max)(1, stressIterationsK)) * 1000u;
+
+    // Prevent unbounded queue growth while stress mode is on.
+    const uint32_t pending = js.GetPendingJobs();
+    if (pending > jobCount * 2u)
+        return;
+
+    js.Dispatch(jobCount, 1, [this, kIterationsPerJob](uint32_t index)
+    {
+        double x = static_cast<double>(index + 1u) * 0.123456789;
+        double acc = 0.0;
+
+        for (uint32_t i = 0; i < kIterationsPerJob; ++i)
+        {
+            x = std::sin(x * 1.000001 + static_cast<double>(i) * 0.00000031);
+            acc += x * x;
+        }
+
+        const uint64_t packed = static_cast<uint64_t>(acc * 100000.0);
+        stressAccumulator.fetch_add(packed, std::memory_order_relaxed);
+    }, "Stress.Burn");
+}
 void DX11App::Update()
 {
     Engine::GetInput().Update();
@@ -690,6 +740,9 @@ void DX11App::Update()
     ptr_program->Update();
     ptr_program->Draw();
 
+    // Schedule stress jobs right before profiler draw so the table can show Running states.
+    RunThreadStressStep();
+
     BeginImGuiFrame();
     DrawProfilerOverlay();
 
@@ -697,6 +750,24 @@ void DX11App::Update()
     // vsync=1 is nicer. If want uncapped, change first arg to 0.
     ptr_swapchain->Present(1, 0);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

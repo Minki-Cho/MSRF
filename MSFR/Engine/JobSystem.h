@@ -5,11 +5,12 @@
 #include <condition_variable>
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <mutex>
 #include <queue>
-#include <memory>
-#include <type_traits>
+#include <string>
 #include <thread>
+#include <type_traits>
 #include <vector>
 
 class JobSystem
@@ -23,6 +24,8 @@ public:
         double avgJobMs = 0.0;
         double lastJobMs = 0.0;
         bool busy = false;
+        std::string activeTask;
+        std::string lastTask;
     };
 
     JobSystem() = default;
@@ -36,11 +39,11 @@ public:
     void Init(uint32_t workerCount = 0);
     void Shutdown();
 
-    void Enqueue(std::function<void()> job);
+    void Enqueue(std::function<void()> job, const char* label = "Generic");
     void WaitIdle();
 
     template <typename Fn>
-    void Dispatch(uint32_t count, uint32_t chunkSize, Fn&& fn)
+    void Dispatch(uint32_t count, uint32_t chunkSize, Fn&& fn, const char* label = "Dispatch")
     {
         if (count == 0) return;
         if (chunkSize == 0) chunkSize = 1;
@@ -66,7 +69,7 @@ public:
             Enqueue([begin, end, fnPtr]() mutable {
                 for (uint32_t i = begin; i < end; ++i)
                     (*fnPtr)(i);
-                });
+                }, label);
         }
     }
 
@@ -81,6 +84,16 @@ private:
         std::atomic<uint64_t> busyTimeNs{ 0 };
         std::atomic<uint64_t> lastJobNs{ 0 };
         std::atomic<uint32_t> activeJobs{ 0 };
+
+        mutable std::mutex labelMutex;
+        std::string activeTask = "Idle";
+        std::string lastTask = "None";
+    };
+
+    struct QueueItem
+    {
+        std::function<void()> fn;
+        std::string label;
     };
 
     void WorkerLoop(uint32_t workerIndex);
@@ -91,7 +104,7 @@ private:
 
     std::mutex queueMutex;
     std::condition_variable cvWork;
-    std::queue<std::function<void()>> queue;
+    std::queue<QueueItem> queue;
 
     std::mutex idleMutex;
     std::condition_variable cvIdle;

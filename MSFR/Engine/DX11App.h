@@ -8,6 +8,7 @@ class IProgram;
 
 #include <cstdint>
 #include <array>
+#include <atomic>
 
 struct ID3D11Device;
 struct ID3D11DeviceContext;
@@ -54,6 +55,7 @@ private:
     void ShutdownImGui();
     void BeginImGuiFrame();
     void DrawProfilerOverlay();
+    void RunThreadStressStep();
 
 private:
     util::owner<IProgram*>   ptr_program = nullptr;
@@ -78,8 +80,12 @@ private:
     bool showProfiler = true;
     std::array<float, 240> frameMsHistory{};
     int frameHistoryOffset = 0;
-};
 
+    bool stressTestEnabled = false;
+    std::atomic<uint64_t> stressAccumulator{ 0 };
+    int stressJobsPerWorker = 8;
+    int stressIterationsK = 22;
+};
 
 
 

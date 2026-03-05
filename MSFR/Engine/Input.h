@@ -10,7 +10,7 @@ public:
     enum class Keyboard
     {
         None, Enter, Escape, Space, BackSpace, Shift, Left, Up, Right, Down,
-        F1, Tilde,
+        F1, F3, Tilde,
         Num1, Num2,
         A, B, C, D, E, F, G, H, I, J,
         K, L, M, N, O, P, Q, R, S, T,
@@ -89,5 +89,6 @@ private:
     bool mousePressedThisFrame = false;
     bool mouseReleasedThisFrame = false;
 };
+
 
 
