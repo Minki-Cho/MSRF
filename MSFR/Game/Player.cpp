@@ -64,13 +64,20 @@ void Player::Update(double dt)
     SetPosition(p);
 }
 
-bool Player::CanCollideWith(GameObjectType /*objectBType*/)
+bool Player::CanCollideWith(GameObjectType objectBType)
 {
-    return false;
+    return objectBType == GameObjectType::DataCore;
 }
 
-void Player::ResolveCollision(GameObject* /*objectB*/)
+void Player::ResolveCollision(GameObject* objectB)
 {
+    if (objectB == nullptr)
+        return;
+
+    if (objectB->GetObjectType() == GameObjectType::DataCore)
+    {
+        objectB->SetDestroyed(true);
+    }
 }
 void Player::Draw(mat3<float> TransformMatrix)
 {
@@ -170,3 +177,4 @@ void Player::StateMove::TestForExit(GameObject* object)
     if (!L && !R && !U && !D)
         p->ChangeState(&p->stateIdle);
 }
+

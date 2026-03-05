@@ -1,0 +1,6 @@
+assets/images/items/data_core/data_core.png
+FrameSize 64 64
+HotSpot 32 32
+Frame 0 0
+Anim assets/images/items/data_core/data_core_idle.anm
+CollisionCircle 20

@@ -1,11 +1,24 @@
 #include "../Engine/DX11Services.h"
 #include "../Engine/Engine.h"
+#include "../Engine/Random.h"
 
+#include "DataCore.h"
 #include "GamePlay1.h"
 #include "ScreenMods.h"
 #include <algorithm>
 #include <cmath>
 #include <memory>
+#include <vector>
+
+namespace
+{
+    bool IsTooClose(const vec2& a, const vec2& b, float minDist)
+    {
+        const float dx = a.x() - b.x();
+        const float dy = a.y() - b.y();
+        return (dx * dx + dy * dy) < (minDist * minDist);
+    }
+}
 
 GamePlay1::GamePlay1() : timer(5.0f)
 {
@@ -24,12 +37,71 @@ void GamePlay1::Load()
     gameObjectManager = manager.get();
     AddGSComponent(std::move(manager));
 
-    auto player = std::make_unique<Player>(vec2{
-        (float)Engine::GetViewportWidth() * 0.5f,
-        (float)Engine::GetViewportHeight() * 0.5f
-        });
+    const float viewportWidth = static_cast<float>(Engine::GetViewportWidth());
+    const float viewportHeight = static_cast<float>(Engine::GetViewportHeight());
+
+    const vec2 playerStart{
+        viewportWidth * 0.5f,
+        viewportHeight * 0.5f
+    };
+
+    auto player = std::make_unique<Player>(playerStart);
     playerPtr = player.get();
     gameObjectManager->Add(std::move(player));
+
+    const float worldMinX = -viewportWidth;
+    const float worldMinY = -viewportHeight;
+    const float worldMaxX = viewportWidth * 2.0f;
+    const float worldMaxY = viewportHeight * 2.0f;
+
+    const int coreCount = 3;
+    const float spawnMargin = 140.0f;
+    const float minDistToPlayer = 220.0f;
+    const float minDistBetweenCores = 170.0f;
+
+    std::vector<vec2> coreSpawn;
+    coreSpawn.reserve(coreCount);
+
+    int attempts = 0;
+    constexpr int kMaxAttempts = 200;
+    while (static_cast<int>(coreSpawn.size()) < coreCount && attempts < kMaxAttempts)
+    {
+        ++attempts;
+
+        vec2 candidate{
+            util::random(worldMinX + spawnMargin, worldMaxX - spawnMargin),
+            util::random(worldMinY + spawnMargin, worldMaxY - spawnMargin)
+        };
+
+        if (IsTooClose(candidate, playerStart, minDistToPlayer))
+            continue;
+
+        bool overlap = false;
+        for (const vec2& existing : coreSpawn)
+        {
+            if (IsTooClose(candidate, existing, minDistBetweenCores))
+            {
+                overlap = true;
+                break;
+            }
+        }
+
+        if (!overlap)
+            coreSpawn.push_back(candidate);
+    }
+
+    while (static_cast<int>(coreSpawn.size()) < coreCount)
+    {
+        coreSpawn.push_back(vec2{
+            util::random(worldMinX + spawnMargin, worldMaxX - spawnMargin),
+            util::random(worldMinY + spawnMargin, worldMaxY - spawnMargin)
+            });
+    }
+
+    for (const vec2& p : coreSpawn)
+    {
+        gameObjectManager->Add(std::make_unique<DataCore>(p));
+    }
 
     map = TextureDX11("assets/images/map.png", false);
 }
@@ -100,6 +172,3 @@ void GamePlay1::Unload()
     gameObjectManager = nullptr;
     playerPtr = nullptr;
 }
-
-
-

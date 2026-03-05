@@ -256,8 +256,11 @@ vec2 Sprite::GetFrameTexel(int frameNum) const
 {
     if (frameNum < 0 || frameTexel.size() <= (size_t)frameNum)
     {
-        Engine::GetLogger().LogError(std::to_string(frameNum) + " is out of index!");
+        // Mismatched animation/frame tables should not spam logs every frame.
+        if (!frameTexel.empty())
+            return frameTexel.front();
         return vec2{ 0,0 };
     }
     return frameTexel[frameNum];
 }
+

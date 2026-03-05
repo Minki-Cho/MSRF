@@ -4,7 +4,7 @@
 #include "../Engine/Animation.h"
 #include "../Engine/Engine.h"
 
-Animation::Animation() : Animation("./assets/images/characters/none_front.anm") {}
+Animation::Animation() : Animation("assets/images/characters/characters/none_front.anm") {}
 
 Animation::Animation(const std::filesystem::path& fileName) : animSequenceIndex(0)
 {
@@ -161,3 +161,4 @@ int Animation::Loop::GetLoopToIndex()
 {
     return loopToIndex;
 }
+
