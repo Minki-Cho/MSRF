@@ -136,10 +136,23 @@ namespace
             hasTarget_ = true;
         }
 
-        void ApplyDamage(int damage)
+        void ApplyDamage(int damage, const vec2& hitDirection)
         {
             if (damage <= 0 || GetDestroyed())
                 return;
+
+            const vec2 knockDir = NormalizeOrFallback(hitDirection, vec2{ 0.0f, 0.0f });
+            float knockForce = 145.0f;
+            switch (variant_)
+            {
+            case Variant::Fast:  knockForce = 180.0f; break;
+            case Variant::Heavy: knockForce = 110.0f; break;
+            default:             knockForce = 145.0f; break;
+            }
+
+            knockbackVel_.x() += knockDir.x() * knockForce;
+            knockbackVel_.y() += knockDir.y() * knockForce;
+            hitFlashTimer_ = 0.16;
 
             health_ -= damage;
             if (health_ <= 0)
@@ -158,7 +171,14 @@ namespace
 
         void Update(double dt) override
         {
-            vec2 velocity{ 0.f, 0.f };
+            if (hitFlashTimer_ > 0.0)
+            {
+                hitFlashTimer_ -= dt;
+                if (hitFlashTimer_ < 0.0)
+                    hitFlashTimer_ = 0.0;
+            }
+
+            vec2 chaseVelocity{ 0.f, 0.f };
 
             if (hasTarget_)
             {
@@ -170,10 +190,18 @@ namespace
                 if (lenSq > 1.0f)
                 {
                     const float len = std::sqrt(lenSq);
-                    velocity.x() = (dx / len) * moveSpeed_;
-                    velocity.y() = (dy / len) * moveSpeed_;
+                    chaseVelocity.x() = (dx / len) * moveSpeed_;
+                    chaseVelocity.y() = (dy / len) * moveSpeed_;
                 }
             }
+
+            const float damping = (std::max)(0.0f, 1.0f - static_cast<float>(dt) * 8.0f);
+            knockbackVel_.x() *= damping;
+            knockbackVel_.y() *= damping;
+            if (std::abs(knockbackVel_.x()) < 2.0f) knockbackVel_.x() = 0.0f;
+            if (std::abs(knockbackVel_.y()) < 2.0f) knockbackVel_.y() = 0.0f;
+
+            vec2 velocity{ chaseVelocity.x() + knockbackVel_.x(), chaseVelocity.y() + knockbackVel_.y() };
 
             if (std::abs(velocity.x()) > 0.001f || std::abs(velocity.y()) > 0.001f)
             {
@@ -195,6 +223,19 @@ namespace
             GameObject::Update(dt);
         }
 
+        void Draw(mat3<float> cameraMatrix) override
+        {
+            if (hitFlashTimer_ > 0.0)
+            {
+                const double flashPeriod = 0.06;
+                const double phase = std::fmod(hitFlashTimer_, flashPeriod);
+                if (phase < flashPeriod * 0.5)
+                    return;
+            }
+
+            GameObject::Draw(cameraMatrix);
+        }
+
         bool CanCollideWith(GameObjectType /*objectBType*/) override
         {
             return false;
@@ -214,6 +255,8 @@ namespace
         bool hasTarget_ = false;
         vec2 targetPos_{ 0.f, 0.f };
         CharacterAnim direction_ = CharacterAnim::None_F;
+        vec2 knockbackVel_{ 0.f, 0.f };
+        double hitFlashTimer_ = 0.0;
     };
 
     class BulletProjectile : public GameObject
@@ -262,6 +305,49 @@ namespace
         double lifeTimeSec_ = 0.0;
         int damage_ = 1;
         float hitRadius_ = 5.0f;
+    };
+    class HitParticle : public GameObject
+    {
+    public:
+        HitParticle(vec2 startPos, vec2 direction, float speed, double lifeTimeSec, float scale)
+            : GameObject(startPos),
+              lifeTimeSec_(lifeTimeSec)
+        {
+            AddGOComponent(new Sprite("assets/images/weapons/bullet_shotgun.spt", this));
+
+            SetScale(vec2{ scale, scale });
+            SetRotation(util::random(0.0f, 2.0f * kPi));
+
+            const vec2 dir = NormalizeOrFallback(direction, vec2{ 1.0f, 0.0f });
+            SetVelocity(vec2{ dir.x() * speed, dir.y() * speed });
+        }
+
+        void Update(double dt) override
+        {
+            lifeTimeSec_ -= dt;
+            if (lifeTimeSec_ <= 0.0)
+            {
+                SetDestroyed(true);
+                return;
+            }
+
+            vec2 v = GetVelocity();
+            const float damping = (std::max)(0.0f, 1.0f - static_cast<float>(dt) * 10.0f);
+            v.x() *= damping;
+            v.y() *= damping;
+            SetVelocity(v);
+
+            GameObject::Update(dt);
+        }
+
+        bool CanCollideWith(GameObjectType /*objectBType*/) override { return false; }
+        void ResolveCollision(GameObject* /*objectB*/) override {}
+
+        GameObjectType GetObjectType() override { return GameObjectType::Particle; }
+        std::string GetObjectTypeName() override { return "Particle"; }
+
+    private:
+        double lifeTimeSec_ = 0.0;
     };
 }
 
@@ -474,7 +560,8 @@ void GamePlay1::HandleWeaponInput(double dt)
     if (fireCooldownTimer < 0.0)
         fireCooldownTimer = 0.0;
 
-    if (!input.IsKeyDown(InputKey::Keyboard::Space))
+    const bool wantsFire = input.IsKeyDown(InputKey::Keyboard::Space) || input.GetMouseDown();
+    if (!wantsFire)
         return;
 
     if (fireCooldownTimer > 0.0)
@@ -498,6 +585,8 @@ void GamePlay1::FireMachineGun()
     const vec2 playerPos = playerPtr->GetPosition();
     const vec2 origin{ playerPos.x() + dir.x() * 42.0f, playerPos.y() + dir.y() * 42.0f };
 
+    Engine::PlaySound("assets/sounds/gun_fire.wav");
+
     SpawnBullet(
         origin,
         dir,
@@ -513,6 +602,8 @@ void GamePlay1::FireShotgun()
     const vec2 baseDir = GetFireDirection();
     const vec2 playerPos = playerPtr->GetPosition();
     const vec2 origin{ playerPos.x() + baseDir.x() * 38.0f, playerPos.y() + baseDir.y() * 38.0f };
+
+    Engine::PlaySound("assets/sounds/gun_shotgun.wav");
 
     constexpr int pelletCount = 7;
     constexpr float spreadDeg = 14.0f;
@@ -540,6 +631,26 @@ void GamePlay1::SpawnBullet(const vec2& origin, const vec2& direction, float spe
     gameObjectManager->Add(std::move(bullet));
 }
 
+void GamePlay1::SpawnHitParticles(const vec2& origin, const vec2& bulletVelocity)
+{
+    if (!gameObjectManager)
+        return;
+
+    const vec2 baseDir = NormalizeOrFallback(bulletVelocity, vec2{ 1.0f, 0.0f });
+
+    constexpr int kParticleCount = 6;
+    for (int i = 0; i < kParticleCount; ++i)
+    {
+        const float angle = util::random(-1.0f, 1.0f);
+        const vec2 dir = Rotate(baseDir, angle);
+        const float speed = util::random(90.0f, 210.0f);
+        const double life = util::random(0.07f, 0.17f);
+        const float scale = util::random(0.55f, 0.95f);
+
+        auto particle = std::make_unique<HitParticle>(origin, dir, speed, life, scale);
+        gameObjectManager->Add(std::move(particle));
+    }
+}
 vec2 GamePlay1::GetFireDirection() const
 {
     if (!playerPtr)
@@ -566,7 +677,7 @@ vec2 GamePlay1::GetFireDirection() const
     const float cameraY = std::clamp(desiredCameraY, minCameraY, maxCameraY);
 
     const vec2 mouseScreen = Engine::GetInput().GetMousePos();
-    const vec2 mouseWorld{ mouseScreen.x() - cameraX, mouseScreen.y() - cameraY };
+    const vec2 mouseWorld{ mouseScreen.x() - cameraX, (viewportHeight - mouseScreen.y()) - cameraY };
 
     const vec2 aimVector{ mouseWorld.x() - playerPos.x(), mouseWorld.y() - playerPos.y() };
     return NormalizeOrFallback(aimVector, AimFallbackFromAnim(playerPtr->GetDirection()));
@@ -776,14 +887,32 @@ void GamePlay1::ResolveBulletHits()
             if (!enemy || enemy->GetDestroyed())
                 continue;
 
-            const vec2 ePos = enemy->GetPosition();
-            const float hitRadius = bRadius + enemy->GetHitRadius();
-            const float dx = ePos.x() - bPos.x();
-            const float dy = ePos.y() - bPos.y();
-
-            if ((dx * dx + dy * dy) <= (hitRadius * hitRadius))
+            bool isHit = enemy->DoesCollideWith(bPos);
+            if (!isHit && bRadius > 0.0f)
             {
-                enemy->ApplyDamage(bullet->GetDamage());
+                const vec2 probes[4] =
+                {
+                    vec2{ bPos.x() + bRadius, bPos.y() },
+                    vec2{ bPos.x() - bRadius, bPos.y() },
+                    vec2{ bPos.x(), bPos.y() + bRadius },
+                    vec2{ bPos.x(), bPos.y() - bRadius }
+                };
+
+                for (const vec2& probe : probes)
+                {
+                    if (enemy->DoesCollideWith(probe))
+                    {
+                        isHit = true;
+                        break;
+                    }
+                }
+            }
+
+            if (isHit)
+            {
+                enemy->ApplyDamage(bullet->GetDamage(), bullet->GetVelocity());
+                SpawnHitParticles(bPos, bullet->GetVelocity());
+                Engine::PlaySound("assets/sounds/hit_enemy.wav");
                 bullet->SetDestroyed(true);
                 break;
             }
@@ -827,6 +956,21 @@ int GamePlay1::GetMaxEnemyCountForTier(int enemyTier) const
     default: return 12;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

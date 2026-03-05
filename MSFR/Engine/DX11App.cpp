@@ -151,8 +151,23 @@ void DX11App::InitImGui()
 
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+#ifdef ImGuiConfigFlags_DockingEnable
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+#endif
+#ifdef ImGuiConfigFlags_ViewportsEnable
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+#endif
 
     ImGui::StyleColorsDark();
+
+#ifdef ImGuiConfigFlags_ViewportsEnable
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
+        ImGuiStyle& style = ImGui::GetStyle();
+        style.WindowRounding = 0.0f;
+        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+    }
+#endif
 
     ImGui_ImplSDL2_InitForD3D(ptr_window);
     ImGui_ImplDX11_Init(ptr_device, ptr_context);
@@ -213,13 +228,61 @@ void DX11App::DrawProfilerOverlay()
             ImGui::Text("CommandPool: %zu / %zu in-use", pool.InUse(), pool.InUse() + pool.Available());
 
             ImGui::Text("Viewport: %d x %d", Engine::GetViewportWidth(), Engine::GetViewportHeight());
+#ifdef ImGuiConfigFlags_ViewportsEnable
+            ImGui::TextUnformatted("Multi-Viewport: Enabled (drag this window out)");
+#else
+            ImGui::TextUnformatted("Multi-Viewport: Not available in current ImGui build");
+#endif
+
+            const auto workerStats = js.GetWorkerStatsSnapshot();
+            if (!workerStats.empty())
+            {
+                ImGui::Separator();
+                ImGui::Text("CPU Thread Profiler");
+
+                if (ImGui::BeginTable("JobWorkerStats", 6, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit))
+                {
+                    ImGui::TableSetupColumn("Worker");
+                    ImGui::TableSetupColumn("Jobs");
+                    ImGui::TableSetupColumn("Busy Total (ms)");
+                    ImGui::TableSetupColumn("Avg Job (ms)");
+                    ImGui::TableSetupColumn("Last Job (ms)");
+                    ImGui::TableSetupColumn("State");
+                    ImGui::TableHeadersRow();
+
+                    for (const auto& s : workerStats)
+                    {
+                        ImGui::TableNextRow();
+                        ImGui::TableSetColumnIndex(0); ImGui::Text("Worker %u", s.workerIndex);
+                        ImGui::TableSetColumnIndex(1); ImGui::Text("%llu", static_cast<unsigned long long>(s.completedJobs));
+                        ImGui::TableSetColumnIndex(2); ImGui::Text("%.2f", s.totalBusyMs);
+                        ImGui::TableSetColumnIndex(3); ImGui::Text("%.3f", s.avgJobMs);
+                        ImGui::TableSetColumnIndex(4); ImGui::Text("%.3f", s.lastJobMs);
+                        ImGui::TableSetColumnIndex(5); ImGui::TextUnformatted(s.busy ? "Running" : "Idle");
+                    }
+
+                    ImGui::EndTable();
+                }
+            }
         }
         ImGui::End();
     }
 
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+#ifdef ImGuiConfigFlags_ViewportsEnable
+    ImGuiIO& io = ImGui::GetIO();
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
+
+        ptr_context->OMSetRenderTargets(1, &ptr_rtv, ptr_dsv);
+    }
+#endif
 }
+
 bool DX11App::IsDone() const noexcept
 {
     return is_done;
@@ -634,6 +697,9 @@ void DX11App::Update()
     // vsync=1 is nicer. If want uncapped, change first arg to 0.
     ptr_swapchain->Present(1, 0);
 }
+
+
+
 
 
 

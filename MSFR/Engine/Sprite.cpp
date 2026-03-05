@@ -11,6 +11,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <unordered_set>
 
 static std::string Trim(std::string s)
 {
@@ -65,6 +66,13 @@ static std::filesystem::path ResolvePathFromSPT(
     return cand;
 }
 
+static bool ShouldLogSpriteLoadOnce(const std::filesystem::path& spriteInfoFile, const std::filesystem::path& texPath)
+{
+    static std::unordered_set<std::string> seen;
+    const std::string key = spriteInfoFile.generic_string() + "|" + texPath.generic_string();
+    return seen.insert(key).second;
+}
+
 Sprite::Sprite(const std::filesystem::path& spriteInfoFile, GameObject* object)
 {
     Load(spriteInfoFile, object);
@@ -90,10 +98,12 @@ void Sprite::Load(const std::filesystem::path& spriteInfoFile, GameObject* objec
         throw std::runtime_error("Sprite file has empty texture path: " + spriteInfoFile.generic_string());
 
     std::filesystem::path texPath = ResolvePathFromSPT(spriteInfoFile, texToken);
-
-    Engine::GetLogger().LogEvent("Sprite SPT: " + spriteInfoFile.generic_string());
-    Engine::GetLogger().LogEvent("Texture token: " + texToken);
-    Engine::GetLogger().LogEvent("Resolved texture path: " + texPath.generic_string());
+    if (ShouldLogSpriteLoadOnce(spriteInfoFile, texPath))
+    {
+        Engine::GetLogger().LogEvent("Sprite SPT: " + spriteInfoFile.generic_string());
+        Engine::GetLogger().LogEvent("Texture token: " + texToken);
+        Engine::GetLogger().LogEvent("Resolved texture path: " + texPath.generic_string());
+    }
 
     if (!std::filesystem::exists(texPath))
     {
@@ -263,4 +273,7 @@ vec2 Sprite::GetFrameTexel(int frameNum) const
     }
     return frameTexel[frameNum];
 }
+
+
+
 

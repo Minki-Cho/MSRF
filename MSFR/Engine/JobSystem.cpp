@@ -1,6 +1,7 @@
 #include "JobSystem.h"
 
 #include <algorithm>
+#include <chrono>
 
 void JobSystem::Init(uint32_t workerCount)
 {
@@ -19,9 +20,13 @@ void JobSystem::Init(uint32_t workerCount)
     workers.clear();
     workers.reserve(workerCount);
 
+    workerStats.clear();
+    workerStats.reserve(workerCount);
+
     for (uint32_t i = 0; i < workerCount; ++i)
     {
-        workers.emplace_back([this] { WorkerLoop(); });
+        workerStats.push_back(std::make_unique<WorkerStats>());
+        workers.emplace_back([this, i] { WorkerLoop(i); });
     }
 }
 
@@ -49,6 +54,7 @@ void JobSystem::Shutdown()
     }
 
     pendingJobs.store(0, std::memory_order_release);
+    workerStats.clear();
 }
 
 void JobSystem::Enqueue(std::function<void()> job)
@@ -90,8 +96,41 @@ void JobSystem::WaitIdle()
         });
 }
 
-void JobSystem::WorkerLoop()
+std::vector<JobSystem::WorkerStatSnapshot> JobSystem::GetWorkerStatsSnapshot() const
 {
+    std::vector<WorkerStatSnapshot> out;
+    out.reserve(workerStats.size());
+
+    for (uint32_t i = 0; i < static_cast<uint32_t>(workerStats.size()); ++i)
+    {
+        const WorkerStats* ws = workerStats[i].get();
+        if (!ws)
+            continue;
+
+        const uint64_t completed = ws->completedJobs.load(std::memory_order_relaxed);
+        const uint64_t busyNs = ws->busyTimeNs.load(std::memory_order_relaxed);
+        const uint64_t lastNs = ws->lastJobNs.load(std::memory_order_relaxed);
+        const bool busy = ws->activeJobs.load(std::memory_order_relaxed) > 0;
+
+        WorkerStatSnapshot s;
+        s.workerIndex = i;
+        s.completedJobs = completed;
+        s.totalBusyMs = static_cast<double>(busyNs) / 1'000'000.0;
+        s.avgJobMs = (completed > 0) ? (s.totalBusyMs / static_cast<double>(completed)) : 0.0;
+        s.lastJobMs = static_cast<double>(lastNs) / 1'000'000.0;
+        s.busy = busy;
+        out.push_back(s);
+    }
+
+    return out;
+}
+
+void JobSystem::WorkerLoop(uint32_t workerIndex)
+{
+    WorkerStats* stats = nullptr;
+    if (workerIndex < workerStats.size())
+        stats = workerStats[workerIndex].get();
+
     while (running.load(std::memory_order_acquire))
     {
         std::function<void()> job;
@@ -110,7 +149,25 @@ void JobSystem::WorkerLoop()
         }
 
         if (job)
+        {
+            using Clock = std::chrono::steady_clock;
+
+            if (stats)
+                stats->activeJobs.fetch_add(1, std::memory_order_relaxed);
+
+            const Clock::time_point begin = Clock::now();
             job();
+            const uint64_t elapsedNs = static_cast<uint64_t>(
+                std::chrono::duration_cast<std::chrono::nanoseconds>(Clock::now() - begin).count());
+
+            if (stats)
+            {
+                stats->completedJobs.fetch_add(1, std::memory_order_relaxed);
+                stats->busyTimeNs.fetch_add(elapsedNs, std::memory_order_relaxed);
+                stats->lastJobNs.store(elapsedNs, std::memory_order_relaxed);
+                stats->activeJobs.fetch_sub(1, std::memory_order_relaxed);
+            }
+        }
     }
 }
 

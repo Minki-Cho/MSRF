@@ -36,6 +36,7 @@ private:
     void UpdateEnemyTargets();
     void ResolveEnemyOverlap();
     void ResolveBulletHits();
+    void SpawnHitParticles(const vec2& origin, const vec2& bulletVelocity);
     int CountAliveByType(GameObjectType type) const;
     double GetSpawnIntervalForTier(int enemyTier) const;
     int GetMaxEnemyCountForTier(int enemyTier) const;
@@ -56,5 +57,8 @@ private:
     double machineGunInterval{ 0.08 };
     double shotgunInterval{ 0.42 };
 };
+
+
+
 
 
