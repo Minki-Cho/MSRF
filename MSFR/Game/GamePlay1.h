@@ -20,7 +20,7 @@ public:
 
 private:
     GameObjectManager* gameObjectManager{ nullptr };
-    TextureDX11 MainMenuImage;
+    TextureDX11 map;
     double timer;
     Player* playerPtr{ nullptr };
 };

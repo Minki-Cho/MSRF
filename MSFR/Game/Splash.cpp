@@ -17,6 +17,7 @@ Splash::~Splash()
 void Splash::Load()
 {
     //Sounds preload!
+    Engine::PlaySound("assets/sounds/enter_gameplay.wav");
 
     timer = 5;
     SplashImage = TextureDX11("assets/images/Splash.png", false);
@@ -41,3 +42,5 @@ void Splash::Draw()
 void Splash::Unload()
 {
 }
+
+

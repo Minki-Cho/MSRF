@@ -612,7 +612,9 @@ void DX11App::Update()
     Engine::GetActionSystem().PollFromInput(Engine::GetInput());
 
     // Bind + clear
-    ptr_context->OMSetRenderTargets(1, &ptr_rtv, ptr_dsv);
+    // 2D renderer: keep draw order deterministic (background -> actors -> UI)
+    // by disabling depth testing for the main pass.
+    ptr_context->OMSetRenderTargets(1, &ptr_rtv, nullptr);
 
     ptr_context->ClearRenderTargetView(ptr_rtv, clear_color);
     ptr_context->ClearDepthStencilView(ptr_dsv, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
@@ -628,6 +630,7 @@ void DX11App::Update()
     // vsync=1 is nicer. If want uncapped, change first arg to 0.
     ptr_swapchain->Present(1, 0);
 }
+
 
 
 

@@ -9,6 +9,7 @@
 #include "TextureManager.h"
 #include "JobSystem.h"
 #include "ActionSystem.h"
+#include "AudioSystem.h"
 #include "CommandPool.h"
 #include "Command.h"
 #include "EventBus.h"
@@ -54,6 +55,8 @@ public:
     static ActionSystem& GetActionSystem() { return Instance().actionSystem; }
     static auto& GetCommandPool() { return Instance().commandPool; }
     static EventBus& GetEventBus() { return Instance().eventBus; }
+    static AudioSystem& GetAudioSystem() { return Instance().audioSystem; }
+    static bool PlaySound(const std::filesystem::path& soundPath) { return Instance().audioSystem.PlayOneShot(soundPath); }
     static AnimationSpeed GetAnimationSpeedLevel() { return Instance().animationSpeedLevel; }
     static bool IsCollisionDebugDrawEnabled() { return Instance().collisionDebugDrawEnabled; }
     static void ToggleCollisionDebugDraw()
@@ -124,6 +127,7 @@ private:
     TextureManager textureManager;
     JobSystem jobSystem;
     ActionSystem actionSystem;
+    AudioSystem audioSystem;
     CommandPool<2048, 64> commandPool;
     EventBus eventBus;
 

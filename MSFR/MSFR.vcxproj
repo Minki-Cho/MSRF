@@ -159,6 +159,7 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Engine\ActionSystem.cpp" />
+    <ClCompile Include="Engine\AudioSystem.cpp" />
     <ClCompile Include="Engine\Animation.cpp" />
     <ClCompile Include="Engine\Collision.cpp" />
     <ClCompile Include="Engine\DX11App.cpp" />
@@ -190,6 +191,8 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
   <ItemGroup>
     <ClInclude Include="Engine\angles.h" />
     <ClInclude Include="Engine\Animation.h" />
+    <ClInclude Include="Engine\AudioSystem.h" />
+    <ClInclude Include="ThirdParty\miniaudio.h" />
     <ClInclude Include="Engine\Collision.h" />
     <ClInclude Include="Engine\color3.h" />
     <ClInclude Include="Engine\Command.h" />
@@ -245,4 +248,6 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>
+
+
 

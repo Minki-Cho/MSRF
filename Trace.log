@@ -1,4 +1,8 @@
-[0.2603]	Event	Engine InitCore
-[0.2617]	Event	Job workers (after init) = 31
-[0.2856]	Event	[State] Load Spalsh | thread=44160 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
-[0.3242]	Fatal	[App] Unhandled exception: CreateDecoderFromFilename failed. | thread=44160 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\main.cpp:67 (main)
+[0.3577]	Event	Engine InitCore
+[0.3601]	Event	Job workers (after init) = 31
+[0.6738]	Event	Audio initialized (miniaudio).
+[0.6919]	Event	[State] Load Spalsh | thread=41860 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[0.6943]	Event	Engine Shutdown
+[0.7467]	Event	Audio shutdown.
+[0.7477]	Event	Clear Textures
+[0.7903]	Fatal	[App] Unhandled exception: CreateDecoderFromFilename failed. | thread=41860 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\main.cpp:67 (main)

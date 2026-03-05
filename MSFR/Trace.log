@@ -1,25 +1,35 @@
-[0.0764]	Event	Engine InitCore
-[0.0777]	Event	Job workers (after init) = 31
-[0.0987]	Event	[State] Load Spalsh | thread=23608 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
-[0.1414]	Event	[State] Load Complete | thread=23608 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
-[1.9943]	Event	[Command] RequestStateChange -> 1
-[2.0061]	Event	[State] Unload Spalsh | thread=23608 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:62 (GameStateManager::Update)
-[2.0065]	Event	Clear Textures
-[2.0110]	Event	[State] Load MainMenu | thread=23608 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
-[2.0607]	Event	[State] Load Complete | thread=23608 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
-[5.0782]	Event	FPS: 160.362026
-[10.0838]	Event	FPS: 165.016126
-[15.0885]	Event	FPS: 165.042108
-[20.0886]	Event	FPS: 164.996829
-[20.7772]	Debug	Input LUp -> releasedThisFrame = true
-[20.7799]	Event	mouse win: 586, 301
-[20.7804]	Event	[Command] MenuAction -> Play
-[20.7807]	Event	[Command] RequestStateChange -> 2
-[20.7915]	Event	[State] Unload MainMenu | thread=23608 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:62 (GameStateManager::Update)
-[20.7919]	Event	Clear Textures
-[20.7984]	Event	[State] Load GamePlay1 | thread=23608 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
-[20.7994]	Event	Sprite SPT: assets/images/characters/characters/thief/thief.spt
-[20.7998]	Event	Texture token: assets/images/characters/characters/thief/thief.png
-[20.8006]	Event	Resolved texture path: assets/images/characters/characters/thief/thief.png
-[20.8770]	Event	[State] Load Complete | thread=23608 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
-[23.4013]	Event	SDL_QUIT received
+[0.2561]	Event	Engine InitCore
+[0.2768]	Event	Job workers (after init) = 31
+[1.4858]	Event	Audio initialized (miniaudio).
+[1.5049]	Event	[State] Load Spalsh | thread=47924 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[1.5489]	Event	[State] Load Complete | thread=47924 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
+[3.3751]	Event	[Command] RequestStateChange -> 1
+[3.3869]	Event	[State] Unload Spalsh | thread=47924 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:62 (GameStateManager::Update)
+[3.3871]	Event	Clear Textures
+[3.3941]	Event	[State] Load MainMenu | thread=47924 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[3.4428]	Event	[State] Load Complete | thread=47924 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
+[3.9924]	Debug	Input LUp -> releasedThisFrame = true
+[3.9953]	Event	mouse win: 610, 305
+[3.9956]	Event	[Command] MenuAction -> Play
+[3.9957]	Event	[Command] RequestStateChange -> 2
+[4.0049]	Event	[State] Unload MainMenu | thread=47924 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:62 (GameStateManager::Update)
+[4.0051]	Event	Clear Textures
+[4.0108]	Event	[State] Load GamePlay1 | thread=47924 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[4.0119]	Event	Sprite SPT: assets/images/characters/characters/enemy/enemy.spt
+[4.0122]	Event	Texture token: assets/images/characters/characters/enemy/enemy.png
+[4.0123]	Event	Resolved texture path: assets/images/characters/characters/enemy/enemy.png
+[4.0993]	Event	[State] Load Complete | thread=47924 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
+[5.2810]	Event	FPS: 109.892042
+[10.2837]	Event	FPS: 144.721000
+[15.2887]	Event	FPS: 164.037678
+[20.2946]	Event	FPS: 164.607011
+[25.3012]	Event	FPS: 164.980879
+[30.3052]	Event	FPS: 165.068840
+[35.3099]	Event	FPS: 165.044136
+[37.9448]	Debug	Input LUp -> releasedThisFrame = true
+[40.3181]	Event	FPS: 164.929473
+[45.3210]	Event	FPS: 160.307669
+[48.0248]	Event	SDL_QUIT received
+[48.0252]	Event	Engine Shutdown
+[48.0656]	Event	Audio shutdown.
+[48.0659]	Event	Clear Textures

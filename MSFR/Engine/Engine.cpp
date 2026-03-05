@@ -66,6 +66,11 @@ void Engine::InitCore()
 
     jobSystem.Init();
     logger.LogEvent("Job workers (after init) = " + std::to_string(jobSystem.GetWorkerCount()));
+
+    if (!audioSystem.Init(logger))
+    {
+        logger.LogWarning("Audio disabled: miniaudio init failed.");
+    }
 }
 
 void Engine::InitWindow(const char* windowName, int w, int h)
@@ -88,6 +93,8 @@ void Engine::Shutdown()
 
     jobSystem.WaitIdle();
     jobSystem.Shutdown();
+
+    audioSystem.Shutdown();
 
     eventBus.Clear();
 

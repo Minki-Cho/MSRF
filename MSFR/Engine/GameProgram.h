@@ -52,6 +52,7 @@ public:
         auto& bus = Engine::GetEventBus();
         bus.Unsubscribe<RequestStateChangeEvent>(stateChangeSubscription);
         bus.Unsubscribe<MenuActionEvent>(menuActionSubscription);
+        Engine::Instance().Shutdown();
     }
 
     void Update() override { Engine::Instance().Update(); }
