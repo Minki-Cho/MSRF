@@ -4,10 +4,14 @@
 #include <memory>
 #include <utility>
 
-#include "TextureDX11.h"
-
+class TextureDX11;
 struct ID3D11Device;
 struct ID3D11DeviceContext;
+
+struct TextureDX11Deleter
+{
+    void operator()(TextureDX11* ptr) const;
+};
 
 class TextureManager
 {
@@ -22,5 +26,6 @@ public:
 
 private:
     using Key = std::pair<std::filesystem::path, bool>;
-    std::map<Key, std::unique_ptr<TextureDX11>> pathToTexture;
+    using TexturePtr = std::unique_ptr<TextureDX11, TextureDX11Deleter>;
+    std::map<Key, TexturePtr> pathToTexture;
 };

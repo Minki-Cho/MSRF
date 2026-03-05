@@ -3,10 +3,6 @@
 #include <filesystem>
 #include <memory>
 
-#include <wrl/client.h>
-#include <d3d11.h>
-#include <dxgi.h>
-
 #include "GameStateManager.h"
 #include "Input.h"
 #include "Logger.h"
@@ -18,6 +14,9 @@
 #include "EventBus.h"
 
 class Window;
+struct ID3D11Device;
+struct ID3D11DeviceContext;
+struct IDXGISwapChain;
 
 class Engine
 {
@@ -82,16 +81,11 @@ public:
     template<typename T>
     static T* GetGSComponent() { return GetGameStateManager().GetGSComponent<T>(); }
 
-    static ID3D11Device* GetDXDevice() { return Instance().dxDevice.Get(); }
-    static ID3D11DeviceContext* GetDXContext() { return Instance().dxContext.Get(); }
-    static IDXGISwapChain* GetDXSwapChain() { return Instance().dxSwapChain.Get(); }
+    static ID3D11Device* GetDXDevice();
+    static ID3D11DeviceContext* GetDXContext();
+    static IDXGISwapChain* GetDXSwapChain();
 
-    static void SetDX11(ID3D11Device* device, ID3D11DeviceContext* context, IDXGISwapChain* swapChain)
-    {
-        Instance().dxDevice = device;
-        Instance().dxContext = context;
-        Instance().dxSwapChain = swapChain;
-    }
+    static void SetDX11(ID3D11Device* device, ID3D11DeviceContext* context, IDXGISwapChain* swapChain);
 
     void InitCore();
     void InitWindow(const char* windowName, int w, int h);
@@ -105,6 +99,8 @@ public:
     void AddSpriteFont(const std::filesystem::path& fileName);
 
 private:
+    struct DX11State;
+
     using Clock = std::chrono::steady_clock;
 
     double ComputeDeltaSeconds();
@@ -131,9 +127,7 @@ private:
     CommandPool<2048, 64> commandPool;
     EventBus eventBus;
 
-    Microsoft::WRL::ComPtr<ID3D11Device> dxDevice;
-    Microsoft::WRL::ComPtr<ID3D11DeviceContext> dxContext;
-    Microsoft::WRL::ComPtr<IDXGISwapChain> dxSwapChain;
+    std::unique_ptr<DX11State> dx11;
 
     static constexpr double TargetFPS = 60.0;
     static constexpr int FPSIntervalSec = 5;

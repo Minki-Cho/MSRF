@@ -3,6 +3,11 @@
 #include "Engine.h"
 #include "TextureDX11.h"
 
+void TextureDX11Deleter::operator()(TextureDX11* ptr) const
+{
+    delete ptr;
+}
+
 TextureManager::~TextureManager() = default;
 
 TextureDX11* TextureManager::Load(ID3D11Device* device, ID3D11DeviceContext* ctx,
@@ -13,7 +18,7 @@ TextureDX11* TextureManager::Load(ID3D11Device* device, ID3D11DeviceContext* ctx
     auto it = pathToTexture.find(key);
     if (it == pathToTexture.end())
     {
-        auto tex = std::make_unique<TextureDX11>(device, ctx, filePath, enableTexel);
+        TexturePtr tex(new TextureDX11(device, ctx, filePath, enableTexel));
         TextureDX11* raw = tex.get();
         pathToTexture.emplace(std::move(key), std::move(tex));
         return raw;

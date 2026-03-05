@@ -4,10 +4,53 @@
 #include <string>
 #include <thread>
 
+#include <d3d11.h>
+#include <dxgi.h>
+#include <wrl/client.h>
+
 #include "Window.h"
 
-Engine::Engine() : window(std::make_unique<Window>()) {}
+struct Engine::DX11State
+{
+    Microsoft::WRL::ComPtr<ID3D11Device> device;
+    Microsoft::WRL::ComPtr<ID3D11DeviceContext> context;
+    Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain;
+};
+
+Engine::Engine()
+    : window(std::make_unique<Window>()),
+    dx11(std::make_unique<DX11State>())
+{
+}
+
 Engine::~Engine() = default;
+
+ID3D11Device* Engine::GetDXDevice()
+{
+    return Instance().dx11 ? Instance().dx11->device.Get() : nullptr;
+}
+
+ID3D11DeviceContext* Engine::GetDXContext()
+{
+    return Instance().dx11 ? Instance().dx11->context.Get() : nullptr;
+}
+
+IDXGISwapChain* Engine::GetDXSwapChain()
+{
+    return Instance().dx11 ? Instance().dx11->swapChain.Get() : nullptr;
+}
+
+void Engine::SetDX11(ID3D11Device* device, ID3D11DeviceContext* context, IDXGISwapChain* swapChain)
+{
+    if (!Instance().dx11)
+    {
+        Instance().dx11 = std::make_unique<DX11State>();
+    }
+
+    Instance().dx11->device = device;
+    Instance().dx11->context = context;
+    Instance().dx11->swapChain = swapChain;
+}
 
 void Engine::InitCore()
 {
@@ -50,12 +93,15 @@ void Engine::Shutdown()
 
     textureManager.Unload();
 
-    if (dxContext)
-        dxContext->ClearState();
+    if (dx11 && dx11->context)
+        dx11->context->ClearState();
 
-    dxSwapChain.Reset();
-    dxContext.Reset();
-    dxDevice.Reset();
+    if (dx11)
+    {
+        dx11->swapChain.Reset();
+        dx11->context.Reset();
+        dx11->device.Reset();
+    }
 
     if (window)
         window->Shutdown();
