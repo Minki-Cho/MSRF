@@ -1,10 +1,13 @@
 #include "Engine.h"
 
-#include <thread>
+#include <memory>
 #include <string>
+#include <thread>
 
+#include "Window.h"
 
-Engine::Engine() = default;
+Engine::Engine() : window(std::make_unique<Window>()) {}
+Engine::~Engine() = default;
 
 void Engine::InitCore()
 {
@@ -22,12 +25,12 @@ void Engine::InitCore()
     logger.LogEvent("Job workers (after init) = " + std::to_string(jobSystem.GetWorkerCount()));
 }
 
-// for other graphic
 void Engine::InitWindow(const char* windowName, int w, int h)
 {
     logger.LogEvent("Engine InitWindow");
 
-    window.Init(windowName, w, h);
+    if (window)
+        window->Init(windowName, w, h);
     usesInternalWindow = true;
 
     jobSystem.Init();
@@ -54,7 +57,8 @@ void Engine::Shutdown()
     dxContext.Reset();
     dxDevice.Reset();
 
-    window.Shutdown();
+    if (window)
+        window->Shutdown();
 
     initialized = false;
     usesInternalWindow = false;
@@ -72,10 +76,8 @@ void Engine::Update()
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         dt = targetStep;
-        //return;
     }
 
-    // FPS telemetry
     frameCount++;
     const auto now = Clock::now();
     const double elapsed = std::chrono::duration<double>(now - fpsCalcTime).count();
@@ -88,9 +90,9 @@ void Engine::Update()
     }
     lastFrameDt = dt;
 
-    if (usesInternalWindow)
+    if (usesInternalWindow && window)
     {
-        window.Update();
+        window->Update();
     }
     if (input.IsKeyPressed(InputKey::Keyboard::Tilde))
     {
@@ -105,7 +107,6 @@ void Engine::Update()
 
 void Engine::Draw()
 {
-    // gameStateManager.Draw();
 }
 
 void Engine::AddSpriteFont(const std::filesystem::path& fileName)
@@ -128,5 +129,3 @@ void Engine::UpdateGameObjects(double dt)
 {
     gameStateManager.Update(dt);
 }
-
-

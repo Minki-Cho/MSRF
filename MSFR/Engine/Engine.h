@@ -1,6 +1,7 @@
 #pragma once
 #include <chrono>
 #include <filesystem>
+#include <memory>
 
 #include <wrl/client.h>
 #include <d3d11.h>
@@ -8,7 +9,6 @@
 
 #include "GameStateManager.h"
 #include "Input.h"
-#include "Window.h"
 #include "Logger.h"
 #include "TextureManager.h"
 #include "JobSystem.h"
@@ -16,6 +16,8 @@
 #include "CommandPool.h"
 #include "Command.h"
 #include "EventBus.h"
+
+class Window;
 
 class Engine
 {
@@ -26,8 +28,9 @@ public:
         Normal = 2,
         Fast = 3,
     };
+
     Engine();
-    ~Engine() = default;
+    ~Engine();
 
     Engine(const Engine&) = delete;
     Engine& operator=(const Engine&) = delete;
@@ -45,7 +48,7 @@ public:
 
     static Logger& GetLogger() { return Instance().logger; }
     static Input& GetInput() { return Instance().input; }
-    static Window& GetWindow() { return Instance().window; }
+    static Window& GetWindow() { return *Instance().window; }
     static GameStateManager& GetGameStateManager() { return Instance().gameStateManager; }
     static TextureManager& GetTextureManager() { return Instance().textureManager; }
     static JobSystem& GetJobSystem() { return Instance().jobSystem; }
@@ -67,7 +70,7 @@ public:
         switch (Instance().animationSpeedLevel)
         {
         case AnimationSpeed::Slow:   return 0.25;
-        case AnimationSpeed::Normal: return 0.5; // current default
+        case AnimationSpeed::Normal: return 0.5;
         case AnimationSpeed::Fast:   return 1.0;
         default:                     return 0.5;
         }
@@ -79,7 +82,6 @@ public:
     template<typename T>
     static T* GetGSComponent() { return GetGameStateManager().GetGSComponent<T>(); }
 
-    // DX11 Access
     static ID3D11Device* GetDXDevice() { return Instance().dxDevice.Get(); }
     static ID3D11DeviceContext* GetDXContext() { return Instance().dxContext.Get(); }
     static IDXGISwapChain* GetDXSwapChain() { return Instance().dxSwapChain.Get(); }
@@ -92,7 +94,7 @@ public:
     }
 
     void InitCore();
-    void InitWindow(const char* windowName, int w, int h); // lgacy
+    void InitWindow(const char* windowName, int w, int h);
 
     void Shutdown();
 
@@ -106,7 +108,7 @@ private:
     using Clock = std::chrono::steady_clock;
 
     double ComputeDeltaSeconds();
-    void   UpdateGameObjects(double dt);
+    void UpdateGameObjects(double dt);
 
 private:
     Clock::time_point lastTick = Clock::now();
@@ -122,17 +124,16 @@ private:
     Logger logger;
     GameStateManager gameStateManager;
     Input input;
-    Window window;
+    std::unique_ptr<Window> window;
     TextureManager textureManager;
     JobSystem jobSystem;
     ActionSystem actionSystem;
     CommandPool<2048, 64> commandPool;
     EventBus eventBus;
 
-    // DX11 members
-    Microsoft::WRL::ComPtr<ID3D11Device>        dxDevice;
+    Microsoft::WRL::ComPtr<ID3D11Device> dxDevice;
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> dxContext;
-    Microsoft::WRL::ComPtr<IDXGISwapChain>      dxSwapChain;
+    Microsoft::WRL::ComPtr<IDXGISwapChain> dxSwapChain;
 
     static constexpr double TargetFPS = 60.0;
     static constexpr int FPSIntervalSec = 5;
@@ -141,5 +142,3 @@ private:
     AnimationSpeed animationSpeedLevel = AnimationSpeed::Normal;
     bool collisionDebugDrawEnabled = false;
 };
-
-

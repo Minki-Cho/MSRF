@@ -61,9 +61,9 @@ bool Logger::IsUsingConsole() const noexcept
     return useConsole;
 }
 
-void Logger::SetFocusRestoreHwnd(HWND hwnd) noexcept
+void Logger::SetFocusRestoreHwnd(void* nativeWindowHandle) noexcept
 {
-    focusRestoreHwnd = hwnd;
+    focusRestoreHwnd = nativeWindowHandle;
 }
 
 void Logger::LogError(const std::string& text) { Log(Severity::Error, text); }
@@ -131,8 +131,9 @@ void Logger::Log(Logger::Severity severity, const std::string& message)
 
         if (focusRestoreHwnd)
         {
-            SetForegroundWindow(focusRestoreHwnd);
-            SetFocus(focusRestoreHwnd);
+            HWND hwnd = static_cast<HWND>(focusRestoreHwnd);
+            SetForegroundWindow(hwnd);
+            SetFocus(hwnd);
         }
     }
 }

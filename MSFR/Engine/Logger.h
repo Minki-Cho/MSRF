@@ -1,10 +1,8 @@
 #pragma once
-#include <string>
-#include <fstream>
 #include <chrono>
+#include <fstream>
 #include <mutex>
-
-#include <Windows.h>
+#include <string>
 
 class Logger
 {
@@ -27,6 +25,7 @@ public:
         long code = 0;
         const char* state = nullptr;
     };
+
     Logger();
     Logger(Severity severity, bool useConsole, std::chrono::system_clock::time_point start_time);
     ~Logger();
@@ -42,7 +41,8 @@ public:
 
     void SetUseConsole(bool enabled) noexcept;
     bool IsUsingConsole() const noexcept;
-    void SetFocusRestoreHwnd(HWND hwnd) noexcept;
+    void SetFocusRestoreHwnd(void* nativeWindowHandle) noexcept;
+
 private:
     void Log(Severity severity, const std::string& displayText);
     double GetSecondsSinceStart() const;
@@ -53,9 +53,8 @@ private:
     std::chrono::system_clock::time_point startTime;
 
     bool useConsole = false;
-    HWND focusRestoreHwnd = nullptr;
+    void* focusRestoreHwnd = nullptr;
     mutable std::mutex mtx;
-
 };
 
 #define ENGINE_LOG_CTX(logger, severity, subsystemName, messageText) \

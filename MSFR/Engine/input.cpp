@@ -1,3 +1,4 @@
+#include <Windows.h>
 #include <windowsx.h>
 
 #include "Input.h"
@@ -74,7 +75,7 @@ void Input::OnKeyUp(InputKey::Keyboard k)
     keyReleasedThisFrame[idx] = true;
 }
 
-InputKey::Keyboard Input::VKToKeyboard(WPARAM vk)
+InputKey::Keyboard Input::VKToKeyboard(std::uintptr_t vk)
 {
     switch (vk)
     {
@@ -147,7 +148,7 @@ void Input::OnMouseMove(float x, float y)
 
 void Input::OnMouseDown(int button)
 {
-    if (button == 1) // left
+    if (button == 1)
     {
         isMouseDown = true;
         mousePressedThisFrame = true;
@@ -156,7 +157,7 @@ void Input::OnMouseDown(int button)
 
 void Input::OnMouseUp(int button)
 {
-    if (button == 1) // left
+    if (button == 1)
     {
         isMouseDown = false;
         mouseReleasedThisFrame = true;
@@ -164,7 +165,7 @@ void Input::OnMouseUp(int button)
     }
 }
 
-void Input::OnWin32Message(UINT msg, WPARAM wParam, LPARAM lParam)
+void Input::OnWin32Message(std::uint32_t msg, std::uintptr_t wParam, std::intptr_t lParam)
 {
     switch (msg)
     {
@@ -186,8 +187,9 @@ void Input::OnWin32Message(UINT msg, WPARAM wParam, LPARAM lParam)
 
     case WM_MOUSEMOVE:
     {
-        int x = GET_X_LPARAM(lParam);
-        int y = GET_Y_LPARAM(lParam);
+        const LPARAM lp = static_cast<LPARAM>(lParam);
+        int x = GET_X_LPARAM(lp);
+        int y = GET_Y_LPARAM(lp);
         mousePos.x() = static_cast<float>(x);
         mousePos.y() = static_cast<float>(y);
         return;
@@ -204,7 +206,7 @@ void Input::OnWin32Message(UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_KEYDOWN:
     case WM_SYSKEYDOWN:
     {
-        const bool wasDownRepeat = (lParam & (1 << 30)) != 0;
+        const bool wasDownRepeat = (lParam & (1LL << 30)) != 0;
         if (wasDownRepeat)
             return;
 

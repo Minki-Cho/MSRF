@@ -1,7 +1,6 @@
 #pragma once
-#include <windows.h>
-#include <vector>
 #include <cstdint>
+#include <vector>
 
 #include "vec2.h"
 
@@ -32,12 +31,11 @@ public:
     Input();
 
     void Update();
-    void OnWin32Message(UINT msg, WPARAM wParam, LPARAM lParam);
+    void OnWin32Message(std::uint32_t msg, std::uintptr_t wParam, std::intptr_t lParam);
 
     bool IsKeyDown(InputKey::Keyboard key) const;
     bool IsKeyReleased(InputKey::Keyboard key) const;
     bool IsKeyPressed(InputKey::Keyboard key) const;
-
 
     void OnKeyDown(InputKey::Keyboard k);
     void OnKeyUp(InputKey::Keyboard k);
@@ -59,14 +57,14 @@ public:
     void ToggleKeyLogging() { keyLogEnabled = !keyLogEnabled; }
 
     void OnMouseMove(float x, float y);
-    void OnMouseDown(int button); // 1=left
-    void OnMouseUp(int button);   // 1=left
+    void OnMouseDown(int button);
+    void OnMouseUp(int button);
 
     bool GetMousePressedThisFrame() const { return mousePressedThisFrame; }
     bool GetMouseReleasedThisFrame() const { return mouseReleasedThisFrame; }
 
 private:
-    static InputKey::Keyboard VKToKeyboard(WPARAM vk);
+    static InputKey::Keyboard VKToKeyboard(std::uintptr_t vk);
     static const char* KeyboardToString(InputKey::Keyboard key);
 
 private:
