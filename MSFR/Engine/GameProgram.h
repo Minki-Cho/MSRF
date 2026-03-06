@@ -65,6 +65,67 @@ private:
     double timer = 0.0;
 };
 
+
+class HowToPlay : public GameState
+{
+public:
+    void Load() override
+    {
+        inputLockTimer = 0.15;
+        shownHelpDialog = false;
+        backgroundImage = TextureDX11("assets/images/MainMenu.png", false);
+    }
+
+    void Draw() override
+    {
+        backgroundImage.DrawFitCenter({ (float)Engine::GetViewportWidth(), (float)Engine::GetViewportHeight() });
+    }
+
+    void Update(double dt) override
+    {
+        if (!shownHelpDialog)
+        {
+            shownHelpDialog = true;
+            SDL_ShowSimpleMessageBox(
+                SDL_MESSAGEBOX_INFORMATION,
+                "How To Play",
+                "Collect 3 Data Cores and survive.\n"
+                "1: Machine gun\n"
+                "2: Shotgun\n"
+                "Space/Left Click: Fire\n"
+                "Move: Arrow Keys\n"
+                "\nPress Enter, Esc, or Click to return.",
+                nullptr);
+        }
+
+        inputLockTimer -= dt;
+        if (inputLockTimer > 0.0)
+            return;
+
+        auto& input = Engine::GetInput();
+        const bool back =
+            Engine::GetActionSystem().Has(ActionId::Skip) ||
+            input.IsKeyPressed(InputKey::Keyboard::Escape) ||
+            input.IsKeyPressed(InputKey::Keyboard::Enter) ||
+            input.GetMouseReleasedThisFrame();
+
+        if (back)
+        {
+            Engine::GetEventBus().Publish(RequestStateChangeEvent{ static_cast<int>(ScreenMods::MainMenu) });
+        }
+    }
+
+    void Unload() override
+    {
+    }
+
+    std::string GetName() override { return "HowToPlay"; }
+
+private:
+    TextureDX11 backgroundImage;
+    double inputLockTimer = 0.0;
+    bool shownHelpDialog = false;
+};
 class GameProgram final : public IProgram
 {
 public:
@@ -76,6 +137,7 @@ public:
         engine.GetGameStateManager().AddGameState(mainmenu);
         engine.GetGameStateManager().AddGameState(play);
         engine.GetGameStateManager().AddGameState(credit);
+        engine.GetGameStateManager().AddGameState(howToPlay);
 
         auto& bus = Engine::GetEventBus();
         stateChangeSubscription = bus.Subscribe<RequestStateChangeEvent>([](const RequestStateChangeEvent& e) {
@@ -104,6 +166,8 @@ private:
     MainMenu mainmenu;
     GamePlay1 play;
     Credit credit;
+    HowToPlay howToPlay;
     EventBus::SubscriptionId stateChangeSubscription = 0;
     EventBus::SubscriptionId menuActionSubscription = 0;
 };
+

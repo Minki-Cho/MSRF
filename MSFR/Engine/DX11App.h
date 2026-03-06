@@ -41,7 +41,6 @@ public:
     int  GetWidth() const noexcept;
     int  GetHeight() const noexcept;
 
-
     void SetClearColor(float r, float g, float b, float a = 1.0f) noexcept;
 
 private:
@@ -86,6 +85,4 @@ private:
     int stressJobsPerWorker = 8;
     int stressIterationsK = 22;
 };
-
-
 

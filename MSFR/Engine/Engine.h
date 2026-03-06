@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 #include <chrono>
 #include <filesystem>
 #include <memory>
@@ -22,6 +23,17 @@ struct IDXGISwapChain;
 class Engine
 {
 public:
+    struct BulletPoolDebugStats
+    {
+        std::size_t machineActive = 0;
+        std::size_t machineCapacity = 0;
+        std::size_t machineOverflow = 0;
+        std::size_t shotgunActive = 0;
+        std::size_t shotgunCapacity = 0;
+        std::size_t shotgunOverflow = 0;
+        bool valid = false;
+    };
+
     enum class AnimationSpeed
     {
         Slow = 1,
@@ -80,6 +92,8 @@ public:
     static double GetLastFrameDt() { return Instance().lastFrameDt; }
     static double GetLastFrameMs() { return Instance().lastFrameDt * 1000.0; }
     static double GetLastFrameFps() { return (Instance().lastFrameDt > 0.0) ? (1.0 / Instance().lastFrameDt) : 0.0; }
+    static BulletPoolDebugStats GetBulletPoolDebugStats() { return Instance().bulletPoolDebugStats; }
+    static void SetBulletPoolDebugStats(const BulletPoolDebugStats& stats) { Instance().bulletPoolDebugStats = stats; }
 
     template<typename T>
     static T* GetGSComponent() { return GetGameStateManager().GetGSComponent<T>(); }
@@ -139,4 +153,5 @@ private:
     int viewportHeight = 720;
     AnimationSpeed animationSpeedLevel = AnimationSpeed::Normal;
     bool collisionDebugDrawEnabled = false;
+    BulletPoolDebugStats bulletPoolDebugStats{};
 };

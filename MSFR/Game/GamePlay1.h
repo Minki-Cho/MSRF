@@ -8,6 +8,8 @@
 #include "GameObjectType.h"
 #include "Player.h"
 
+class BulletPool;
+
 class GamePlay1 : public GameState
 {
 public:
@@ -46,6 +48,8 @@ private:
     TextureDX11 map;
     double timer;
     Player* playerPtr{ nullptr };
+    std::unique_ptr<BulletPool> machineBulletPool;
+    std::unique_ptr<BulletPool> shotgunBulletPool;
 
     int totalCoreCount{ 3 };
     int collectedCoreCount{ 0 };
@@ -57,8 +61,4 @@ private:
     double machineGunInterval{ 0.08 };
     double shotgunInterval{ 0.42 };
 };
-
-
-
-
 

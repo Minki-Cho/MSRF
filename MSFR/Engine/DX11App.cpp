@@ -229,6 +229,13 @@ void DX11App::DrawProfilerOverlay()
             auto& pool = Engine::GetCommandPool();
             ImGui::Text("CommandPool: %zu / %zu in-use", pool.InUse(), pool.InUse() + pool.Available());
 
+            const auto bulletStats = Engine::GetBulletPoolDebugStats();
+            if (bulletStats.valid)
+            {
+                ImGui::Text("BulletPool(M): %zu / %zu active (overflow %zu)", bulletStats.machineActive, bulletStats.machineCapacity, bulletStats.machineOverflow);
+                ImGui::Text("BulletPool(S): %zu / %zu active (overflow %zu)", bulletStats.shotgunActive, bulletStats.shotgunCapacity, bulletStats.shotgunOverflow);
+            }
+
             ImGui::Text("Viewport: %d x %d", Engine::GetViewportWidth(), Engine::GetViewportHeight());
             ImGui::Text("Thread Stress (F3): %s", stressTestEnabled ? "ON" : "OFF");
             ImGui::Text("Stress Accumulator: %llu", static_cast<unsigned long long>(stressAccumulator.load(std::memory_order_relaxed)));
@@ -738,6 +745,11 @@ void DX11App::Update()
 
     // User program
     ptr_program->Update();
+    if (Engine::GetGameStateManager().HasGameEnded())
+    {
+        is_done = true;
+        return;
+    }
     ptr_program->Draw();
 
     // Schedule stress jobs right before profiler draw so the table can show Running states.
@@ -750,32 +762,6 @@ void DX11App::Update()
     // vsync=1 is nicer. If want uncapped, change first arg to 0.
     ptr_swapchain->Present(1, 0);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

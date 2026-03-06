@@ -183,7 +183,10 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
     <ClCompile Include="external\imgui\backends\imgui_impl_dx11.cpp" />
     <ClCompile Include="external\imgui\backends\imgui_impl_sdl2.cpp" />
     <ClCompile Include="Game\DataCore.cpp" />
+    <ClCompile Include="Game\BulletPool.cpp" />
     <ClCompile Include="Game\GamePlay1.cpp" />
+    <ClCompile Include="Game\GamePlay1_Combat.cpp" />
+    <ClCompile Include="Game\GamePlay1_Enemy.cpp" />
     <ClCompile Include="Game\MainMenu.cpp" />
     <ClCompile Include="Game\Player.cpp" />
     <ClCompile Include="Game\Splash.cpp" />
@@ -227,6 +230,7 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
     <ClInclude Include="Game\ActionId.h" />
     <ClInclude Include="Game\CharacterAnim.h" />
     <ClInclude Include="Game\DataCore.h" />
+    <ClInclude Include="Game\BulletPool.h" />
     <ClInclude Include="Game\GameObjectType.h" />
     <ClInclude Include="Game\GamePlay1.h" />
     <ClInclude Include="Game\GameProgram.h" />
@@ -250,8 +254,5 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>
-
-
-
 
 
