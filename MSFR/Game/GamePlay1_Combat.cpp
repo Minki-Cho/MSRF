@@ -57,7 +57,7 @@ namespace
 
 void GamePlay1::HandleWeaponInput(double dt)
 {
-    if (!playerPtr || !gameObjectManager)
+    if (!playerPtr || !gameObjectManager || playerPtr->IsDead())
         return;
 
     auto& input = Engine::GetInput();
@@ -184,4 +184,5 @@ vec2 GamePlay1::GetFireDirection() const
     const vec2 aimVector{ mouseWorld.x() - playerPos.x(), mouseWorld.y() - playerPos.y() };
     return NormalizeOrFallback(aimVector, AimFallbackFromAnim(playerPtr->GetDirection()));
 }
+
 

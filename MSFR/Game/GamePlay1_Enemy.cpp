@@ -89,17 +89,17 @@ namespace
             {
             case Variant::Normal:
                 moveSpeed_ = 45.0f;
-                health_ = 5;
+                health_ = 20;
                 spritePath = "assets/images/characters/characters/enemy/enemy.spt";
                 break;
             case Variant::Fast:
                 moveSpeed_ = 72.0f;
-                health_ = 3;
+                health_ = 12;
                 spritePath = "assets/images/characters/characters/enemy_fast/enemy_fast.spt";
                 break;
             case Variant::Heavy:
                 moveSpeed_ = 34.0f;
-                health_ = 8;
+                health_ = 32;
                 spritePath = "assets/images/characters/characters/enemy_heavy/enemy_heavy.spt";
                 SetScale(vec2{ 1.15f, 1.15f });
                 break;
@@ -111,10 +111,30 @@ namespace
                 spr->PlayAnimation(ToAnimActionId(direction_));
         }
 
+        
+
         void SetTarget(vec2 targetPos)
         {
             targetPos_ = targetPos;
             hasTarget_ = true;
+        }
+        bool TryAttackPlayer()
+        {
+            if (attackCooldown_ > 0.0)
+                return false;
+
+            attackCooldown_ = 0.34;
+            return true;
+        }
+
+        float GetAttackRadius() const
+        {
+            switch (variant_)
+            {
+            case Variant::Fast:  return 30.0f;
+            case Variant::Heavy: return 36.0f;
+            default:             return 32.0f;
+            }
         }
 
         void ApplyDamage(int damage, const vec2& hitDirection)
@@ -142,11 +162,12 @@ namespace
 
         void Update(double dt) override
         {
-            if (hitFlashTimer_ > 0.0)
+            
+            if (attackCooldown_ > 0.0)
             {
-                hitFlashTimer_ -= dt;
-                if (hitFlashTimer_ < 0.0)
-                    hitFlashTimer_ = 0.0;
+                attackCooldown_ -= dt;
+                if (attackCooldown_ < 0.0)
+                    attackCooldown_ = 0.0;
             }
 
             vec2 chaseVelocity{ 0.f, 0.f };
@@ -222,12 +243,13 @@ namespace
     private:
         Variant variant_ = Variant::Normal;
         float moveSpeed_ = 45.0f;
-        int health_ = 5;
+        int health_ = 10;
         bool hasTarget_ = false;
         vec2 targetPos_{ 0.f, 0.f };
         CharacterAnim direction_ = CharacterAnim::None_F;
         vec2 knockbackVel_{ 0.f, 0.f };
         double hitFlashTimer_ = 0.0;
+        double attackCooldown_ = 0.0;
     };
 
     class HitParticle : public GameObject
@@ -465,6 +487,35 @@ void GamePlay1::ResolveEnemyOverlap()
     }
 }
 
+
+void GamePlay1::ResolveEnemyPlayerHits()
+{
+    if (!gameObjectManager || !playerPtr || playerPtr->IsDead())
+        return;
+
+    const vec2 playerPos = playerPtr->GetPosition();
+
+    for (const auto& owner : gameObjectManager->Objects())
+    {
+        GameObject* obj = owner.get();
+        if (!obj || obj->GetDestroyed() || obj->GetObjectType() != GameObjectType::Enemy)
+            continue;
+
+        auto* enemy = static_cast<EnemyChaser*>(obj);
+        const vec2 ePos = enemy->GetPosition();
+        const float dx = ePos.x() - playerPos.x();
+        const float dy = ePos.y() - playerPos.y();
+        const float radius = enemy->GetAttackRadius();
+
+        if ((dx * dx + dy * dy) > (radius * radius))
+            continue;
+
+        if (enemy->TryAttackPlayer())
+        {
+            playerPtr->ApplyDamage(1);
+        }
+    }
+}
 void GamePlay1::ResolveBulletHits()
 {
     if (!gameObjectManager)
@@ -535,4 +586,14 @@ void GamePlay1::ResolveBulletHits()
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
 

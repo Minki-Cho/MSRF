@@ -1,6 +1,11 @@
 #include "Player.h"
+#include "../Engine/Collision.h"
 #include "../Engine/Engine.h"
 #include "../Engine/Sprite.h"
+#include "../Engine/TextureDX11.h"
+
+#include <algorithm>
+#include <cmath>
 
 namespace
 {
@@ -19,11 +24,22 @@ namespace
         default:                    return 0;
         }
     }
+
+    TextureDX11& PlayerHpBarBackTexture()
+    {
+        static TextureDX11 tex("assets/images/ui/hp_bar_bg.png", false);
+        return tex;
+    }
+
+    TextureDX11& PlayerHpBarFillTexture()
+    {
+        static TextureDX11 tex("assets/images/ui/hp_bar_fill.png", false);
+        return tex;
+    }
 }
 
 Player::Player(vec2 startPos_) : startPos(startPos_), GameObject(startPos_)
 {
-    
     AddGOComponent(new Sprite("assets/images/characters/characters/thief/thief.spt", this));
 
     currState = &stateIdle;
@@ -33,6 +49,20 @@ Player::Player(vec2 startPos_) : startPos(startPos_), GameObject(startPos_)
 
 void Player::Update(double dt)
 {
+    if (hitInvulnTimer > 0.0)
+    {
+        hitInvulnTimer -= dt;
+        if (hitInvulnTimer < 0.0)
+            hitInvulnTimer = 0.0;
+    }
+
+    if (hitFlashTimer > 0.0)
+    {
+        hitFlashTimer -= dt;
+        if (hitFlashTimer < 0.0)
+            hitFlashTimer = 0.0;
+    }
+
     GameObject::Update(dt);
     const float mapWidth = static_cast<float>(Engine::GetViewportWidth());
     const float mapHeight = static_cast<float>(Engine::GetViewportHeight());
@@ -79,9 +109,76 @@ void Player::ResolveCollision(GameObject* objectB)
         objectB->SetDestroyed(true);
     }
 }
+
+bool Player::ApplyDamage(int damage)
+{
+    if (damage <= 0 || hp <= 0)
+        return false;
+
+    if (hitInvulnTimer > 0.0)
+        return false;
+
+    hp = (std::max)(0, hp - damage);
+    hitInvulnTimer = 0.20;
+    hitFlashTimer = 0.24;
+
+    return true;
+}
+
+void Player::DrawHealthBar(mat3<float> cameraMatrix)
+{
+    const float barWidth = 34.0f;
+    const float barHeight = 4.0f;
+    const float pad = 1.0f;
+
+    const vec2 pos = GetPosition();
+    const float x = pos.x() - barWidth * 0.5f;
+    const float y = pos.y() + 46.0f;
+
+    const mat3<float> backMatrix = cameraMatrix
+        * mat3<float>::build_translation(x, y)
+        * mat3<float>::build_scale(barWidth, barHeight);
+    PlayerHpBarBackTexture().Draw(backMatrix);
+
+    const float hpRatio = static_cast<float>(hp) / static_cast<float>((std::max)(1, maxHp));
+    const float clamped = std::clamp(hpRatio, 0.0f, 1.0f);
+    const float fillWidth = (barWidth - pad * 2.0f) * clamped;
+
+    if (fillWidth > 0.0f)
+    {
+        const mat3<float> fillMatrix = cameraMatrix
+            * mat3<float>::build_translation(x + pad, y + pad)
+            * mat3<float>::build_scale(fillWidth, barHeight - pad * 2.0f);
+        PlayerHpBarFillTexture().Draw(fillMatrix);
+    }
+}
+
 void Player::Draw(mat3<float> TransformMatrix)
 {
-    GameObject::Draw(TransformMatrix);
+    const mat3<float>& modelToWorld = GetMatrix();
+    const mat3<float> displayMatrix = TransformMatrix * modelToWorld;
+
+    bool hideSprite = false;
+    if (hitFlashTimer > 0.0)
+    {
+        const double flashPeriod = 0.07;
+        const double phase = std::fmod(hitFlashTimer, flashPeriod);
+        hideSprite = (phase < flashPeriod * 0.5);
+    }
+
+    if (!hideSprite)
+    {
+        if (auto* spr = GetGOComponent<Sprite>())
+            spr->Draw(displayMatrix);
+    }
+
+    if (Engine::IsCollisionDebugDrawEnabled())
+    {
+        if (auto* col = GetGOComponent<Collision>())
+            col->Draw(displayMatrix);
+    }
+
+    DrawHealthBar(TransformMatrix);
 }
 
 void Player::StateIdle::Enter(GameObject* object)
@@ -103,6 +200,9 @@ void Player::StateIdle::TestForExit(GameObject* object)
 {
     Player* p = static_cast<Player*>(object);
 
+    if (p->IsDead())
+        return;
+
     ActionSystem& actions = Engine::GetActionSystem();
     const bool L = actions.Has(ActionId::Left);
     const bool R = actions.Has(ActionId::Right);
@@ -112,8 +212,6 @@ void Player::StateIdle::TestForExit(GameObject* object)
     if (L || R || U || D)
         p->ChangeState(&p->stateMove);
 }
-
-// -------------------- StateMove --------------------
 
 void Player::StateMove::Enter(GameObject* object)
 {
@@ -126,6 +224,12 @@ void Player::StateMove::Enter(GameObject* object)
 void Player::StateMove::Update(GameObject* object, double /*dt*/)
 {
     Player* p = static_cast<Player*>(object);
+
+    if (p->IsDead())
+    {
+        p->SetVelocity(vec2{ 0.0f, 0.0f });
+        return;
+    }
 
     auto& actions = Engine::GetActionSystem();
     const bool L = actions.Has(ActionId::Left);
@@ -177,4 +281,3 @@ void Player::StateMove::TestForExit(GameObject* object)
     if (!L && !R && !U && !D)
         p->ChangeState(&p->stateIdle);
 }
-

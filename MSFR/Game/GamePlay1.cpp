@@ -146,6 +146,7 @@ void GamePlay1::Update(double dt)
     Engine::SetBulletPoolDebugStats(bulletStats);
 
     ResolveEnemyOverlap();
+    ResolveEnemyPlayerHits();
     ResolveBulletHits();
 
     const int aliveCoreCount = CountAliveByType(GameObjectType::DataCore);
@@ -278,9 +279,12 @@ int GamePlay1::GetMaxEnemyCountForTier(int enemyTier) const
 {
     switch (enemyTier)
     {
-    case 0: return 6;
-    case 1: return 9;
-    default: return 12;
+    case 0: return 12;
+    case 1: return 18;
+    default: return 24;
     }
 }
+
+
+
 
