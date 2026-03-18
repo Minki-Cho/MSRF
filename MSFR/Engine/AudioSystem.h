@@ -21,6 +21,7 @@ public:
 
     bool IsInitialized() const noexcept;
     bool PlayOneShot(const std::filesystem::path& soundPath);
+    void StopAllOneShots();
 
 private:
     struct Impl;

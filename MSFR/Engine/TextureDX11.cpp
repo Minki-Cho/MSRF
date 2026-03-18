@@ -369,6 +369,24 @@ void TextureDX11::Load(ID3D11Device* device, ID3D11DeviceContext* ctx,
     }
 }
 
+void TextureDX11::Reset() noexcept
+{
+    texture2D.Reset();
+    srv.Reset();
+    sampler.Reset();
+    blendState.Reset();
+    rasterState.Reset();
+    constantBuffer.Reset();
+    vertexBuffer.Reset();
+    indexBuffer.Reset();
+    inputLayout.Reset();
+    vs.Reset();
+    psTexture.Reset();
+    psTexel.Reset();
+    width = 0;
+    height = 0;
+}
+
 vec2 TextureDX11::GetSize() const
 {
     return { (float)width, (float)height };

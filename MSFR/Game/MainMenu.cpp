@@ -185,4 +185,7 @@ void MainMenu::Draw()
 
 void MainMenu::Unload()
 {
+    MainMenuImage.Reset();
+    showQuitConfirm = false;
+    requestQuitNow = false;
 }

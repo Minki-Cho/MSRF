@@ -119,6 +119,9 @@ public:
 
     void Unload() override
     {
+        creditImage.Reset();
+        pendingAction = 0;
+        timer = 0.0;
     }
 
     std::string GetName() override { return "Credit"; }
@@ -202,6 +205,8 @@ public:
 
     void Unload() override
     {
+        backgroundImage.Reset();
+        pendingAction = 0;
     }
 
     std::string GetName() override { return "HowToPlay"; }
@@ -298,6 +303,8 @@ public:
 
     void Unload() override
     {
+        backgroundImage.Reset();
+        pendingAction = 0;
     }
 
     std::string GetName() override { return "GameOver"; }

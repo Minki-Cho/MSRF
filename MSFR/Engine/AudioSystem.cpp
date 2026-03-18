@@ -10,7 +10,9 @@
 struct AudioSystem::Impl
 {
     ma_engine engine{};
+    ma_sound_group oneShotGroup{};
     bool initialized = false;
+    bool oneShotGroupInitialized = false;
 };
 
 AudioSystem::AudioSystem() = default;
@@ -42,6 +44,17 @@ bool AudioSystem::Init(Logger& logger)
     }
 
     impl->initialized = true;
+    const ma_result groupResult = ma_sound_group_init(&impl->engine, 0, nullptr, &impl->oneShotGroup);
+    if (groupResult == MA_SUCCESS)
+    {
+        impl->oneShotGroupInitialized = true;
+    }
+    else
+    {
+        impl->oneShotGroupInitialized = false;
+        loggerRef->LogWarning("Audio one-shot group init failed (miniaudio result=" + std::to_string(static_cast<int>(groupResult)) + ").");
+    }
+
     loggerRef->LogEvent("Audio initialized (miniaudio).");
     return true;
 }
@@ -51,6 +64,13 @@ void AudioSystem::Shutdown()
     if (!impl || !impl->initialized)
     {
         return;
+    }
+
+    StopAllOneShots();
+    if (impl->oneShotGroupInitialized)
+    {
+        ma_sound_group_uninit(&impl->oneShotGroup);
+        impl->oneShotGroupInitialized = false;
     }
 
     ma_engine_uninit(&impl->engine);
@@ -79,7 +99,8 @@ bool AudioSystem::PlayOneShot(const std::filesystem::path& soundPath)
     }
 
     const std::string path = soundPath.generic_string();
-    const ma_result result = ma_engine_play_sound(&impl->engine, path.c_str(), nullptr);
+    ma_sound_group* group = impl->oneShotGroupInitialized ? &impl->oneShotGroup : nullptr;
+    const ma_result result = ma_engine_play_sound(&impl->engine, path.c_str(), group);
     if (result != MA_SUCCESS)
     {
         if (loggerRef)
@@ -90,4 +111,18 @@ bool AudioSystem::PlayOneShot(const std::filesystem::path& soundPath)
     }
 
     return true;
+}
+
+void AudioSystem::StopAllOneShots()
+{
+    if (!impl || !impl->initialized || !impl->oneShotGroupInitialized)
+    {
+        return;
+    }
+
+    const ma_result result = ma_sound_group_stop(&impl->oneShotGroup);
+    if (result != MA_SUCCESS && loggerRef)
+    {
+        loggerRef->LogWarning("StopAllOneShots failed (miniaudio result=" + std::to_string(static_cast<int>(result)) + ").");
+    }
 }

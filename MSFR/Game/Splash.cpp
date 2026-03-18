@@ -41,6 +41,7 @@ void Splash::Draw()
 
 void Splash::Unload()
 {
+    SplashImage.Reset();
 }
 
 

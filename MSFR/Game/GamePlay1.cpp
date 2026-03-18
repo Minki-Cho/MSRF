@@ -413,6 +413,7 @@ void GamePlay1::Unload()
     ClearGSComponent();
     gameObjectManager = nullptr;
     playerPtr = nullptr;
+    map.Reset();
     machineBulletPool.reset();
     shotgunBulletPool.reset();
     Engine::SetBulletPoolDebugStats(Engine::BulletPoolDebugStats{});

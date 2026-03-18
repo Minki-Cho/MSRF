@@ -24,6 +24,7 @@ public:
         vec2 texelPos, vec2 frameSize);
     void Draw(const mat3<float>& displayMatrix);
     void Draw(const mat3<float>& displayMatrix, vec2 texelPos, vec2 frameSize);
+    void Reset() noexcept;
     vec2 GetSize() const;
     void DrawFitCenter(const vec2& viewportSize);
 

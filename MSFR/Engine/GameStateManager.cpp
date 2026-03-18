@@ -59,8 +59,9 @@ void GameStateManager::Update(double dt)
 
 	case State::UNLOAD:
 		ENGINE_LOG_CTX(Engine::GetLogger(), Logger::Severity::Event, "State", "Unload " + currGameState->GetName());
-		Engine::GetTextureManager().Unload();
 		currGameState->Unload();
+		Engine::GetAudioSystem().StopAllOneShots();
+		Engine::GetTextureManager().Unload();
 		if (nextGameState == nullptr)
 		{
 			state = State::SHUTDOWN;

@@ -1,70 +1,44 @@
-[0.3484]	Event	Engine InitCore
-[0.3649]	Event	Job workers (after init) = 31
-[0.5814]	Event	Audio initialized (miniaudio).
-[0.6004]	Event	[State] Load Spalsh | thread=27284 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
-[0.6422]	Event	[State] Load Complete | thread=27284 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
-[2.4496]	Event	[Command] RequestStateChange -> 1
-[2.4600]	Event	[State] Unload Spalsh | thread=27284 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:61 (GameStateManager::Update)
-[2.4605]	Event	Clear Textures
-[2.4682]	Event	[State] Load MainMenu | thread=27284 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
-[2.5290]	Event	[State] Load Complete | thread=27284 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
-[2.8753]	Event	[Profiler] Thread stress: ON
-[3.6962]	Event	mouse win: 524, 267
-[3.6965]	Event	[Command] MenuAction -> Play
-[3.6966]	Event	[Command] RequestStateChange -> 2
-[3.7063]	Event	[State] Unload MainMenu | thread=27284 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:61 (GameStateManager::Update)
-[3.7065]	Event	Clear Textures
-[3.7133]	Event	[State] Load GamePlay1 | thread=27284 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
-[3.7146]	Event	[Balance] Loaded assets/config/gameplay_balance.cfg
-[3.7152]	Event	Sprite SPT: assets/images/characters/characters/thief/thief.spt
-[3.7169]	Event	Texture token: assets/images/characters/characters/thief/thief.png
-[3.7173]	Event	Resolved texture path: assets/images/characters/characters/thief/thief.png
-[3.7413]	Event	Sprite SPT: assets/images/items/data_core/data_core.spt
-[3.7415]	Event	Texture token: assets/images/items/data_core/data_core.png
-[3.7416]	Event	Resolved texture path: assets/images/items/data_core/data_core.png
-[3.7871]	Event	Sprite SPT: assets/images/weapons/bullet_machine.spt
-[3.7874]	Event	Texture token: assets/images/weapons/bullet_machine.png
-[3.7876]	Event	Resolved texture path: assets/images/weapons/bullet_machine.png
-[4.0270]	Event	Sprite SPT: assets/images/weapons/bullet_shotgun.spt
-[4.0300]	Event	Texture token: assets/images/weapons/bullet_shotgun.png
-[4.0306]	Event	Resolved texture path: assets/images/weapons/bullet_shotgun.png
-[4.2065]	Event	Applied seamless edge correction: assets/images/map.png
-[4.2223]	Event	[State] Load Complete | thread=27284 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
-[4.2492]	Event	[BalanceLog] PhaseEnter phase=0 t=0.250000 hp=100 cores=0/4 kills=0
-[4.2524]	Event	Sprite SPT: assets/images/characters/characters/enemy/enemy.spt
-[4.2539]	Event	Texture token: assets/images/characters/characters/enemy/enemy.png
-[4.2541]	Event	Resolved texture path: assets/images/characters/characters/enemy/enemy.png
-[4.2815]	Event	[Profiler] Thread stress: OFF
-[4.6331]	Event	[Profiler] Thread stress: ON
-[4.9182]	Event	[Profiler] Thread stress: OFF
-[5.1307]	Event	[Profiler] Thread stress: ON
-[5.3680]	Event	FPS: 134.691398
-[5.6834]	Event	[Profiler] Thread stress: OFF
-[6.0391]	Event	[Profiler] Thread stress: ON
-[6.4997]	Event	[Profiler] Thread stress: OFF
-[6.7631]	Event	[Profiler] Thread stress: ON
-[7.1353]	Event	[Profiler] Thread stress: OFF
-[7.4179]	Event	[Profiler] Thread stress: ON
-[7.8018]	Event	[Profiler] Thread stress: OFF
-[7.8840]	Event	[BalanceLog] Tick t=10.000000 phase=0 hp=100 cores=0/4 enemies=3 kills=0
-[9.0528]	Event	[Profiler] Thread stress: ON
-[9.4144]	Event	[Profiler] Thread stress: OFF
-[9.7126]	Event	[Profiler] Thread stress: ON
-[9.9531]	Event	[Profiler] Thread stress: OFF
-[10.3682]	Event	FPS: 160.592667
-[10.3896]	Event	[Profiler] Thread stress: ON
-[11.6271]	Event	[BalanceLog] Tick t=20.000000 phase=0 hp=100 cores=0/4 enemies=6 kills=0
-[14.5155]	Event	[Profiler] Thread stress: OFF
-[15.3732]	Event	FPS: 86.713252
-[16.9986]	Event	[BalanceLog] Tick t=30.000000 phase=0 hp=100 cores=0/4 enemies=6 kills=0
-[17.5659]	Event	[Profiler] Thread stress: ON
-[17.9522]	Event	[Profiler] Thread stress: OFF
-[20.3778]	Event	FPS: 150.264050
-[20.9483]	Event	[BalanceLog] Tick t=40.000000 phase=0 hp=100 cores=0/4 enemies=6 kills=1
-[22.7853]	Event	[BalanceLog] PhaseEnter phase=1 t=45.010824 hp=100 cores=0/4 kills=3
-[24.6083]	Event	[BalanceLog] Tick t=50.000000 phase=1 hp=100 cores=0/4 enemies=7 kills=3
-[25.3783]	Event	FPS: 162.780870
-[26.9399]	Event	SDL_QUIT received
-[26.9404]	Event	Engine Shutdown
-[27.0131]	Event	Audio shutdown.
-[27.0136]	Event	Clear Textures
+[0.4134]	Event	Engine InitCore
+[0.4270]	Event	Job workers (after init) = 31
+[0.6918]	Event	Audio initialized (miniaudio).
+[0.7106]	Event	[State] Load Spalsh | thread=2204 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[0.7537]	Event	[State] Load Complete | thread=2204 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
+[2.5633]	Event	[Command] RequestStateChange -> 1
+[2.5779]	Event	[State] Unload Spalsh | thread=2204 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:61 (GameStateManager::Update)
+[2.5816]	Event	Clear Textures
+[2.5853]	Event	[State] Load MainMenu | thread=2204 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[2.6401]	Event	[State] Load Complete | thread=2204 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
+[2.8459]	Event	mouse win: 24, 23
+[3.3524]	Event	mouse win: 541, 248
+[3.3529]	Event	[Command] MenuAction -> Play
+[3.3533]	Event	[Command] RequestStateChange -> 2
+[3.3639]	Event	[State] Unload MainMenu | thread=2204 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:61 (GameStateManager::Update)
+[3.3644]	Event	Clear Textures
+[3.3694]	Event	[State] Load GamePlay1 | thread=2204 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[3.3714]	Event	[Balance] Loaded assets/config/gameplay_balance.cfg
+[3.3726]	Event	Sprite SPT: assets/images/characters/characters/thief/thief.spt
+[3.3731]	Event	Texture token: assets/images/characters/characters/thief/thief.png
+[3.3736]	Event	Resolved texture path: assets/images/characters/characters/thief/thief.png
+[3.4022]	Event	Sprite SPT: assets/images/items/data_core/data_core.spt
+[3.4026]	Event	Texture token: assets/images/items/data_core/data_core.png
+[3.4029]	Event	Resolved texture path: assets/images/items/data_core/data_core.png
+[3.4465]	Event	Sprite SPT: assets/images/weapons/bullet_machine.spt
+[3.4468]	Event	Texture token: assets/images/weapons/bullet_machine.png
+[3.4469]	Event	Resolved texture path: assets/images/weapons/bullet_machine.png
+[3.6854]	Event	Sprite SPT: assets/images/weapons/bullet_shotgun.spt
+[3.6858]	Event	Texture token: assets/images/weapons/bullet_shotgun.png
+[3.6870]	Event	Resolved texture path: assets/images/weapons/bullet_shotgun.png
+[3.8564]	Event	Applied seamless edge correction: assets/images/map.png
+[3.8762]	Event	[State] Load Complete | thread=2204 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
+[3.9021]	Event	[BalanceLog] PhaseEnter phase=0 t=0.250000 hp=100 cores=0/4 kills=0
+[3.9029]	Event	Sprite SPT: assets/images/characters/characters/enemy/enemy.spt
+[3.9039]	Event	Texture token: assets/images/characters/characters/enemy/enemy.png
+[3.9042]	Event	Resolved texture path: assets/images/characters/characters/enemy/enemy.png
+[5.4309]	Event	FPS: 134.474336
+[7.5144]	Event	[BalanceLog] Tick t=10.000000 phase=0 hp=100 cores=0/4 enemies=3 kills=0
+[10.4357]	Event	FPS: 161.643949
+[11.1940]	Event	[BalanceLog] Tick t=20.000000 phase=0 hp=100 cores=0/4 enemies=6 kills=0
+[12.4053]	Event	SDL_QUIT received
+[12.4057]	Event	Engine Shutdown
+[12.4807]	Event	Audio shutdown.
+[12.4810]	Event	Clear Textures
