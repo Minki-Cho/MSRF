@@ -166,6 +166,10 @@ void Engine::Update()
 
 void Engine::Draw()
 {
+    if (!initialized)
+        return;
+
+    gameStateManager.Draw();
 }
 
 void Engine::AddSpriteFont(const std::filesystem::path& fileName)

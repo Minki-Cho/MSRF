@@ -113,26 +113,44 @@ void GameObjectManager::CollideTest()
 {
     FlushPendingAdds();
 
-    for (const auto& objectAOwner : gameObjects)
-    {
-        GameObject* objectA = objectAOwner.get();
-        for (const auto& objectBOwner : gameObjects)
-        {
-            GameObject* objectB = objectBOwner.get();
+    std::vector<GameObject*> collidables;
+    collidables.reserve(gameObjects.size());
 
-            if (objectA->GetGOComponent<Collision>() != nullptr && objectB->GetGOComponent<Collision>() != nullptr)
+    for (const auto& objectOwner : gameObjects)
+    {
+        GameObject* object = objectOwner.get();
+        if (!object || object->GetDestroyed())
+            continue;
+        if (object->GetGOComponent<Collision>() == nullptr)
+            continue;
+
+        collidables.push_back(object);
+    }
+
+    const std::size_t count = collidables.size();
+    for (std::size_t i = 0; i < count; ++i)
+    {
+        GameObject* objectA = collidables[i];
+        for (std::size_t j = i + 1; j < count; ++j)
+        {
+            GameObject* objectB = collidables[j];
+
+            if (objectA->CanCollideWith(objectB->GetObjectType()) && objectA->DoesCollideWith(objectB))
             {
-                if (objectA->CanCollideWith(objectB->GetObjectType()))
+                if (objectA->GetObjectTypeName() != objectB->GetObjectTypeName())
                 {
-                    if (objectA->DoesCollideWith(objectB) == true)
-                    {
-                        if (objectA->GetObjectTypeName() != objectB->GetObjectTypeName())
-                        {
-                            // log
-                        }
-                        objectA->ResolveCollision(objectB);
-                    }
+                    // log
                 }
+                objectA->ResolveCollision(objectB);
+            }
+
+            if (objectB->CanCollideWith(objectA->GetObjectType()) && objectB->DoesCollideWith(objectA))
+            {
+                if (objectB->GetObjectTypeName() != objectA->GetObjectTypeName())
+                {
+                    // log
+                }
+                objectB->ResolveCollision(objectA);
             }
         }
     }

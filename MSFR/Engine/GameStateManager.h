@@ -9,6 +9,7 @@ public:
 
 	void AddGameState(GameState& gameState);
 	void Update(double dt);
+	void Draw();
 	void SetNextState(int initState);
 	void Shutdown();
 	void ReloadState();

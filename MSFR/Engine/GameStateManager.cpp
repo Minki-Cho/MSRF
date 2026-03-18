@@ -54,7 +54,6 @@ void GameStateManager::Update(double dt)
 			{
 				Engine::GetGSComponent<GameObjectManager>()->CollideTest();
 			}
-			currGameState->Draw();
 		}
 		break;
 
@@ -79,6 +78,14 @@ void GameStateManager::Update(double dt)
 	case State::EXIT:
 		break;
 	}
+}
+
+void GameStateManager::Draw()
+{
+	if (state != State::UPDATE || currGameState == nullptr || currGameState != nextGameState)
+		return;
+
+	currGameState->Draw();
 }
 
 void GameStateManager::SetNextState(int initState)

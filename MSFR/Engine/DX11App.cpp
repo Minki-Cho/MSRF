@@ -641,6 +641,7 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
         {
             stressTestEnabled = !stressTestEnabled;
             Engine::GetLogger().LogEvent(std::string("[Profiler] Thread stress: ") + (stressTestEnabled ? "ON" : "OFF"));
+            Engine::GetInput().OnKeyDown(InputKey::Keyboard::F3);
             break;
         }
 
@@ -655,7 +656,6 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
         else if (k == SDLK_1)      Engine::GetInput().OnKeyDown(InputKey::Keyboard::Num1);
         else if (k == SDLK_2)      Engine::GetInput().OnKeyDown(InputKey::Keyboard::Num2);
         else if (k == SDLK_h)      Engine::GetInput().OnKeyDown(InputKey::Keyboard::H);
-        else if (k == SDLK_F3)     Engine::GetInput().OnKeyDown(InputKey::Keyboard::F3);
         break;
     }
 
