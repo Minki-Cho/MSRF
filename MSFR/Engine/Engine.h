@@ -115,6 +115,7 @@ public:
     static double GetLastFrameDt() { return Instance().lastFrameDt; }
     static double GetLastFrameMs() { return Instance().lastFrameDt * 1000.0; }
     static double GetLastFrameFps() { return (Instance().lastFrameDt > 0.0) ? (1.0 / Instance().lastFrameDt) : 0.0; }
+    static double GetRenderInterpolationAlpha() { return Instance().renderInterpolationAlpha; }
     static BulletPoolDebugStats GetBulletPoolDebugStats() { return Instance().bulletPoolDebugStats; }
     static void SetBulletPoolDebugStats(const BulletPoolDebugStats& stats) { Instance().bulletPoolDebugStats = stats; }
     static GameplayHudStats GetGameplayHudStats() { return Instance().gameplayHudStats; }
@@ -155,6 +156,8 @@ private:
     Clock::time_point fpsCalcTime = Clock::now();
     int frameCount = 0;
     double lastFrameDt = 1.0 / 60.0;
+    double fixedStepAccumulator = 0.0;
+    double renderInterpolationAlpha = 0.0;
 
     bool gameFinish = false;
     bool initialized = false;
@@ -176,6 +179,8 @@ private:
     std::unique_ptr<DX11State> dx11;
 
     static constexpr double TargetFPS = 60.0;
+    static constexpr double FixedSimulationStepSec = 1.0 / 60.0;
+    static constexpr int MaxFixedStepsPerFrame = 8;
     static constexpr int FPSIntervalSec = 5;
     int viewportWidth = 1280;
     int viewportHeight = 720;

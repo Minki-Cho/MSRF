@@ -75,12 +75,18 @@ protected:
 	void RemoveGOComponent() { components.RemoveComponent<T>(); }
 
 private:
+	mat3<float> BuildMatrixFor(const vec2& pos, double rot, const vec2& scl) const;
+
+private:
 	mat3<float> objectMatrix;
 	bool updateMatrix;
 
 	double rotation;
+	double previousRotation;
 	vec2 scale;
+	vec2 previousScale;
 	vec2 position;
+	vec2 previousPosition;
 	vec2 velocity;
 
 	bool shouldDestroyed{ false };

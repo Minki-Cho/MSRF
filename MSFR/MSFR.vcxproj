@@ -163,6 +163,7 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
     <ClCompile Include="Engine\Animation.cpp" />
     <ClCompile Include="Engine\Collision.cpp" />
     <ClCompile Include="Engine\DX11App.cpp" />
+    <ClCompile Include="Engine\DX11RenderBackend.cpp" />
     <ClCompile Include="Engine\Engine.cpp" />
     <ClCompile Include="Engine\GameObject.cpp" />
     <ClCompile Include="Engine\GameObjectmanager.cpp" />
@@ -205,6 +206,7 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
     <ClInclude Include="Engine\Component.h" />
     <ClInclude Include="Engine\ComponentManager.h" />
     <ClInclude Include="Engine\DX11App.h" />
+    <ClInclude Include="Engine\DX11RenderBackend.h" />
     <ClInclude Include="Engine\DX11Services.h" />
     <ClInclude Include="Engine\Engine.h" />
     <ClInclude Include="Engine\GameObject.h" />
@@ -220,6 +222,7 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
     <ClInclude Include="Engine\Objectpool.h" />
     <ClInclude Include="Engine\owner.h" />
     <ClInclude Include="Engine\Random.h" />
+    <ClInclude Include="Engine\RenderBackend.h" />
     <ClInclude Include="Engine\Rect.h" />
     <ClInclude Include="Engine\Sprite.h" />
     <ClInclude Include="Engine\TestObj .h" />

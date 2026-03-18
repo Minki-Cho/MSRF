@@ -4,6 +4,8 @@
 #include "DX11App.h"
 #include "IProgram.h"
 #include "DX11Services.h"
+#include "RenderBackend.h"
+#include "DX11RenderBackend.h"
 #include "Engine.h"
 
 #define SDL_MAIN_HANDLED
@@ -16,8 +18,6 @@
 #include <stdexcept>
 #include <string>
 #include <algorithm>
-#include <sstream>
-#include <iomanip>
 #include <array>
 #include <cmath>
 
@@ -59,31 +59,6 @@ namespace
         }
         return InputKey::Keyboard::None;
     }
-
-    template <typename T>
-    void SafeRelease(T*& p) noexcept
-    {
-        if (p)
-        {
-            p->Release();
-            p = nullptr;
-        }
-    }
-
-    std::runtime_error MakeError(const char* where, HRESULT hr)
-    {
-        std::ostringstream oss;
-        oss << where << " failed. HRESULT=0x"
-            << std::hex << std::uppercase << static_cast<unsigned>(hr);
-        return std::runtime_error(oss.str());
-    }
-
-    [[noreturn]] void LogAndThrowHRESULT(const char* where, HRESULT hr)
-    {
-        ENGINE_LOG_HRESULT(Engine::GetLogger(), Logger::Severity::Fatal, "Renderer", where, hr);
-        throw MakeError(where, hr);
-    }
-
 
     HWND GetHWNDFromSDL(SDL_Window* window)
     {
@@ -129,10 +104,22 @@ DX11App::DX11App(const char* title, int desired_width, int desired_height)
     HWND hwnd = GetHWNDFromSDL(ptr_window);
     Engine::GetLogger().SetFocusRestoreHwnd(hwnd);
     ForceForeground(hwnd);
-    InitD3D11();
-    DX11Services::Init(ptr_device, ptr_context, ptr_swapchain);
 
-    Engine::SetDX11(ptr_device, ptr_context, ptr_swapchain);
+    renderBackend = std::make_unique<DX11RenderBackend>();
+    if (!renderBackend->Initialize(hwnd, viewport_width, viewport_height))
+    {
+        throw std::runtime_error("DX11RenderBackend initialization failed.");
+    }
+
+    DX11Services::Init(
+        static_cast<ID3D11Device*>(renderBackend->GetNativeDevice()),
+        static_cast<ID3D11DeviceContext*>(renderBackend->GetNativeContext()),
+        static_cast<IDXGISwapChain*>(renderBackend->GetNativeSwapChain()));
+
+    Engine::SetDX11(
+        static_cast<ID3D11Device*>(renderBackend->GetNativeDevice()),
+        static_cast<ID3D11DeviceContext*>(renderBackend->GetNativeContext()),
+        static_cast<IDXGISwapChain*>(renderBackend->GetNativeSwapChain()));
     Engine::SetViewportSize(viewport_width, viewport_height);
 
     ptr_program = create_program(viewport_width, viewport_height);
@@ -156,12 +143,11 @@ DX11App::~DX11App()
 
     ShutdownImGui();
 
-    // Release backbuffer resources before swapchain/device
-    ReleaseBackBufferResources();
-
-    SafeRelease(ptr_swapchain);
-    SafeRelease(ptr_context);
-    SafeRelease(ptr_device);
+    if (renderBackend)
+    {
+        renderBackend->Shutdown();
+        renderBackend.reset();
+    }
 
     if (ptr_window)
     {
@@ -201,7 +187,9 @@ void DX11App::InitImGui()
 #endif
 
     ImGui_ImplSDL2_InitForD3D(ptr_window);
-    ImGui_ImplDX11_Init(ptr_device, ptr_context);
+    ImGui_ImplDX11_Init(
+        static_cast<ID3D11Device*>(renderBackend->GetNativeDevice()),
+        static_cast<ID3D11DeviceContext*>(renderBackend->GetNativeContext()));
 
     frameMsHistory.fill(0.0f);
     frameHistoryOffset = 0;
@@ -367,8 +355,7 @@ void DX11App::DrawProfilerOverlay()
     {
         ImGui::UpdatePlatformWindows();
         ImGui::RenderPlatformWindowsDefault();
-
-        ptr_context->OMSetRenderTargets(1, &ptr_rtv, ptr_dsv);
+        renderBackend->BindMainRenderTarget();
     }
 #endif
 }
@@ -398,27 +385,27 @@ void DX11App::SetClearColor(float r, float g, float b, float a) noexcept
 
 ID3D11Device& DX11App::GetDevice() const noexcept
 {
-    return *ptr_device;
+    return *static_cast<ID3D11Device*>(renderBackend->GetNativeDevice());
 }
 
 ID3D11DeviceContext& DX11App::GetContext() const noexcept
 {
-    return *ptr_context;
+    return *static_cast<ID3D11DeviceContext*>(renderBackend->GetNativeContext());
 }
 
 IDXGISwapChain& DX11App::GetSwapChain() const noexcept
 {
-    return *ptr_swapchain;
+    return *static_cast<IDXGISwapChain*>(renderBackend->GetNativeSwapChain());
 }
 
 ID3D11RenderTargetView& DX11App::GetRTV() const noexcept
 {
-    return *ptr_rtv;
+    return *static_cast<ID3D11RenderTargetView*>(renderBackend->GetNativeRTV());
 }
 
 ID3D11DepthStencilView& DX11App::GetDSV() const noexcept
 {
-    return *ptr_dsv;
+    return *static_cast<ID3D11DepthStencilView*>(renderBackend->GetNativeDSV());
 }
 
 void DX11App::InitSDLWindow(const char* title, int desired_width, int desired_height)
@@ -455,158 +442,6 @@ void DX11App::InitSDLWindow(const char* title, int desired_width, int desired_he
 
     HWND hwnd = GetHWNDFromSDL(ptr_window);
     ForceForeground(hwnd);
-}
-
-void DX11App::InitD3D11()
-{
-    // Create device/context
-    UINT createFlags = 0;
-#if defined(_DEBUG)
-    createFlags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif
-
-    D3D_FEATURE_LEVEL featureLevels[] = {
-        D3D_FEATURE_LEVEL_11_1, // may fail on some setups but DX will fallback
-        D3D_FEATURE_LEVEL_11_0,
-        D3D_FEATURE_LEVEL_10_1,
-        D3D_FEATURE_LEVEL_10_0
-    };
-
-    D3D_FEATURE_LEVEL chosenLevel = D3D_FEATURE_LEVEL_11_0;
-
-    HRESULT hr = D3D11CreateDevice(
-        nullptr,                    // default adapter
-        D3D_DRIVER_TYPE_HARDWARE,   // hardware
-        nullptr,
-        createFlags,
-        featureLevels,
-        static_cast<UINT>(std::size(featureLevels)),
-        D3D11_SDK_VERSION,
-        &ptr_device,
-        &chosenLevel,
-        &ptr_context);
-
-    if (FAILED(hr))
-    {
-        LogAndThrowHRESULT("D3D11CreateDevice", hr);
-    }
-
-    // Build swapchain via DXGI factory from device
-    IDXGIDevice* dxgiDevice = nullptr;
-    hr = ptr_device->QueryInterface(__uuidof(IDXGIDevice), (void**)&dxgiDevice);
-    if (FAILED(hr) || dxgiDevice == nullptr)
-    {
-        LogAndThrowHRESULT("QueryInterface(IDXGIDevice)", hr);
-    }
-
-    IDXGIAdapter* adapter = nullptr;
-    hr = dxgiDevice->GetAdapter(&adapter);
-    SafeRelease(dxgiDevice);
-    if (FAILED(hr) || adapter == nullptr)
-    {
-        LogAndThrowHRESULT("IDXGIDevice::GetAdapter", hr);
-    }
-
-    IDXGIFactory* factory = nullptr;
-    hr = adapter->GetParent(__uuidof(IDXGIFactory), (void**)&factory);
-    SafeRelease(adapter);
-    if (FAILED(hr) || factory == nullptr)
-    {
-        LogAndThrowHRESULT("IDXGIAdapter::GetParent(IDXGIFactory)", hr);
-    }
-
-    HWND hwnd = GetHWNDFromSDL(ptr_window);
-
-    DXGI_SWAP_CHAIN_DESC scDesc = {};
-    scDesc.BufferDesc.Width = static_cast<UINT>(viewport_width);
-    scDesc.BufferDesc.Height = static_cast<UINT>(viewport_height);
-    scDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    scDesc.BufferDesc.RefreshRate.Numerator = 0;
-    scDesc.BufferDesc.RefreshRate.Denominator = 0;
-    scDesc.SampleDesc.Count = 1;
-    scDesc.SampleDesc.Quality = 0;
-    scDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    scDesc.BufferCount = 2; // double buffering
-    scDesc.OutputWindow = hwnd;
-    scDesc.Windowed = TRUE;
-    scDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD; // broadly compatible
-    scDesc.Flags = 0;
-
-    hr = factory->CreateSwapChain(ptr_device, &scDesc, &ptr_swapchain);
-    SafeRelease(factory);
-    if (FAILED(hr))
-    {
-        LogAndThrowHRESULT("IDXGIFactory::CreateSwapChain", hr);
-    }
-
-    // Disable alt-enter fullscreen toggling (SDL handles windowing)
-    // (If this fails, it?s not fatal)
-    // Note: need IDXGIFactory again to call MakeWindowAssociation; skip to keep minimal.
-
-    CreateBackBufferResources(viewport_width, viewport_height);
-}
-
-void DX11App::ReleaseBackBufferResources()
-{
-    SafeRelease(ptr_dsv);
-    SafeRelease(ptr_rtv);
-}
-
-void DX11App::CreateBackBufferResources(int width, int height)
-{
-    ReleaseBackBufferResources();
-
-    // RTV from swapchain backbuffer
-    ID3D11Texture2D* backBuffer = nullptr;
-    HRESULT hr = ptr_swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer);
-    if (FAILED(hr) || backBuffer == nullptr)
-    {
-        LogAndThrowHRESULT("IDXGISwapChain::GetBuffer(backbuffer)", hr);
-    }
-
-    hr = ptr_device->CreateRenderTargetView(backBuffer, nullptr, &ptr_rtv);
-    SafeRelease(backBuffer);
-    if (FAILED(hr))
-    {
-        LogAndThrowHRESULT("ID3D11Device::CreateRenderTargetView", hr);
-    }
-
-    // Depth buffer + DSV
-    D3D11_TEXTURE2D_DESC depthDesc = {};
-    depthDesc.Width = static_cast<UINT>(std::max(1, width));
-    depthDesc.Height = static_cast<UINT>(std::max(1, height));
-    depthDesc.MipLevels = 1;
-    depthDesc.ArraySize = 1;
-    depthDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    depthDesc.SampleDesc.Count = 1;
-    depthDesc.SampleDesc.Quality = 0;
-    depthDesc.Usage = D3D11_USAGE_DEFAULT;
-    depthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-
-    ID3D11Texture2D* depthTex = nullptr;
-    hr = ptr_device->CreateTexture2D(&depthDesc, nullptr, &depthTex);
-    if (FAILED(hr) || depthTex == nullptr)
-    {
-        LogAndThrowHRESULT("ID3D11Device::CreateTexture2D(depth)", hr);
-    }
-
-    hr = ptr_device->CreateDepthStencilView(depthTex, nullptr, &ptr_dsv);
-    SafeRelease(depthTex);
-    if (FAILED(hr))
-    {
-        LogAndThrowHRESULT("ID3D11Device::CreateDepthStencilView", hr);
-    }
-
-    // Viewport
-    D3D11_VIEWPORT vp = {};
-    vp.TopLeftX = 0.0f;
-    vp.TopLeftY = 0.0f;
-    vp.Width = static_cast<float>(std::max(1, width));
-    vp.Height = static_cast<float>(std::max(1, height));
-    vp.MinDepth = 0.0f;
-    vp.MaxDepth = 1.0f;
-
-    ptr_context->RSSetViewports(1, &vp);
 }
 
 void DX11App::HandleSDLEvent(const SDL_Event& e)
@@ -712,31 +547,14 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
 
             Engine::SetViewportSize(viewport_width, viewport_height);
 
-            if (ptr_swapchain)
+            if (renderBackend)
             {
                 if (imguiInitialized)
                 {
                     ImGui_ImplDX11_InvalidateDeviceObjects();
                 }
 
-                ID3D11RenderTargetView* nullRTV[1] = { nullptr };
-                ptr_context->OMSetRenderTargets(1, nullRTV, nullptr);
-
-                ReleaseBackBufferResources();
-
-                HRESULT hr = ptr_swapchain->ResizeBuffers(
-                    0,
-                    (UINT)viewport_width,
-                    (UINT)viewport_height,
-                    DXGI_FORMAT_UNKNOWN,
-                    0);
-
-                if (FAILED(hr))
-                {
-                    LogAndThrowHRESULT("IDXGISwapChain::ResizeBuffers", hr);
-                }
-
-                CreateBackBufferResources(viewport_width, viewport_height);
+                renderBackend->Resize(viewport_width, viewport_height);
 
                 if (imguiInitialized)
                 {
@@ -792,7 +610,7 @@ void DX11App::Update()
         HandleSDLEvent(e);
     }
 
-    if (is_done || ptr_program == nullptr)
+    if (is_done || ptr_program == nullptr || !renderBackend)
     {
         return;
     }
@@ -800,12 +618,7 @@ void DX11App::Update()
     Engine::GetActionSystem().PollFromInput(Engine::GetInput());
 
     // Bind + clear
-    // 2D renderer: keep draw order deterministic (background -> actors -> UI)
-    // by disabling depth testing for the main pass.
-    ptr_context->OMSetRenderTargets(1, &ptr_rtv, nullptr);
-
-    ptr_context->ClearRenderTargetView(ptr_rtv, clear_color);
-    ptr_context->ClearDepthStencilView(ptr_dsv, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+    renderBackend->BeginFrame(clear_color);
 
     BeginImGuiFrame();
 
@@ -826,8 +639,7 @@ void DX11App::Update()
     DrawProfilerOverlay();
 
     // Present
-    // vsync=1 is nicer. If want uncapped, change first arg to 0.
-    ptr_swapchain->Present(1, 0);
+    renderBackend->EndFrame(true);
 }
 
 

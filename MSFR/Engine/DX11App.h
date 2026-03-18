@@ -5,10 +5,12 @@
 struct SDL_Window;
 union SDL_Event;
 class IProgram;
+class IRenderBackend;
 
 #include <cstdint>
 #include <array>
 #include <atomic>
+#include <memory>
 
 struct ID3D11Device;
 struct ID3D11DeviceContext;
@@ -45,9 +47,6 @@ public:
 
 private:
     void InitSDLWindow(const char* title, int desired_width, int desired_height);
-    void InitD3D11();
-    void CreateBackBufferResources(int width, int height);
-    void ReleaseBackBufferResources();
     void HandleSDLEvent(const SDL_Event& e);
 
     void InitImGui();
@@ -66,14 +65,7 @@ private:
 
     float clear_color[4] = { 0.08f, 0.08f, 0.12f, 1.0f };
 
-    // D3D11 core
-    util::owner<ID3D11Device*>           ptr_device = nullptr;
-    util::owner<ID3D11DeviceContext*>    ptr_context = nullptr;
-    util::owner<IDXGISwapChain*>         ptr_swapchain = nullptr;
-
-    // Backbuffer-dependent
-    util::owner<ID3D11RenderTargetView*> ptr_rtv = nullptr;
-    util::owner<ID3D11DepthStencilView*> ptr_dsv = nullptr;
+    std::unique_ptr<IRenderBackend> renderBackend;
 
     bool imguiInitialized = false;
     bool showProfiler = true;

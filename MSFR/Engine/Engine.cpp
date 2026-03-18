@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <string>
-#include <thread>
+#include <algorithm>
 
 #include <d3d11.h>
 #include <dxgi.h>
@@ -60,6 +60,8 @@ void Engine::InitCore()
     fpsCalcTime = lastTick;
     frameCount = 0;
     lastFrameDt = 1.0 / TargetFPS;
+    fixedStepAccumulator = 0.0;
+    renderInterpolationAlpha = 0.0;
     bulletPoolDebugStats = BulletPoolDebugStats{};
     gameplayHudStats = GameplayHudStats{};
     lastRunSummary = LastRunSummary{};
@@ -130,13 +132,6 @@ void Engine::Update()
 
     double dt = ComputeDeltaSeconds();
 
-    const double targetStep = 1.0 / TargetFPS;
-    if (dt < targetStep)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        dt = targetStep;
-    }
-
     frameCount++;
     const auto now = Clock::now();
     const double elapsed = std::chrono::duration<double>(now - fpsCalcTime).count();
@@ -159,9 +154,26 @@ void Engine::Update()
         logger.LogEvent(std::string("Collision debug draw: ") + (collisionDebugDrawEnabled ? "ON" : "OFF"));
     }
 
+    fixedStepAccumulator += dt;
+    const double maxAccumulator = FixedSimulationStepSec * static_cast<double>(MaxFixedStepsPerFrame);
+    if (fixedStepAccumulator > maxAccumulator)
+    {
+        fixedStepAccumulator = maxAccumulator;
+    }
+
     eventBus.DispatchQueued();
-    UpdateGameObjects(dt);
-    eventBus.DispatchQueued();
+
+    int steps = 0;
+    while (fixedStepAccumulator >= FixedSimulationStepSec && steps < MaxFixedStepsPerFrame)
+    {
+        UpdateGameObjects(FixedSimulationStepSec);
+        fixedStepAccumulator -= FixedSimulationStepSec;
+        ++steps;
+        eventBus.DispatchQueued();
+    }
+
+    renderInterpolationAlpha = fixedStepAccumulator / FixedSimulationStepSec;
+    renderInterpolationAlpha = std::clamp(renderInterpolationAlpha, 0.0, 1.0);
 }
 
 void Engine::Draw()
