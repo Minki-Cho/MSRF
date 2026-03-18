@@ -1,6 +1,7 @@
 #include "../Engine/Engine.h"
 
 #include "CharacterAnim.h"
+#include "BalanceConfig.h"
 #include "BulletPool.h"
 #include "GamePlay1.h"
 
@@ -92,32 +93,34 @@ void GamePlay1::HandleWeaponInput(double dt)
 
 void GamePlay1::FireMachineGun()
 {
+    const auto& weapon = balance::Get().weapon;
     const vec2 dir = GetFireDirection();
     const vec2 playerPos = playerPtr->GetPosition();
-    const vec2 origin{ playerPos.x() + dir.x() * 42.0f, playerPos.y() + dir.y() * 42.0f };
+    const vec2 origin{ playerPos.x() + dir.x() * weapon.machineMuzzleOffset, playerPos.y() + dir.y() * weapon.machineMuzzleOffset };
 
     Engine::PlaySound("assets/sounds/gun_fire.wav");
 
     SpawnBullet(
         origin,
         dir,
-        820.0f,
-        1.9,
-        1,
-        5.0f,
+        weapon.machineBulletSpeed,
+        weapon.machineBulletLifeSec,
+        weapon.machineBulletDamage,
+        weapon.machineBulletHitRadius,
         "assets/images/weapons/bullet_machine.spt");
 }
 
 void GamePlay1::FireShotgun()
 {
+    const auto& weapon = balance::Get().weapon;
     const vec2 baseDir = GetFireDirection();
     const vec2 playerPos = playerPtr->GetPosition();
-    const vec2 origin{ playerPos.x() + baseDir.x() * 38.0f, playerPos.y() + baseDir.y() * 38.0f };
+    const vec2 origin{ playerPos.x() + baseDir.x() * weapon.shotgunMuzzleOffset, playerPos.y() + baseDir.y() * weapon.shotgunMuzzleOffset };
 
     Engine::PlaySound("assets/sounds/gun_shotgun.wav");
 
-    constexpr int pelletCount = 7;
-    constexpr float spreadDeg = 14.0f;
+    const int pelletCount = weapon.shotgunPelletCount;
+    const float spreadDeg = weapon.shotgunSpreadDeg;
 
     for (int i = 0; i < pelletCount; ++i)
     {
@@ -128,10 +131,10 @@ void GamePlay1::FireShotgun()
         SpawnBullet(
             origin,
             dir,
-            640.0f,
-            0.55,
-            1,
-            4.0f,
+            weapon.shotgunBulletSpeed,
+            weapon.shotgunBulletLifeSec,
+            weapon.shotgunBulletDamage,
+            weapon.shotgunBulletHitRadius,
             "assets/images/weapons/bullet_shotgun.spt");
     }
 }

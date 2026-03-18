@@ -3,6 +3,7 @@
 #include "../Engine/Sprite.h"
 
 #include "CharacterAnim.h"
+#include "BalanceConfig.h"
 #include "BulletPool.h"
 #include "GamePlay1.h"
 
@@ -84,26 +85,32 @@ namespace
         EnemyChaser(vec2 startPos, Variant variant)
             : GameObject(startPos), variant_(variant)
         {
+            const auto& enemySettings = balance::Get().enemy;
+            const balance::EnemyVariantSettings* variantSettings = &enemySettings.normal;
             const char* spritePath = "assets/images/characters/characters/enemy/enemy.spt";
+
             switch (variant_)
             {
             case Variant::Normal:
-                moveSpeed_ = 45.0f;
-                health_ = 20;
+                variantSettings = &enemySettings.normal;
                 spritePath = "assets/images/characters/characters/enemy/enemy.spt";
                 break;
             case Variant::Fast:
-                moveSpeed_ = 72.0f;
-                health_ = 12;
+                variantSettings = &enemySettings.fast;
                 spritePath = "assets/images/characters/characters/enemy_fast/enemy_fast.spt";
                 break;
             case Variant::Heavy:
-                moveSpeed_ = 34.0f;
-                health_ = 32;
+                variantSettings = &enemySettings.heavy;
                 spritePath = "assets/images/characters/characters/enemy_heavy/enemy_heavy.spt";
-                SetScale(vec2{ 1.15f, 1.15f });
                 break;
             }
+
+            moveSpeed_ = variantSettings->moveSpeed;
+            health_ = variantSettings->health;
+            attackRadius_ = variantSettings->attackRadius;
+            knockbackForce_ = variantSettings->knockbackForce;
+            attackCooldownInterval_ = enemySettings.attackCooldownSec;
+            SetScale(vec2{ variantSettings->scale, variantSettings->scale });
 
             AddGOComponent(new Sprite(spritePath, this));
 
@@ -123,18 +130,13 @@ namespace
             if (attackCooldown_ > 0.0)
                 return false;
 
-            attackCooldown_ = 0.34;
+            attackCooldown_ = attackCooldownInterval_;
             return true;
         }
 
         float GetAttackRadius() const
         {
-            switch (variant_)
-            {
-            case Variant::Fast:  return 30.0f;
-            case Variant::Heavy: return 36.0f;
-            default:             return 32.0f;
-            }
+            return attackRadius_;
         }
 
         void ApplyDamage(int damage, const vec2& hitDirection)
@@ -143,16 +145,8 @@ namespace
                 return;
 
             const vec2 knockDir = NormalizeOrFallback(hitDirection, vec2{ 0.0f, 0.0f });
-            float knockForce = 145.0f;
-            switch (variant_)
-            {
-            case Variant::Fast:  knockForce = 180.0f; break;
-            case Variant::Heavy: knockForce = 110.0f; break;
-            default:             knockForce = 145.0f; break;
-            }
-
-            knockbackVel_.x() += knockDir.x() * knockForce;
-            knockbackVel_.y() += knockDir.y() * knockForce;
+            knockbackVel_.x() += knockDir.x() * knockbackForce_;
+            knockbackVel_.y() += knockDir.y() * knockbackForce_;
             hitFlashTimer_ = 0.16;
 
             health_ -= damage;
@@ -244,12 +238,15 @@ namespace
         Variant variant_ = Variant::Normal;
         float moveSpeed_ = 45.0f;
         int health_ = 10;
+        float attackRadius_ = 32.0f;
+        float knockbackForce_ = 145.0f;
         bool hasTarget_ = false;
         vec2 targetPos_{ 0.f, 0.f };
         CharacterAnim direction_ = CharacterAnim::None_F;
         vec2 knockbackVel_{ 0.f, 0.f };
         double hitFlashTimer_ = 0.0;
         double attackCooldown_ = 0.0;
+        double attackCooldownInterval_ = 0.34;
     };
 
     class HitParticle : public GameObject
@@ -336,8 +333,9 @@ void GamePlay1::SpawnEnemyFromEdge(int enemyTier)
     const float worldMaxX = viewportWidth * 2.0f;
     const float worldMaxY = viewportHeight * 2.0f;
 
-    const float edgeInset = 90.0f;
-    const float minSpawnGap = 74.0f;
+    const auto& enemySettings = balance::Get().enemy;
+    const float edgeInset = enemySettings.spawnEdgeInset;
+    const float minSpawnGap = enemySettings.spawnMinGap;
 
     auto makeCandidate = [&]() -> vec2
     {
@@ -421,15 +419,17 @@ void GamePlay1::ResolveEnemyOverlap()
     if (enemies.size() < 2)
         return;
 
-    const float minDist = 58.0f;
+    const auto& enemySettings = balance::Get().enemy;
+    const float minDist = enemySettings.overlapMinDistance;
     const float minDistSq = minDist * minDist;
 
     const float viewportWidth = static_cast<float>(Engine::GetViewportWidth());
     const float viewportHeight = static_cast<float>(Engine::GetViewportHeight());
-    const float worldMinX = -viewportWidth + 70.0f;
-    const float worldMinY = -viewportHeight + 70.0f;
-    const float worldMaxX = viewportWidth * 2.0f - 70.0f;
-    const float worldMaxY = viewportHeight * 2.0f - 70.0f;
+    const float worldPadding = enemySettings.overlapWorldPadding;
+    const float worldMinX = -viewportWidth + worldPadding;
+    const float worldMinY = -viewportHeight + worldPadding;
+    const float worldMaxX = viewportWidth * 2.0f - worldPadding;
+    const float worldMaxY = viewportHeight * 2.0f - worldPadding;
 
     for (size_t i = 0; i + 1 < enemies.size(); ++i)
     {
@@ -512,7 +512,7 @@ void GamePlay1::ResolveEnemyPlayerHits()
 
         if (enemy->TryAttackPlayer())
         {
-            playerPtr->ApplyDamage(1);
+            playerPtr->ApplyDamage(balance::Get().enemy.contactDamage);
         }
     }
 }

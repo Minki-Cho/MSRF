@@ -188,6 +188,13 @@ The project is configured to copy `external/bin/SDL2.dll` to the target output f
 - Set `MSFR` as the startup project in Visual Studio
 - Run the project to launch the game window with runtime logs
 
+### 8-5. Balance Tuning
+
+- Gameplay balance values are loaded from:
+  - `MSFR/assets/config/gameplay_balance.cfg`
+- You can tune weapon, enemy, and spawn values without recompiling code.
+- The file is reloaded each time `GamePlay1` state enters `Load()`.
+
 ---
 
 ## 8. Problems Solved and Lessons Learned

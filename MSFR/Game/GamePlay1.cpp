@@ -3,6 +3,7 @@
 #include "../Engine/Random.h"
 
 #include "DataCore.h"
+#include "BalanceConfig.h"
 #include "BulletPool.h"
 #include "GamePlay1.h"
 #include "ScreenMods.h"
@@ -38,6 +39,12 @@ void GamePlay1::Load()
 {
     Engine::SetAnimationSpeedLevel(Engine::AnimationSpeed::Normal);
     Engine::PlaySound("assets/sounds/enter_gameplay.wav");
+    balance::Reload();
+
+    const auto& settings = balance::Get();
+    totalCoreCount = settings.spawn.totalCoreCount;
+    machineGunInterval = settings.weapon.machineGunFireIntervalSec;
+    shotgunInterval = settings.weapon.shotgunFireIntervalSec;
 
     auto manager = std::make_unique<GameObjectManager>();
     gameObjectManager = manager.get();
@@ -300,22 +307,16 @@ int GamePlay1::CountAliveByType(GameObjectType type) const
 
 double GamePlay1::GetSpawnIntervalForTier(int enemyTier) const
 {
-    switch (enemyTier)
-    {
-    case 0: return 2.4;
-    case 1: return 1.8;
-    default: return 1.3;
-    }
+    const auto& intervals = balance::Get().spawn.intervalByTierSec;
+    const int tier = std::clamp(enemyTier, 0, 2);
+    return intervals[static_cast<std::size_t>(tier)];
 }
 
 int GamePlay1::GetMaxEnemyCountForTier(int enemyTier) const
 {
-    switch (enemyTier)
-    {
-    case 0: return 12;
-    case 1: return 18;
-    default: return 24;
-    }
+    const auto& maxEnemies = balance::Get().spawn.maxEnemiesByTier;
+    const int tier = std::clamp(enemyTier, 0, 2);
+    return maxEnemies[static_cast<std::size_t>(tier)];
 }
 
 
