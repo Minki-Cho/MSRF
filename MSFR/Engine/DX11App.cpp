@@ -30,6 +30,36 @@
 
 namespace
 {
+    struct KeyBinding
+    {
+        SDL_Keycode sdlKey = SDLK_UNKNOWN;
+        InputKey::Keyboard inputKey = InputKey::Keyboard::None;
+    };
+
+    constexpr std::array<KeyBinding, 11> kKeyBindings{ {
+        { SDLK_RETURN, InputKey::Keyboard::Enter },
+        { SDLK_BACKQUOTE, InputKey::Keyboard::Tilde },
+        { SDLK_ESCAPE, InputKey::Keyboard::Escape },
+        { SDLK_SPACE, InputKey::Keyboard::Space },
+        { SDLK_UP, InputKey::Keyboard::Up },
+        { SDLK_DOWN, InputKey::Keyboard::Down },
+        { SDLK_LEFT, InputKey::Keyboard::Left },
+        { SDLK_RIGHT, InputKey::Keyboard::Right },
+        { SDLK_1, InputKey::Keyboard::Num1 },
+        { SDLK_2, InputKey::Keyboard::Num2 },
+        { SDLK_h, InputKey::Keyboard::H },
+    } };
+
+    InputKey::Keyboard ToInputKey(SDL_Keycode key)
+    {
+        for (const KeyBinding& binding : kKeyBindings)
+        {
+            if (binding.sdlKey == key)
+                return binding.inputKey;
+        }
+        return InputKey::Keyboard::None;
+    }
+
     template <typename T>
     void SafeRelease(T*& p) noexcept
     {
@@ -645,17 +675,9 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
             break;
         }
 
-        if (k == SDLK_RETURN)      Engine::GetInput().OnKeyDown(InputKey::Keyboard::Enter);
-        else if (k == SDLK_BACKQUOTE) Engine::GetInput().OnKeyDown(InputKey::Keyboard::Tilde);
-        else if (k == SDLK_ESCAPE) Engine::GetInput().OnKeyDown(InputKey::Keyboard::Escape);
-        else if (k == SDLK_SPACE)  Engine::GetInput().OnKeyDown(InputKey::Keyboard::Space);
-        else if (k == SDLK_UP)     Engine::GetInput().OnKeyDown(InputKey::Keyboard::Up);
-        else if (k == SDLK_DOWN)   Engine::GetInput().OnKeyDown(InputKey::Keyboard::Down);
-        else if (k == SDLK_LEFT)   Engine::GetInput().OnKeyDown(InputKey::Keyboard::Left);
-        else if (k == SDLK_RIGHT)  Engine::GetInput().OnKeyDown(InputKey::Keyboard::Right);
-        else if (k == SDLK_1)      Engine::GetInput().OnKeyDown(InputKey::Keyboard::Num1);
-        else if (k == SDLK_2)      Engine::GetInput().OnKeyDown(InputKey::Keyboard::Num2);
-        else if (k == SDLK_h)      Engine::GetInput().OnKeyDown(InputKey::Keyboard::H);
+        const InputKey::Keyboard mapped = ToInputKey(k);
+        if (mapped != InputKey::Keyboard::None)
+            Engine::GetInput().OnKeyDown(mapped);
         break;
     }
 
@@ -663,18 +685,15 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
     {
         const SDL_Keycode k = e.key.keysym.sym;
 
-        if (k == SDLK_RETURN)      Engine::GetInput().OnKeyUp(InputKey::Keyboard::Enter);
-        else if (k == SDLK_BACKQUOTE) Engine::GetInput().OnKeyUp(InputKey::Keyboard::Tilde);
-        else if (k == SDLK_ESCAPE) Engine::GetInput().OnKeyUp(InputKey::Keyboard::Escape);
-        else if (k == SDLK_SPACE)  Engine::GetInput().OnKeyUp(InputKey::Keyboard::Space);
-        else if (k == SDLK_UP)     Engine::GetInput().OnKeyUp(InputKey::Keyboard::Up);
-        else if (k == SDLK_DOWN)   Engine::GetInput().OnKeyUp(InputKey::Keyboard::Down);
-        else if (k == SDLK_LEFT)   Engine::GetInput().OnKeyUp(InputKey::Keyboard::Left);
-        else if (k == SDLK_RIGHT)  Engine::GetInput().OnKeyUp(InputKey::Keyboard::Right);
-        else if (k == SDLK_1)      Engine::GetInput().OnKeyUp(InputKey::Keyboard::Num1);
-        else if (k == SDLK_2)      Engine::GetInput().OnKeyUp(InputKey::Keyboard::Num2);
-        else if (k == SDLK_h)      Engine::GetInput().OnKeyUp(InputKey::Keyboard::H);
-        else if (k == SDLK_F3)     Engine::GetInput().OnKeyUp(InputKey::Keyboard::F3);
+        if (k == SDLK_F3)
+        {
+            Engine::GetInput().OnKeyUp(InputKey::Keyboard::F3);
+            break;
+        }
+
+        const InputKey::Keyboard mapped = ToInputKey(k);
+        if (mapped != InputKey::Keyboard::None)
+            Engine::GetInput().OnKeyUp(mapped);
         break;
     }
 
