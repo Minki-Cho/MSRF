@@ -34,6 +34,17 @@ public:
         bool valid = false;
     };
 
+    struct GameplayHudStats
+    {
+        int hp = 0;
+        int hpMax = 0;
+        int coresCollected = 0;
+        int coresTotal = 0;
+        int enemiesRemaining = 0;
+        int weaponMode = 0; // 0: MachineGun, 1: Shotgun
+        bool valid = false;
+    };
+
     enum class AnimationSpeed
     {
         Slow = 1,
@@ -94,6 +105,8 @@ public:
     static double GetLastFrameFps() { return (Instance().lastFrameDt > 0.0) ? (1.0 / Instance().lastFrameDt) : 0.0; }
     static BulletPoolDebugStats GetBulletPoolDebugStats() { return Instance().bulletPoolDebugStats; }
     static void SetBulletPoolDebugStats(const BulletPoolDebugStats& stats) { Instance().bulletPoolDebugStats = stats; }
+    static GameplayHudStats GetGameplayHudStats() { return Instance().gameplayHudStats; }
+    static void SetGameplayHudStats(const GameplayHudStats& stats) { Instance().gameplayHudStats = stats; }
 
     template<typename T>
     static T* GetGSComponent() { return GetGameStateManager().GetGSComponent<T>(); }
@@ -154,4 +167,5 @@ private:
     AnimationSpeed animationSpeedLevel = AnimationSpeed::Normal;
     bool collisionDebugDrawEnabled = false;
     BulletPoolDebugStats bulletPoolDebugStats{};
+    GameplayHudStats gameplayHudStats{};
 };

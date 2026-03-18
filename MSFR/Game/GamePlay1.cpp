@@ -124,6 +124,24 @@ void GamePlay1::Update(double dt)
     if (!gameObjectManager)
         return;
 
+    auto publishHudStats = [this]()
+    {
+        Engine::GameplayHudStats hud{};
+        hud.valid = true;
+        hud.coresTotal = totalCoreCount;
+        hud.coresCollected = std::clamp(totalCoreCount - CountAliveByType(GameObjectType::DataCore), 0, totalCoreCount);
+        hud.enemiesRemaining = CountAliveByType(GameObjectType::Enemy);
+        hud.weaponMode = (weaponMode == WeaponMode::Shotgun) ? 1 : 0;
+
+        if (playerPtr)
+        {
+            hud.hp = playerPtr->GetHP();
+            hud.hpMax = playerPtr->GetMaxHP();
+        }
+
+        Engine::SetGameplayHudStats(hud);
+    };
+
     HandleWeaponInput(dt);
     UpdateEnemyTargets();
     gameObjectManager->Update(dt);
@@ -151,6 +169,7 @@ void GamePlay1::Update(double dt)
 
     if (playerPtr && playerPtr->IsDead() && !gameOverTriggered)
     {
+        publishHudStats();
         gameOverTriggered = true;
         Engine::GetEventBus().Publish(RequestStateChangeEvent{ static_cast<int>(ScreenMods::GameOver) });
         return;
@@ -167,6 +186,7 @@ void GamePlay1::Update(double dt)
 
         if (collectedCoreCount >= totalCoreCount)
         {
+            publishHudStats();
             clearTriggered = true;
             Engine::GetEventBus().Publish(RequestStateChangeEvent{ static_cast<int>(ScreenMods::Credit) });
             return;
@@ -186,6 +206,8 @@ void GamePlay1::Update(double dt)
         SpawnEnemyFromEdge(enemyTier);
         enemySpawnTimer = GetSpawnIntervalForTier(enemyTier);
     }
+
+    publishHudStats();
 }
 
 void GamePlay1::Draw()
@@ -249,6 +271,7 @@ void GamePlay1::Unload()
     machineBulletPool.reset();
     shotgunBulletPool.reset();
     Engine::SetBulletPoolDebugStats(Engine::BulletPoolDebugStats{});
+    Engine::SetGameplayHudStats(Engine::GameplayHudStats{});
     collectedCoreCount = 0;
     enemySpawnTimer = 0.0;
     clearTriggered = false;
