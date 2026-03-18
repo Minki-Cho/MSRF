@@ -1,8 +1,49 @@
 #include <Windows.h>
 #include <windowsx.h>
+#include <array>
 
 #include "Input.h"
 #include "Engine.h"
+
+namespace
+{
+    struct VkBinding
+    {
+        std::uintptr_t vk = 0;
+        InputKey::Keyboard key = InputKey::Keyboard::None;
+    };
+
+    constexpr std::array<VkBinding, 17> kVkBindings{ {
+        { VK_RETURN, InputKey::Keyboard::Enter },
+        { VK_ESCAPE, InputKey::Keyboard::Escape },
+        { VK_SPACE, InputKey::Keyboard::Space },
+        { VK_BACK, InputKey::Keyboard::BackSpace },
+        { VK_SHIFT, InputKey::Keyboard::Shift },
+        { VK_LSHIFT, InputKey::Keyboard::Shift },
+        { VK_RSHIFT, InputKey::Keyboard::Shift },
+        { VK_LEFT, InputKey::Keyboard::Left },
+        { VK_RIGHT, InputKey::Keyboard::Right },
+        { VK_UP, InputKey::Keyboard::Up },
+        { VK_DOWN, InputKey::Keyboard::Down },
+        { VK_F1, InputKey::Keyboard::F1 },
+        { VK_F3, InputKey::Keyboard::F3 },
+        { VK_OEM_3, InputKey::Keyboard::Tilde },
+        { static_cast<std::uintptr_t>('1'), InputKey::Keyboard::Num1 },
+        { static_cast<std::uintptr_t>('2'), InputKey::Keyboard::Num2 },
+        { static_cast<std::uintptr_t>('H'), InputKey::Keyboard::H },
+    } };
+
+    InputKey::Keyboard LookupMappedKey(std::uintptr_t vk)
+    {
+        for (const VkBinding& binding : kVkBindings)
+        {
+            if (binding.vk == vk)
+                return binding.key;
+        }
+
+        return InputKey::Keyboard::None;
+    }
+}
 
 InputKey::InputKey(Keyboard button) : button(button) {}
 
@@ -77,27 +118,9 @@ void Input::OnKeyUp(InputKey::Keyboard k)
 
 InputKey::Keyboard Input::VKToKeyboard(std::uintptr_t vk)
 {
-    switch (vk)
-    {
-    case VK_RETURN:  return InputKey::Keyboard::Enter;
-    case VK_ESCAPE:  return InputKey::Keyboard::Escape;
-    case VK_SPACE:   return InputKey::Keyboard::Space;
-    case VK_BACK:    return InputKey::Keyboard::BackSpace;
-    case VK_SHIFT:
-    case VK_LSHIFT:
-    case VK_RSHIFT:  return InputKey::Keyboard::Shift;
-    case VK_LEFT:    return InputKey::Keyboard::Left;
-    case VK_RIGHT:   return InputKey::Keyboard::Right;
-    case VK_UP:      return InputKey::Keyboard::Up;
-    case VK_DOWN:    return InputKey::Keyboard::Down;
-    case VK_F1:      return InputKey::Keyboard::F1;
-    case VK_F3:      return InputKey::Keyboard::F3;
-    case VK_OEM_3:   return InputKey::Keyboard::Tilde;
-    case '1':      return InputKey::Keyboard::Num1;
-    case '2':      return InputKey::Keyboard::Num2;
-    default:
-        break;
-    }
+    const InputKey::Keyboard mapped = LookupMappedKey(vk);
+    if (mapped != InputKey::Keyboard::None)
+        return mapped;
 
     if (vk >= 'A' && vk <= 'Z')
     {
