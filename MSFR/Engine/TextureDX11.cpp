@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <iostream>
 #include <filesystem>
+#include <cctype>
 #pragma comment(lib, "d3dcompiler.lib")
 
 #define NOMINMAX
@@ -106,6 +107,98 @@ namespace
             "converter->CopyPixels failed.");
 
         return img;
+    }
+
+    uint8_t* PixelRGBA(WICImageRGBA& img, uint32_t x, uint32_t y)
+    {
+        const size_t idx = (static_cast<size_t>(y) * img.width + x) * 4u;
+        return img.rgba.data() + idx;
+    }
+
+    void BlendEdgePair(uint8_t* a, uint8_t* b, float t)
+    {
+        const float clampedT = std::clamp(t, 0.0f, 1.0f);
+        for (int c = 0; c < 4; ++c)
+        {
+            const float av = static_cast<float>(a[c]);
+            const float bv = static_cast<float>(b[c]);
+            const float mid = (av + bv) * 0.5f;
+
+            const float outA = av + (mid - av) * clampedT;
+            const float outB = bv + (mid - bv) * clampedT;
+
+            a[c] = static_cast<uint8_t>(std::clamp(outA + 0.5f, 0.0f, 255.0f));
+            b[c] = static_cast<uint8_t>(std::clamp(outB + 0.5f, 0.0f, 255.0f));
+        }
+    }
+
+    void MakeSeamlessEdges(WICImageRGBA& img, uint32_t bandPx)
+    {
+        if (img.width < 2 || img.height < 2 || img.rgba.empty())
+            return;
+
+        const uint32_t maxBand = (std::max)(1u, (std::min)(img.width, img.height) / 8u);
+        const uint32_t band = std::clamp(bandPx, 1u, maxBand);
+
+        // Left/right edge blending.
+        for (uint32_t y = 0; y < img.height; ++y)
+        {
+            for (uint32_t i = 0; i < band; ++i)
+            {
+                const uint32_t xL = i;
+                const uint32_t xR = img.width - 1u - i;
+                if (xL >= xR) break;
+
+                const float t = 1.0f - (static_cast<float>(i) / static_cast<float>(band));
+                BlendEdgePair(PixelRGBA(img, xL, y), PixelRGBA(img, xR, y), t);
+            }
+        }
+
+        // Top/bottom edge blending.
+        for (uint32_t x = 0; x < img.width; ++x)
+        {
+            for (uint32_t i = 0; i < band; ++i)
+            {
+                const uint32_t yT = i;
+                const uint32_t yB = img.height - 1u - i;
+                if (yT >= yB) break;
+
+                const float t = 1.0f - (static_cast<float>(i) / static_cast<float>(band));
+                BlendEdgePair(PixelRGBA(img, x, yT), PixelRGBA(img, x, yB), t);
+            }
+        }
+
+        // Force exact edge equality to eliminate residual seam pixels.
+        for (uint32_t y = 0; y < img.height; ++y)
+        {
+            uint8_t* left = PixelRGBA(img, 0, y);
+            uint8_t* right = PixelRGBA(img, img.width - 1u, y);
+            for (int c = 0; c < 4; ++c)
+            {
+                const uint8_t m = static_cast<uint8_t>((static_cast<int>(left[c]) + static_cast<int>(right[c])) / 2);
+                left[c] = m;
+                right[c] = m;
+            }
+        }
+        for (uint32_t x = 0; x < img.width; ++x)
+        {
+            uint8_t* top = PixelRGBA(img, x, 0);
+            uint8_t* bottom = PixelRGBA(img, x, img.height - 1u);
+            for (int c = 0; c < 4; ++c)
+            {
+                const uint8_t m = static_cast<uint8_t>((static_cast<int>(top[c]) + static_cast<int>(bottom[c])) / 2);
+                top[c] = m;
+                bottom[c] = m;
+            }
+        }
+    }
+
+    bool ShouldAutoFixSeamless(const std::filesystem::path& filePath)
+    {
+        std::string name = filePath.filename().generic_string();
+        std::transform(name.begin(), name.end(), name.begin(),
+            [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+        return name == "map.png";
     }
 
     struct VertexPT
@@ -229,6 +322,11 @@ void TextureDX11::Load(ID3D11Device* device, ID3D11DeviceContext* ctx,
 
     // 1) CPU load image via WIC
     WICImageRGBA img = LoadImageRGBA_WIC(filePath.wstring());
+    if (ShouldAutoFixSeamless(filePath))
+    {
+        MakeSeamlessEdges(img, 24u);
+        Engine::GetLogger().LogEvent("Applied seamless edge correction: " + filePath.generic_string());
+    }
     width = img.width;
     height = img.height;
 

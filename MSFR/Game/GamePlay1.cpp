@@ -315,7 +315,8 @@ void GamePlay1::Draw()
     const float worldMaxX = viewportWidth * 2.0f;
     const float worldMaxY = viewportHeight * 2.0f;
 
-    mat3<float> cameraMatrix;
+    float cameraX = 0.0f;
+    float cameraY = 0.0f;
     if (playerPtr)
     {
         const vec2 playerPos = playerPtr->GetPosition();
@@ -328,27 +329,47 @@ void GamePlay1::Draw()
         const float minCameraY = viewportHeight - worldMaxY;
         const float maxCameraY = -worldMinY;
 
-        const float cameraX = std::clamp(desiredCameraX, minCameraX, maxCameraX);
-        const float cameraY = std::clamp(desiredCameraY, minCameraY, maxCameraY);
-
-        cameraMatrix = mat3<float>::build_translation(cameraX, cameraY);
+        cameraX = std::clamp(desiredCameraX, minCameraX, maxCameraX);
+        cameraY = std::clamp(desiredCameraY, minCameraY, maxCameraY);
     }
+    mat3<float> cameraMatrix = mat3<float>::build_translation(cameraX, cameraY);
 
     const vec2 tileSize = map.GetSize();
     if (tileSize.x() > 0.0f && tileSize.y() > 0.0f)
     {
-        const int tileStartX = static_cast<int>(std::floor(worldMinX / tileSize.x()));
-        const int tileEndX = static_cast<int>(std::ceil(worldMaxX / tileSize.x()));
-        const int tileStartY = static_cast<int>(std::floor(worldMinY / tileSize.y()));
-        const int tileEndY = static_cast<int>(std::ceil(worldMaxY / tileSize.y()));
+        const float tileW = tileSize.x();
+        const float tileH = tileSize.y();
+
+        // Compute the visible world-space rectangle from the current camera.
+        const float visibleMinX = -cameraX;
+        const float visibleMinY = -cameraY;
+        const float visibleMaxX = visibleMinX + viewportWidth;
+        const float visibleMaxY = visibleMinY + viewportHeight;
+
+        // Add a one-tile guard band to avoid edge cut-offs during movement.
+        const int tileStartX = static_cast<int>(std::floor((visibleMinX - tileW) / tileW));
+        const int tileEndX = static_cast<int>(std::ceil((visibleMaxX + tileW) / tileW));
+        const int tileStartY = static_cast<int>(std::floor((visibleMinY - tileH) / tileH));
+        const int tileEndY = static_cast<int>(std::ceil((visibleMaxY + tileH) / tileH));
+
+        // Slight overlap hides sub-pixel raster cracks between adjacent tiles.
+        const float overlapX = (std::min)(1.0f, tileW * 0.25f);
+        const float overlapY = (std::min)(1.0f, tileH * 0.25f);
+        const float drawScaleX = (tileW + overlapX) / tileW;
+        const float drawScaleY = (tileH + overlapY) / tileH;
+        const float drawOffsetX = overlapX * 0.5f;
+        const float drawOffsetY = overlapY * 0.5f;
 
         for (int y = tileStartY; y < tileEndY; ++y)
         {
             for (int x = tileStartX; x < tileEndX; ++x)
             {
-                const float worldX = static_cast<float>(x) * tileSize.x();
-                const float worldY = static_cast<float>(y) * tileSize.y();
-                const mat3<float> tileMatrix = cameraMatrix * mat3<float>::build_translation(worldX, worldY);
+                const float worldX = static_cast<float>(x) * tileW - drawOffsetX;
+                const float worldY = static_cast<float>(y) * tileH - drawOffsetY;
+                const mat3<float> tileMatrix =
+                    cameraMatrix *
+                    mat3<float>::build_translation(worldX, worldY) *
+                    mat3<float>::build_scale(drawScaleX, drawScaleY);
                 map.Draw(tileMatrix);
             }
         }
