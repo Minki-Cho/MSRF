@@ -126,6 +126,76 @@ private:
     double inputLockTimer = 0.0;
     bool shownHelpDialog = false;
 };
+
+class GameOver : public GameState
+{
+public:
+    void Load() override
+    {
+        shownPrompt = false;
+        backgroundImage = TextureDX11("assets/images/MainMenu.png", false);
+    }
+
+    void Draw() override
+    {
+        backgroundImage.DrawFitCenter({ (float)Engine::GetViewportWidth(), (float)Engine::GetViewportHeight() });
+    }
+
+    void Update(double /*dt*/) override
+    {
+        if (shownPrompt)
+            return;
+
+        shownPrompt = true;
+
+        const SDL_MessageBoxButtonData buttons[] = {
+            { SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, "Restart" },
+            { 0, 2, "Main Menu" },
+            { SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 3, "Quit" }
+        };
+
+        const SDL_MessageBoxData data = {
+            SDL_MESSAGEBOX_INFORMATION,
+            nullptr,
+            "Game Over",
+            "You were defeated.\nChoose the next action.",
+            SDL_arraysize(buttons),
+            buttons,
+            nullptr
+        };
+
+        int selectedButton = 2;
+        const int showResult = SDL_ShowMessageBox(&data, &selectedButton);
+        if (showResult < 0)
+            selectedButton = 2;
+
+        if (selectedButton == 1)
+        {
+            Engine::GetEventBus().Publish(RequestStateChangeEvent{ static_cast<int>(ScreenMods::GamePlay1) });
+        }
+        else if (selectedButton == 3)
+        {
+            Engine::GetGameStateManager().Shutdown();
+            SDL_Event quitEvent{};
+            quitEvent.type = SDL_QUIT;
+            SDL_PushEvent(&quitEvent);
+        }
+        else
+        {
+            Engine::GetEventBus().Publish(RequestStateChangeEvent{ static_cast<int>(ScreenMods::MainMenu) });
+        }
+    }
+
+    void Unload() override
+    {
+    }
+
+    std::string GetName() override { return "GameOver"; }
+
+private:
+    TextureDX11 backgroundImage;
+    bool shownPrompt = false;
+};
 class GameProgram final : public IProgram
 {
 public:
@@ -138,6 +208,7 @@ public:
         engine.GetGameStateManager().AddGameState(play);
         engine.GetGameStateManager().AddGameState(credit);
         engine.GetGameStateManager().AddGameState(howToPlay);
+        engine.GetGameStateManager().AddGameState(gameOver);
 
         auto& bus = Engine::GetEventBus();
         stateChangeSubscription = bus.Subscribe<RequestStateChangeEvent>([](const RequestStateChangeEvent& e) {
@@ -167,6 +238,7 @@ private:
     GamePlay1 play;
     Credit credit;
     HowToPlay howToPlay;
+    GameOver gameOver;
     EventBus::SubscriptionId stateChangeSubscription = 0;
     EventBus::SubscriptionId menuActionSubscription = 0;
 };

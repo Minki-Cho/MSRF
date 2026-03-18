@@ -108,6 +108,7 @@ void GamePlay1::Load()
 
     collectedCoreCount = 0;
     clearTriggered = false;
+    gameOverTriggered = false;
     enemySpawnTimer = 0.2;
     fireCooldownTimer = 0.0;
     weaponMode = WeaponMode::MachineGun;
@@ -147,6 +148,14 @@ void GamePlay1::Update(double dt)
 
     ResolveEnemyOverlap();
     ResolveEnemyPlayerHits();
+
+    if (playerPtr && playerPtr->IsDead() && !gameOverTriggered)
+    {
+        gameOverTriggered = true;
+        Engine::GetEventBus().Publish(RequestStateChangeEvent{ static_cast<int>(ScreenMods::GameOver) });
+        return;
+    }
+
     ResolveBulletHits();
 
     const int aliveCoreCount = CountAliveByType(GameObjectType::DataCore);
@@ -243,6 +252,7 @@ void GamePlay1::Unload()
     collectedCoreCount = 0;
     enemySpawnTimer = 0.0;
     clearTriggered = false;
+    gameOverTriggered = false;
     fireCooldownTimer = 0.0;
     weaponMode = WeaponMode::MachineGun;
 }

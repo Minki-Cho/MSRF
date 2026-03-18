@@ -7,6 +7,7 @@ enum class ScreenMods
     GamePlay1 = 2,
     Credit = 3,
     Howtoplay = 4,
-    GameScreen = 5,
-    Ending = 6
+    GameOver = 5,
+    GameScreen = 6,
+    Ending = 7
 };

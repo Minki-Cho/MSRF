@@ -56,6 +56,7 @@ private:
     int collectedCoreCount{ 0 };
     double enemySpawnTimer{ 0.0 };
     bool clearTriggered{ false };
+    bool gameOverTriggered{ false };
 
     WeaponMode weaponMode{ WeaponMode::MachineGun };
     double fireCooldownTimer{ 0.0 };
