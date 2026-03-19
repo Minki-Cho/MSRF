@@ -258,5 +258,5 @@ GitHub Actions (`Windows Build & Demo Smoke`) runs:
 
 ## 10. Known Gaps / Next Steps
 
-- Collision system is currently focused on debug rendering/basic checks and needs gameplay integration
+- Collision system is integrated into gameplay interactions (player-core collection, enemy contact, enemy separation, bullet hit checks)
 - Data-driven loading (e.g., JSON) and editor tooling remain on the roadmap

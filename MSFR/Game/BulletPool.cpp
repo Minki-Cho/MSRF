@@ -1,5 +1,6 @@
 #include "BulletPool.h"
 
+#include "../Engine/Collision.h"
 #include "../Engine/Sprite.h"
 
 #include <algorithm>
@@ -36,6 +37,14 @@ void BulletProjectile::Activate(const vec2& origin, const vec2& direction, float
     lifeTimeSec_ = (std::max)(0.0, lifeTimeSec);
     damage_ = (std::max)(1, damage);
     hitRadius_ = (std::max)(0.0f, hitRadius);
+
+    // Keep bullet collision shape in sync with runtime tuning values.
+    RemoveGOComponent<CircleCollision>();
+    if (hitRadius_ > 0.0f)
+    {
+        AddGOComponent(new CircleCollision(static_cast<double>(hitRadius_), this));
+    }
+
     isActive_ = true;
 }
 
@@ -171,4 +180,3 @@ void BulletPool::GatherActive(std::vector<BulletProjectile*>& out) const
             out.push_back(bullet);
     }
 }
-

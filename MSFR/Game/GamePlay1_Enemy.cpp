@@ -8,6 +8,7 @@
 #include "GamePlay1.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <cmath>
 #include <memory>
 #include <vector>
@@ -221,13 +222,90 @@ namespace
             GameObject::Draw(cameraMatrix);
         }
 
-        bool CanCollideWith(GameObjectType /*objectBType*/) override
+        bool CanCollideWith(GameObjectType objectBType) override
         {
-            return false;
+            return objectBType == GameObjectType::Player || objectBType == GameObjectType::Enemy;
         }
 
-        void ResolveCollision(GameObject* /*objectB*/) override
+        void ResolveCollision(GameObject* objectB) override
         {
+            if (!objectB || objectB->GetDestroyed() || GetDestroyed())
+                return;
+
+            if (objectB->GetObjectType() == GameObjectType::Player)
+            {
+                auto* player = static_cast<Player*>(objectB);
+                if (!player || player->IsDead())
+                    return;
+
+                if (TryAttackPlayer())
+                {
+                    player->ApplyDamage(balance::Get().enemy.contactDamage);
+                }
+                return;
+            }
+
+            if (objectB->GetObjectType() != GameObjectType::Enemy)
+                return;
+
+            // Handle enemy-enemy separation once per pair.
+            if (reinterpret_cast<std::uintptr_t>(this) >= reinterpret_cast<std::uintptr_t>(objectB))
+                return;
+
+            vec2 aPos = GetPosition();
+            vec2 bPos = objectB->GetPosition();
+
+            const auto& enemySettings = balance::Get().enemy;
+            const float minDist = enemySettings.overlapMinDistance;
+            if (minDist <= 0.0f)
+                return;
+
+            const float minDistSq = minDist * minDist;
+            float dx = bPos.x() - aPos.x();
+            float dy = bPos.y() - aPos.y();
+            float distSq = dx * dx + dy * dy;
+            if (distSq >= minDistSq)
+                return;
+
+            float nx = 0.0f;
+            float ny = 0.0f;
+            float dist = 0.0f;
+            if (distSq < 0.0001f)
+            {
+                const int dir = util::random(0, 4);
+                switch (dir)
+                {
+                case 0: nx = 1.0f; ny = 0.0f; break;
+                case 1: nx = -1.0f; ny = 0.0f; break;
+                case 2: nx = 0.0f; ny = 1.0f; break;
+                default: nx = 0.0f; ny = -1.0f; break;
+                }
+            }
+            else
+            {
+                dist = std::sqrt(distSq);
+                nx = dx / dist;
+                ny = dy / dist;
+            }
+
+            const float overlap = (minDist - dist);
+            const float push = overlap * 0.5f + 0.01f;
+
+            const float viewportWidth = static_cast<float>(Engine::GetViewportWidth());
+            const float viewportHeight = static_cast<float>(Engine::GetViewportHeight());
+            const float worldPadding = enemySettings.overlapWorldPadding;
+            const float worldMinX = -viewportWidth + worldPadding;
+            const float worldMinY = -viewportHeight + worldPadding;
+            const float worldMaxX = viewportWidth * 2.0f - worldPadding;
+            const float worldMaxY = viewportHeight * 2.0f - worldPadding;
+
+            aPos.x() = std::clamp(aPos.x() - nx * push, worldMinX, worldMaxX);
+            aPos.y() = std::clamp(aPos.y() - ny * push, worldMinY, worldMaxY);
+            bPos.x() = std::clamp(bPos.x() + nx * push, worldMinX, worldMaxX);
+            bPos.y() = std::clamp(bPos.y() + ny * push, worldMinY, worldMaxY);
+
+            SetPosition(aPos);
+            objectB->SetPosition(bPos);
         }
 
         GameObjectType GetObjectType() override { return GameObjectType::Enemy; }
@@ -546,35 +624,13 @@ void GamePlay1::ResolveBulletHits()
             continue;
 
         const vec2 bPos = bullet->GetPosition();
-        const float bRadius = bullet->GetHitRadius();
 
         for (EnemyChaser* enemy : enemies)
         {
             if (!enemy || enemy->GetDestroyed())
                 continue;
 
-            bool isHit = enemy->DoesCollideWith(bPos);
-            if (!isHit && bRadius > 0.0f)
-            {
-                const vec2 probes[4] =
-                {
-                    vec2{ bPos.x() + bRadius, bPos.y() },
-                    vec2{ bPos.x() - bRadius, bPos.y() },
-                    vec2{ bPos.x(), bPos.y() + bRadius },
-                    vec2{ bPos.x(), bPos.y() - bRadius }
-                };
-
-                for (const vec2& probe : probes)
-                {
-                    if (enemy->DoesCollideWith(probe))
-                    {
-                        isHit = true;
-                        break;
-                    }
-                }
-            }
-
-            if (isHit)
+            if (bullet->DoesCollideWith(enemy))
             {
                 const bool wasAlive = !enemy->GetDestroyed();
                 enemy->ApplyDamage(bullet->GetDamage(), bullet->GetVelocity());

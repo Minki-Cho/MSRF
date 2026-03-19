@@ -193,9 +193,6 @@ void GamePlay1::Update(double dt)
     if (machineBulletPool) machineBulletPool->Update(dt);
     if (shotgunBulletPool) shotgunBulletPool->Update(dt);
 
-    ResolveEnemyOverlap();
-    ResolveEnemyPlayerHits();
-
     if (playerPtr && playerPtr->IsDead() && !gameOverTriggered)
     {
         PublishRunSummary(false);
@@ -634,5 +631,4 @@ int GamePlay1::GetMaxEnemyCountForTier(int enemyTier) const
     const double scaled = static_cast<double>(maxEnemies[static_cast<std::size_t>(tier)]) * GetPhaseMaxEnemyMultiplier();
     return (std::max)(1, static_cast<int>(std::lround(scaled)));
 }
-
 
