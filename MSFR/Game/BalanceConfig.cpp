@@ -113,6 +113,50 @@ namespace balance
             {
                 if (!TryParseInt(value, settings.spawn.maxEnemiesByTier[2])) WarnInvalidValue(key, value);
             }
+            else if (key == "phase.early_end_sec")
+            {
+                if (!TryParseDouble(value, settings.phase.earlyEndSec)) WarnInvalidValue(key, value);
+            }
+            else if (key == "phase.mid_end_sec")
+            {
+                if (!TryParseDouble(value, settings.phase.midEndSec)) WarnInvalidValue(key, value);
+            }
+            else if (key == "phase.spawn_interval_mul_early")
+            {
+                if (!TryParseDouble(value, settings.phase.spawnIntervalMul[0])) WarnInvalidValue(key, value);
+            }
+            else if (key == "phase.spawn_interval_mul_mid")
+            {
+                if (!TryParseDouble(value, settings.phase.spawnIntervalMul[1])) WarnInvalidValue(key, value);
+            }
+            else if (key == "phase.spawn_interval_mul_late")
+            {
+                if (!TryParseDouble(value, settings.phase.spawnIntervalMul[2])) WarnInvalidValue(key, value);
+            }
+            else if (key == "phase.max_enemies_mul_early")
+            {
+                if (!TryParseDouble(value, settings.phase.maxEnemiesMul[0])) WarnInvalidValue(key, value);
+            }
+            else if (key == "phase.max_enemies_mul_mid")
+            {
+                if (!TryParseDouble(value, settings.phase.maxEnemiesMul[1])) WarnInvalidValue(key, value);
+            }
+            else if (key == "phase.max_enemies_mul_late")
+            {
+                if (!TryParseDouble(value, settings.phase.maxEnemiesMul[2])) WarnInvalidValue(key, value);
+            }
+            else if (key == "phase.fire_cooldown_mul_early")
+            {
+                if (!TryParseDouble(value, settings.phase.fireCooldownMul[0])) WarnInvalidValue(key, value);
+            }
+            else if (key == "phase.fire_cooldown_mul_mid")
+            {
+                if (!TryParseDouble(value, settings.phase.fireCooldownMul[1])) WarnInvalidValue(key, value);
+            }
+            else if (key == "phase.fire_cooldown_mul_late")
+            {
+                if (!TryParseDouble(value, settings.phase.fireCooldownMul[2])) WarnInvalidValue(key, value);
+            }
             else if (key == "weapon.machine.interval")
             {
                 if (!TryParseDouble(value, settings.weapon.machineGunFireIntervalSec)) WarnInvalidValue(key, value);
@@ -267,6 +311,15 @@ namespace balance
                 interval = (std::max)(0.05, interval);
             for (int& maxEnemies : settings.spawn.maxEnemiesByTier)
                 maxEnemies = (std::max)(1, maxEnemies);
+
+            settings.phase.earlyEndSec = (std::max)(5.0, settings.phase.earlyEndSec);
+            settings.phase.midEndSec = (std::max)(settings.phase.earlyEndSec + 5.0, settings.phase.midEndSec);
+            for (double& mul : settings.phase.spawnIntervalMul)
+                mul = (std::max)(0.10, mul);
+            for (double& mul : settings.phase.maxEnemiesMul)
+                mul = (std::max)(0.10, mul);
+            for (double& mul : settings.phase.fireCooldownMul)
+                mul = (std::max)(0.10, mul);
 
             settings.weapon.machineGunFireIntervalSec = (std::max)(0.01, settings.weapon.machineGunFireIntervalSec);
             settings.weapon.shotgunFireIntervalSec = (std::max)(0.01, settings.weapon.shotgunFireIntervalSec);

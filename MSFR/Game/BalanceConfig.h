@@ -56,14 +56,23 @@ namespace balance
         std::array<int, 3> maxEnemiesByTier{ 12, 18, 24 };
     };
 
+    struct PhaseSettings
+    {
+        double earlyEndSec = 45.0;
+        double midEndSec = 95.0;
+        std::array<double, 3> spawnIntervalMul{ 1.22, 1.08, 0.84 };
+        std::array<double, 3> maxEnemiesMul{ 0.78, 0.92, 1.30 };
+        std::array<double, 3> fireCooldownMul{ 0.92, 0.96, 1.06 };
+    };
+
     struct Settings
     {
         WeaponSettings weapon{};
         EnemySettings enemy{};
         SpawnSettings spawn{};
+        PhaseSettings phase{};
     };
 
     const Settings& Get();
     void Reload();
 }
-

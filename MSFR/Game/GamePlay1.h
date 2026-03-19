@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <memory>
 
 #include "../Engine/GameObjectManager.h"
@@ -29,6 +30,12 @@ private:
     };
 
     void HandleWeaponInput(double dt);
+    bool HandlePauseMenu();
+    int GetPhaseIndex() const;
+    double GetPhaseSpawnIntervalMultiplier() const;
+    double GetPhaseMaxEnemyMultiplier() const;
+    double GetPhaseFireCooldownMultiplier() const;
+    void MaybeEmitBalanceLog();
     void FireMachineGun();
     void FireShotgun();
     void SpawnBullet(const vec2& origin, const vec2& direction, float speed, double lifeTimeSec, int damage, float hitRadius, const char* spriteSptPath);
@@ -40,6 +47,7 @@ private:
     void ResolveEnemyPlayerHits();
     void ResolveBulletHits();
     void SpawnHitParticles(const vec2& origin, const vec2& bulletVelocity);
+    void PublishRunSummary(bool cleared);
     int CountAliveByType(GameObjectType type) const;
     double GetSpawnIntervalForTier(int enemyTier) const;
     int GetMaxEnemyCountForTier(int enemyTier) const;
@@ -57,6 +65,14 @@ private:
     double enemySpawnTimer{ 0.0 };
     bool clearTriggered{ false };
     bool gameOverTriggered{ false };
+    bool pauseMenuOpen{ false };
+    int pausePendingAction{ 0 }; // 0:none, 1:resume, 2:restart, 3:menu, 4:quit
+    double runElapsedSec{ 0.0 };
+    int runKillCount{ 0 };
+    std::array<double, 3> phaseElapsedSec{ 0.0, 0.0, 0.0 };
+    std::array<int, 3> phaseKillCount{ 0, 0, 0 };
+    int currentPhaseIndex{ -1 };
+    double nextBalanceLogSec{ 10.0 };
 
     WeaponMode weaponMode{ WeaponMode::MachineGun };
     double fireCooldownTimer{ 0.0 };

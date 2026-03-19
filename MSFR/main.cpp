@@ -11,6 +11,24 @@
 
 namespace
 {
+    bool HasFlag(int argc, char** argv, const char* flag)
+    {
+        if (!flag || !*flag)
+            return false;
+
+        for (int i = 1; i < argc; ++i)
+        {
+            const char* arg = argv[i];
+            if (!arg)
+                continue;
+
+            if (std::string(arg) == flag)
+                return true;
+        }
+
+        return false;
+    }
+
     std::uint64_t ParseAutoExitMs(int argc, char** argv)
     {
         constexpr const char* kPrefix = "--auto-exit-ms=";
@@ -47,6 +65,8 @@ int main(int argc, char** argv)
     try
     {
         const std::uint64_t autoExitMs = ParseAutoExitMs(argc, argv);
+        const bool autoPlay = HasFlag(argc, argv, "--auto-play");
+        Engine::SetAutoPlayEnabled(autoPlay);
         const std::uint64_t startTick = SDL_GetTicks64();
 
         DX11App app("My game Engine", 1080, 720);

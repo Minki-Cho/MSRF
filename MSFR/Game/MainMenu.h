@@ -21,4 +21,6 @@ private:
 	TextureDX11 MainMenuImage;
 	double timer;
 	GameObjectManager tt;
+	bool showQuitConfirm = false;
+	bool requestQuitNow = false;
 };

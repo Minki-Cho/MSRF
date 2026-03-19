@@ -654,6 +654,7 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
         else if (k == SDLK_RIGHT)  Engine::GetInput().OnKeyDown(InputKey::Keyboard::Right);
         else if (k == SDLK_1)      Engine::GetInput().OnKeyDown(InputKey::Keyboard::Num1);
         else if (k == SDLK_2)      Engine::GetInput().OnKeyDown(InputKey::Keyboard::Num2);
+        else if (k == SDLK_h)      Engine::GetInput().OnKeyDown(InputKey::Keyboard::H);
         else if (k == SDLK_F3)     Engine::GetInput().OnKeyDown(InputKey::Keyboard::F3);
         break;
     }
@@ -672,6 +673,7 @@ void DX11App::HandleSDLEvent(const SDL_Event& e)
         else if (k == SDLK_RIGHT)  Engine::GetInput().OnKeyUp(InputKey::Keyboard::Right);
         else if (k == SDLK_1)      Engine::GetInput().OnKeyUp(InputKey::Keyboard::Num1);
         else if (k == SDLK_2)      Engine::GetInput().OnKeyUp(InputKey::Keyboard::Num2);
+        else if (k == SDLK_h)      Engine::GetInput().OnKeyUp(InputKey::Keyboard::H);
         else if (k == SDLK_F3)     Engine::GetInput().OnKeyUp(InputKey::Keyboard::F3);
         break;
     }
@@ -786,19 +788,22 @@ void DX11App::Update()
     ptr_context->ClearRenderTargetView(ptr_rtv, clear_color);
     ptr_context->ClearDepthStencilView(ptr_dsv, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
+    BeginImGuiFrame();
+
     // User program
     ptr_program->Update();
     if (Engine::GetGameStateManager().HasGameEnded())
     {
         is_done = true;
-        return;
     }
-    ptr_program->Draw();
+    else
+    {
+        ptr_program->Draw();
 
-    // Schedule stress jobs right before profiler draw so the table can show Running states.
-    RunThreadStressStep();
+        // Schedule stress jobs right before profiler draw so the table can show Running states.
+        RunThreadStressStep();
+    }
 
-    BeginImGuiFrame();
     DrawProfilerOverlay();
 
     // Present

@@ -79,15 +79,17 @@ void GamePlay1::HandleWeaponInput(double dt)
     if (fireCooldownTimer > 0.0)
         return;
 
+    const double phaseCooldownMul = GetPhaseFireCooldownMultiplier();
+
     if (weaponMode == WeaponMode::MachineGun)
     {
         FireMachineGun();
-        fireCooldownTimer = machineGunInterval;
+        fireCooldownTimer = machineGunInterval * phaseCooldownMul;
     }
     else
     {
         FireShotgun();
-        fireCooldownTimer = shotgunInterval;
+        fireCooldownTimer = shotgunInterval * phaseCooldownMul;
     }
 }
 

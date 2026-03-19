@@ -1,0 +1,62 @@
+[0.3412]	Event	Engine InitCore
+[0.3428]	Event	Job workers (after init) = 31
+[1.3715]	Event	Audio initialized (miniaudio).
+[1.3865]	Event	[State] Load Spalsh | thread=13396 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[1.4371]	Event	[State] Load Complete | thread=13396 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
+[2.0285]	Event	[Command] RequestStateChange -> 1
+[2.0329]	Event	[State] Unload Spalsh | thread=13396 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:62 (GameStateManager::Update)
+[2.0331]	Event	Clear Textures
+[2.0348]	Event	[State] Load MainMenu | thread=13396 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[2.0805]	Event	[State] Load Complete | thread=13396 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
+[2.1190]	Event	[Command] MenuAction -> Play
+[2.1193]	Event	[Command] RequestStateChange -> 2
+[2.1230]	Event	[State] Unload MainMenu | thread=13396 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:62 (GameStateManager::Update)
+[2.1232]	Event	Clear Textures
+[2.1250]	Event	[State] Load GamePlay1 | thread=13396 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[2.1262]	Event	[Balance] Loaded assets/config/gameplay_balance.cfg
+[2.1268]	Event	Sprite SPT: assets/images/characters/characters/thief/thief.spt
+[2.1270]	Event	Texture token: assets/images/characters/characters/thief/thief.png
+[2.1272]	Event	Resolved texture path: assets/images/characters/characters/thief/thief.png
+[2.1524]	Event	Sprite SPT: assets/images/items/data_core/data_core.spt
+[2.1532]	Event	Texture token: assets/images/items/data_core/data_core.png
+[2.1534]	Event	Resolved texture path: assets/images/items/data_core/data_core.png
+[2.2025]	Event	Sprite SPT: assets/images/weapons/bullet_machine.spt
+[2.2028]	Event	Texture token: assets/images/weapons/bullet_machine.png
+[2.2036]	Event	Resolved texture path: assets/images/weapons/bullet_machine.png
+[2.4892]	Event	Sprite SPT: assets/images/weapons/bullet_shotgun.spt
+[2.4894]	Event	Texture token: assets/images/weapons/bullet_shotgun.png
+[2.4901]	Event	Resolved texture path: assets/images/weapons/bullet_shotgun.png
+[2.6837]	Event	[State] Load Complete | thread=13396 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
+[2.6849]	Event	[BalanceLog] PhaseEnter phase=0 t=0.250000 hp=100 cores=0/4 kills=0
+[2.6857]	Event	Sprite SPT: assets/images/characters/characters/enemy/enemy.spt
+[2.6858]	Event	Texture token: assets/images/characters/characters/enemy/enemy.png
+[2.6859]	Event	Resolved texture path: assets/images/characters/characters/enemy/enemy.png
+[4.0487]	Event	[BalanceLog] Tick t=10.000000 phase=0 hp=100 cores=0/4 enemies=3 kills=0
+[5.3429]	Event	FPS: 296.748229
+[5.3981]	Event	[BalanceLog] Tick t=20.000000 phase=0 hp=100 cores=0/4 enemies=6 kills=0
+[6.8327]	Event	[BalanceLog] Tick t=30.000000 phase=0 hp=100 cores=0/4 enemies=6 kills=0
+[7.6149]	Event	[BalanceLog] PhaseEnter phase=1 t=35.005010 hp=99 cores=0/4 kills=0
+[8.3663]	Event	[BalanceLog] Tick t=40.000000 phase=1 hp=88 cores=0/4 enemies=8 kills=0
+[9.8003]	Event	[BalanceLog] Tick t=50.000000 phase=1 hp=65 cores=0/4 enemies=8 kills=0
+[10.3446]	Event	FPS: 408.866113
+[11.2247]	Event	[BalanceLog] Tick t=60.000000 phase=1 hp=42 cores=0/4 enemies=8 kills=0
+[12.6694]	Event	[BalanceLog] Tick t=70.000000 phase=1 hp=19 cores=0/4 enemies=8 kills=0
+[13.8537]	Event	[BalanceLog] RunEnd result=death t=77.8571 kills=0 cores=0/4 phaseTime=[34.9883,42.8687,0] phaseKills=[0,0,0]
+[13.8546]	Event	[Command] RequestStateChange -> 5
+[13.8599]	Event	[State] Unload GamePlay1 | thread=13396 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:62 (GameStateManager::Update)
+[13.8602]	Event	Clear Textures
+[13.8695]	Event	[State] Load GameOver | thread=13396 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[13.9184]	Event	[State] Load Complete | thread=13396 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
+[15.3455]	Event	FPS: 425.124506
+[20.3458]	Event	FPS: 471.772401
+[25.3466]	Event	FPS: 483.122150
+[30.3474]	Event	FPS: 469.724468
+[35.3485]	Event	FPS: 464.898801
+[40.3487]	Event	FPS: 463.377758
+[45.3488]	Event	FPS: 477.789403
+[50.3503]	Event	FPS: 468.464829
+[55.3519]	Event	FPS: 471.449749
+[60.3525]	Event	FPS: 457.143460
+[65.0022]	Event	Engine Shutdown
+[65.1395]	Event	Audio shutdown.
+[65.1401]	Event	Clear Textures

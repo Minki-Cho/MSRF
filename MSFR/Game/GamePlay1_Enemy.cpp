@@ -19,7 +19,6 @@
 namespace
 {
     constexpr float kPi = 3.14159265358979323846f;
-
     int ToAnimActionId(CharacterAnim anim)
     {
         switch (anim)
@@ -577,7 +576,15 @@ void GamePlay1::ResolveBulletHits()
 
             if (isHit)
             {
+                const bool wasAlive = !enemy->GetDestroyed();
                 enemy->ApplyDamage(bullet->GetDamage(), bullet->GetVelocity());
+                if (wasAlive && enemy->GetDestroyed())
+                {
+                    ++runKillCount;
+                    const int phaseIndex = GetPhaseIndex();
+                    if (phaseIndex >= 0 && phaseIndex < 3)
+                        ++phaseKillCount[phaseIndex];
+                }
                 SpawnHitParticles(bPos, bullet->GetVelocity());
                 Engine::PlaySound("assets/sounds/hit_enemy.wav");
                 bullet->Deactivate();

@@ -1,64 +1,99 @@
-# MSFR - DirectX11-Based 2D Game Framework
+﻿# MSFR - Multithreaded Simulation Rendering Framework
 <img width="1536" height="1024" alt="Splash" src="https://github.com/user-attachments/assets/0705bf37-f5fa-4c27-809d-92fb945d9078" />
 
 ## 1. Project Overview
 
-MSFR(Multithreaded Simulation Rendering Framework) is a personal game framework/prototype built with **C++17, SDL2, and DirectX11**.  
-Instead of stopping at basic window rendering, this project focuses on implementing a practical game-development workflow end to end.
+MSFR is a personal 2D game framework/prototype built with **C++17 + SDL2 + DirectX11**.
+The project focuses on structuring a real gameplay pipeline, not just rendering a window.
 
-Implemented areas include:
+Current implementation includes:
 
-- SDL2 window/event handling integrated with a DirectX11 render loop
-- State-driven game flow (Splash → MainMenu → GamePlay)
-- Action-based input interpretation system (`ActionSystem`)
-- Game object/component architecture and player state machine (Idle/Move)
-- Texture/sprite/animation loading and rendering
-- Engine core systems (logger, job system, texture manager, state manager)
-
-The primary goal was to design a structure that stays easy to extend as features grow.
+- SDL2 event loop integrated with a DirectX11 renderer
+- State-based flow: `Splash -> MainMenu -> GamePlay1`
+- `Input` to `ActionSystem` translation layer
+- `GameObject` + component architecture with a player FSM (`Idle`, `Move`)
+- Sprite/animation loading from `.spt` / `.anm`
+- Engine-level services: logger, job system, texture manager, state manager, event bus, command pool
+- ImGui-based runtime profiler overlay
 
 ---
 
-## 2. Tech Stack
+## 2. Recent Updates
+
+- Added **ImGui profiler overlay** (`F2` toggle): frame time/FPS graph, worker count, pending jobs, command-pool usage
+- Added **EventBus + Command pattern** for state change and menu-action processing
+- Added **fixed-size CommandPool** (`CommandPool<2048, 64>`) for command allocation
+- Upgraded object update path with **JobSystem-based parallel dispatch**
+- Added **camera follow + clamp** behavior in `GamePlay1`
+- Added **collision debug draw toggle** (`~`)
+- Added **automation scripts and CI smoke run**:
+  - `scripts/build-and-demo.ps1`
+  - `scripts/demo-smoke.ps1`
+  - GitHub Actions workflow (`.github/workflows/c-cpp.yml`)
+- Replaced blocking SDL message-box menus with in-game ImGui overlays for `MainMenu`, `HowToPlay`, `GameOver`, and gameplay pause
+- Added run-result summary on `Credit`/`GameOver` (survival time, enemies defeated, core collection rate)
+- Applied first-pass gameplay rebalance in `assets/config/gameplay_balance.cfg` (spawn pacing, enemy stats, weapon cadence)
+
+---
+
+## 3. Tech Stack
 
 - Language: **C++17**
 - Graphics API: **DirectX 11**
-- Window / Event: **SDL2**
-- Build Toolchain: **Visual Studio 2022 (v143 Toolset)**
-- Platform: **Windows (x64)**
+- Window/Event: **SDL2**
+- UI Overlay: **Dear ImGui** (`imgui_impl_sdl2`, `imgui_impl_dx11`)
+- Build Toolchain: **Visual Studio 2022 (v143)**
+- Platform: **Windows x64**
 
 ---
 
-## 3. Runtime Flow
+## 4. Runtime Flow
 
-When the game starts, the flow is:
+1. **Splash**
+- Displays `assets/images/Splash.png`
+- Automatically transitions after about 5 seconds
+- Can be skipped immediately via `Enter`, `Space`, or mouse left-button release
 
-1. **Splash State**
-   - Displays a splash image for 5 seconds
-   - Can be skipped immediately via Enter/Space/Mouse click
-2. **MainMenu State**
-   - Displays the menu image
-   - Detects Play/HowToPlay/Quit zones by mouse click position
-   - Transitions to gameplay on Play click
-3. **GamePlay1 State**
-   - Renders map texture
-   - Spawns player object and handles movement/animation via arrow keys
+2. **MainMenu**
+- Displays `assets/images/MainMenu.png`
+- Supports `Play / HowToPlay / Quit` via mouse click
+- Keyboard shortcuts:
+  - `Enter` or `Space`: Play
+  - `H`: HowToPlay
+  - `Esc`: Quit confirmation
+- `HowToPlay` opens a dedicated overlay state and lets you choose `Start Game` or `Back`
+- `Quit` uses a non-blocking in-game confirmation overlay
+
+3. **GamePlay1**
+- Creates `GameObjectManager` and spawns `Player`
+- Renders map texture (`assets/images/map.png`)
+- Updates player movement and animation
+- Applies player-follow camera with world-boundary clamping
 
 ---
 
-## 4. Architecture
+## 5. Controls
 
-### 4-1. Entry Point and Application Layer
+- `Arrow Keys`: player move action
+- `Enter`, `Space`, `Mouse Left Release`: splash skip action
+- `Esc` (in gameplay): pause menu (`Resume / Restart / Main Menu / Quit`)
+- `F1`: logger console on/off
+- `F2`: profiler overlay on/off
+- `` ` `` (tilde): collision debug draw on/off
 
-- `main.cpp` creates a `DX11App` instance and runs `Update()` until `IsDone()`.
-- `DX11App` handles SDL window creation, D3D11 device/swapchain/RTV/DSV initialization, event pumping, and frame presentation.
-- Game-specific logic is abstracted through the `IProgram` interface, currently implemented as `GameProgram`.
+---
 
-This separation keeps **platform/render loop concerns (`DX11App`)** independent from **gameplay logic (`GameProgram` + `Engine`)**.
+## 6. Architecture
 
-### 4-2. Engine Singleton Core
+### 6-1. App Layer (`DX11App`)
 
-`Engine` works as a global service hub:
+- Creates SDL window, extracts HWND, and initializes D3D11 device/context/swapchain
+- Creates back-buffer RTV/DSV and recreates them on resize
+- Frame loop: input update -> event pump -> action poll -> game update/draw -> ImGui draw -> present
+
+### 6-2. Engine Core (`Engine`)
+
+Global service hub:
 
 - `Logger`
 - `Input`
@@ -67,173 +102,139 @@ This separation keeps **platform/render loop concerns (`DX11App`)** independent 
 - `JobSystem`
 - `ActionSystem`
 - `CommandPool`
+- `EventBus`
 
-It also stores DX11 device/context/swapchain pointers for centralized render-system access.
+Also stores DX11 pointers and per-frame timing values (`dt`, `ms`, `fps`).
 
-### 4-3. State-Driven Game Flow
+### 6-3. State System (`GameStateManager`)
 
-`GameStateManager` runs an internal lifecycle state machine:
+Lifecycle state machine:
 
-`START → LOAD → UPDATE → UNLOAD → SHUTDOWN → EXIT`
+`START -> LOAD -> UPDATE -> UNLOAD -> SHUTDOWN -> EXIT`
 
-Core responsibilities:
+Responsibilities:
 
-- Register states: `AddGameState(...)`
-- Request transition: `SetNextState(index)`
-- Control state lifecycle: `Load() → Update() + Draw() → Unload()`
+- state registration: `AddGameState(...)`
+- transition request: `SetNextState(index)`
+- lifecycle execution: `Load() -> Update()/Draw() -> Unload()`
 
-This makes screen units (Splash/MainMenu/GamePlay) clearly separated and easier to maintain.
+### 6-4. Event + Command Flow
 
-### 4-4. Input and ActionSystem
+- Game states publish events (`RequestStateChangeEvent`, `MenuActionEvent`)
+- `GameProgram` subscribes and executes commands via pool:
+  - `RequestStateChangeCommand`
+  - `LogMenuActionCommand`
 
-Raw input is collected in `Input`, then translated to game actions in `ActionSystem`.
+This decouples gameplay triggers from transition execution details.
 
-- Arrow keys (Up/Down/Left/Right) → movement actions
-- Enter/Space/Mouse release → `Skip` action
+### 6-5. Object/Component Layer
 
-Benefits:
-
-- Gameplay code depends on abstract actions rather than physical key codes
-- Lower refactor cost when changing key bindings
-- Easier debugging/tracing at action level
-
-### 4-5. Object/Component Structure
-
-- `GameObject` handles position/velocity/state updates
-- `Sprite` component handles sprite rendering and animation playback
-- `GameObjectManager` centralizes object update/render/collision checks
-
-The player is implemented as `Player` with an internal state machine:
-
-- `StateIdle`: no movement + idle animation
-- `StateMove`: movement vector calculation + directional animation
-
-This pattern is intentionally extensible for future states such as Dash/Attack/Hurt.
+- `GameObject` owns transform/state and per-object components
+- `Sprite` loads texture/animations/collision data from asset descriptors
+- `GameObjectManager` updates objects in parallel through `JobSystem`
+- Optional collision debug rendering is drawn per object component
 
 ---
 
-## 5. Key Implementation Highlights
-
-### 5-1. Stable Rendering Pipeline
-
-- D3D11 device/context creation
-- Swapchain + backbuffer RTV/depth-stencil creation
-- Safe render target recreation after window resize (`ResizeBuffers`)
-- Per-frame `Clear → Draw → Present` sequence
-
-### 5-2. State-Based Resource Lifecycle
-
-During state transitions, textures are unloaded and each state’s `Unload()` is called, reducing stale resources and improving memory hygiene.
-
-### 5-3. Input-Driven Menu Interaction
-
-Main menu click handling is implemented via rectangle hit tests based on mouse coordinates, enabling direct interaction without a separate UI framework.
-
-### 5-4. Player Movement and Animation
-
-Movement vectors are computed from directional input, with idle animations selected based on last movement direction. Out-of-bounds fallback resets the player to a start position for stable runtime behavior.
-
----
-
-## 6. Directory Structure
+## 7. Directory Structure
 
 ```text
 MSFR/
+  Engine/
+    DX11App.*
+    Engine.*
+    GameStateManager.*
+    EventBus.h
+    GameCommands.h
+    CommandPool.h
+    JobSystem.*
+    TextureDX11.*
+    Sprite.*
+    GameObject.*
+    GameObjectManager.*
+    Input.*
+    ActionSystem.*
   Game/
-    GameProgram.h
     Splash.*
     MainMenu.*
     GamePlay1.*
     Player.*
+    ScreenMods.h
   assets/
     images/
     shaders/
   external/
     include/SDL2/
-  DX11App.*
-  Engine.*
-  GameStateManager.*
-  GameObject.*
-  GameObjectManager.*
-  TextureDX11.*
-  Sprite.*
-  Input.*
-  ActionSystem.*
+    imgui/
   main.cpp
   MSFR.sln
   MSFR.vcxproj
+scripts/
+  build-and-demo.ps1
+  demo-smoke.ps1
+.github/workflows/
+  c-cpp.yml
 ```
 
 ---
 
-## 7. Build and Run
+## 8. Build and Run
 
-### 7-1. Prerequisites
+### 8-1. Prerequisites
 
 - Windows 10/11
 - Visual Studio 2022 (Desktop development with C++)
 - DirectX 11 runtime
-- SDL2 headers/libs/`SDL2.dll` in the repository `external` path
+- SDL2 headers/libs/`SDL2.dll` included in the repository (`MSFR/external`)
 
-### 7-2. Build
+### 8-2. Build (Visual Studio)
 
-1. Open `MSFR/MSFR.sln` in Visual Studio
-2. Select `x64 + Debug` or `x64 + Release`
-3. Build the solution
+1. Open `MSFR/MSFR.sln`
+2. Select `x64` + `Debug` or `Release`
+3. Build
 
-The project is configured to copy `external/bin/SDL2.dll` to the target output folder after build.
+The `MSFR.vcxproj` post-build step copies `external/bin/SDL2.dll` to the output folder.
 
-### 7-3. Run
+### 8-3. Run
 
-- Set `MSFR` as the startup project in Visual Studio
-- Run the project to launch the game window with runtime logs
+- Set `MSFR` as the startup project and run
+
+### 8-4. Scripted Build + Smoke
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/build-and-demo.ps1 -Configuration Debug -AutoExitMs 7000
+```
+
+Smoke run checks:
+
+- executable launch/exit
+- whether `Trace.log` is created
+- whether the `Engine InitCore` marker exists
 
 ### 8-5. Balance Tuning
 
 - Gameplay balance values are loaded from:
   - `MSFR/assets/config/gameplay_balance.cfg`
-- You can tune weapon, enemy, and spawn values without recompiling code.
+- You can tune weapon, enemy, spawn, and phase (`early/mid/late`) values without recompiling code.
 - The file is reloaded each time `GamePlay1` state enters `Load()`.
+- Runtime balance logs are emitted as `[BalanceLog] ...` lines in `Trace.log`.
+- For automated gameplay-entry profiling, run:
+  - `MSFR.exe --auto-play --auto-exit-ms=65000`
 
 ---
 
-## 8. Problems Solved and Lessons Learned
+## 9. CI
 
-### 1) SDL Window + DX11 Initialization Integration
+GitHub Actions (`Windows Build & Demo Smoke`) runs:
 
-The project required reliable HWND extraction from SDL for DXGI swapchain setup. Using `SDL_SysWMinfo` and enforcing a clear initialization order improved runtime stability.
-
-### 2) Resource Cleanup During State Transitions
-
-To prevent leaks across repeated transitions, unload timing for state resources and the texture manager was explicitly separated.
-
-### 3) Decoupling Input Events from Game Actions
-
-Direct keycode dependency in gameplay logic was reduced by separating raw input (`Input`) from semantic actions (`ActionSystem`).
-
-### 4) Consistent Animation-State Transitions
-
-Inconsistent idle/move animation transitions were improved by explicitly modeling player behavior through a state machine.
+- matrix build (`Debug`, `Release`)
+- `demo-smoke.ps1` auto-exit run
+- trace log artifact upload
 
 ---
 
-## 9. Roadmap
+## 10. Known Gaps / Next Steps
 
-- Implement functional HowToPlay / Quit flows
-- Add camera system (world-space vs screen-space separation)
-- Improve collision handling (AABB + layer/mask)
-- Build basic UI framework (button components, text rendering)
-- Add audio system (BGM/SFX loading and channel management)
-- Move toward data-driven design (JSON-based state/object loading)
-- Strengthen editor/debug overlay tooling
-
----
-
-## 10. Portfolio Strengths Emphasized
-
-- Engine-oriented architecture design separating rendering/input/state/object layers
-- C++ system-level implementation with lifecycle and dependency awareness
-- Complete playable loop from startup state to interactive gameplay
-- Extension-first design mindset rather than one-off feature implementation
-
----
+- Collision system is currently focused on debug rendering/basic checks and needs gameplay integration
+- A full custom in-game UI framework is still pending (current menus use ImGui overlays)
+- Data-driven loading (e.g., JSON) and editor tooling remain on the roadmap

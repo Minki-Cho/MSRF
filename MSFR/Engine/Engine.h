@@ -45,6 +45,16 @@ public:
         bool valid = false;
     };
 
+    struct LastRunSummary
+    {
+        double survivalSec = 0.0;
+        int killCount = 0;
+        int coresCollected = 0;
+        int coresTotal = 0;
+        bool cleared = false;
+        bool valid = false;
+    };
+
     enum class AnimationSpeed
     {
         Slow = 1,
@@ -80,6 +90,8 @@ public:
     static EventBus& GetEventBus() { return Instance().eventBus; }
     static AudioSystem& GetAudioSystem() { return Instance().audioSystem; }
     static bool PlaySound(const std::filesystem::path& soundPath) { return Instance().audioSystem.PlayOneShot(soundPath); }
+    static bool IsAutoPlayEnabled() { return Instance().autoPlayEnabled; }
+    static void SetAutoPlayEnabled(bool enabled) { Instance().autoPlayEnabled = enabled; }
     static AnimationSpeed GetAnimationSpeedLevel() { return Instance().animationSpeedLevel; }
     static bool IsCollisionDebugDrawEnabled() { return Instance().collisionDebugDrawEnabled; }
     static void ToggleCollisionDebugDraw()
@@ -107,6 +119,8 @@ public:
     static void SetBulletPoolDebugStats(const BulletPoolDebugStats& stats) { Instance().bulletPoolDebugStats = stats; }
     static GameplayHudStats GetGameplayHudStats() { return Instance().gameplayHudStats; }
     static void SetGameplayHudStats(const GameplayHudStats& stats) { Instance().gameplayHudStats = stats; }
+    static LastRunSummary GetLastRunSummary() { return Instance().lastRunSummary; }
+    static void SetLastRunSummary(const LastRunSummary& summary) { Instance().lastRunSummary = summary; }
 
     template<typename T>
     static T* GetGSComponent() { return GetGameStateManager().GetGSComponent<T>(); }
@@ -146,6 +160,7 @@ private:
     bool initialized = false;
 
     bool usesInternalWindow = false;
+    bool autoPlayEnabled = false;
 
     Logger logger;
     GameStateManager gameStateManager;
@@ -168,4 +183,5 @@ private:
     bool collisionDebugDrawEnabled = false;
     BulletPoolDebugStats bulletPoolDebugStats{};
     GameplayHudStats gameplayHudStats{};
+    LastRunSummary lastRunSummary{};
 };
