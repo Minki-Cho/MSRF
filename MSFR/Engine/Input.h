@@ -65,7 +65,6 @@ public:
     bool GetMouseReleasedThisFrame() const { return mouseReleasedThisFrame; }
 
 private:
-    static InputKey::Keyboard VKToKeyboard(std::uintptr_t vk);
     static const char* KeyboardToString(InputKey::Keyboard key);
 
 private:

@@ -1,11 +1,9 @@
 #include "Logger.h"
+#include "PlatformLogger.h"
 #include <iostream>
 #include <sstream>
 #include <iomanip>
 #include <thread>
-
-#define NOMINMAX
-#include <Windows.h>
 
 namespace
 {
@@ -37,7 +35,7 @@ Logger::Logger(Logger::Severity severity, bool useConsole_, std::chrono::system_
 {
     if (!fileStream.is_open())
     {
-        OutputDebugStringA("[Logger] Failed to open Trace.log\n");
+        platform::DebugOutput("[Logger] Failed to open Trace.log\n");
     }
 }
 
@@ -122,7 +120,7 @@ void Logger::Log(Logger::Severity severity, const std::string& message)
         fileStream.flush();
     }
 
-    OutputDebugStringA(line.c_str());
+    platform::DebugOutput(line.c_str());
 
     if (useConsole)
     {
@@ -131,9 +129,7 @@ void Logger::Log(Logger::Severity severity, const std::string& message)
 
         if (focusRestoreHwnd)
         {
-            HWND hwnd = static_cast<HWND>(focusRestoreHwnd);
-            SetForegroundWindow(hwnd);
-            SetFocus(hwnd);
+            platform::RestoreWindowFocus(focusRestoreHwnd);
         }
     }
 }

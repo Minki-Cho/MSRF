@@ -169,9 +169,11 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
     <ClCompile Include="Engine\GameObjectmanager.cpp" />
     <ClCompile Include="Engine\GameStateManager.cpp" />
     <ClCompile Include="Engine\input.cpp" />
+    <ClCompile Include="Engine\InputWin32.cpp" />
     <ClCompile Include="Engine\IProgram.cpp" />
     <ClCompile Include="Engine\JobSystem.cpp" />
     <ClCompile Include="Engine\Logger.cpp" />
+    <ClCompile Include="Engine\PlatformLoggerWin32.cpp" />
     <ClCompile Include="Engine\Random.cpp" />
     <ClCompile Include="Engine\Sprite.cpp" />
     <ClCompile Include="Engine\TextureDX11.cpp" />
@@ -218,6 +220,7 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
     <ClInclude Include="Engine\IProgram.h" />
     <ClInclude Include="Engine\JobSystem.h" />
     <ClInclude Include="Engine\Logger.h" />
+    <ClInclude Include="Engine\PlatformLogger.h" />
     <ClInclude Include="Engine\mat3.h" />
     <ClInclude Include="Engine\Objectpool.h" />
     <ClInclude Include="Engine\owner.h" />
