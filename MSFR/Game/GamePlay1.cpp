@@ -1,7 +1,7 @@
 #include "../Engine/Engine.h"
 #include "../Engine/EventTypes.h"
 #include "../Engine/Random.h"
-#include "../external/imgui/imgui.h"
+#include "../Engine/UIFramework.h"
 #include <SDL2/SDL.h>
 
 #include "DataCore.h"
@@ -382,14 +382,18 @@ void GamePlay1::Draw()
         }
     }
 
+    auto& ui = UI::Get();
+    ui.BeginFrame();
+    const auto& theme = ui.GetTheme();
+
     if (playerPtr)
     {
         const vec2 playerPos = playerPtr->GetPosition();
         const float playerScreenX = playerPos.x() + cameraX;
         const float playerScreenY = viewportHeight - (playerPos.y() + cameraY);
-        ImDrawList* fg = ImGui::GetForegroundDrawList();
+        const float labelX = playerScreenX + 36.0f;
+        const float labelY = playerScreenY - 56.0f;
 
-        const ImVec2 labelPos(playerScreenX + 36.0f, playerScreenY - 56.0f);
         if (isReloading)
         {
             const float progress = std::clamp(
@@ -398,22 +402,22 @@ void GamePlay1::Draw()
                 1.0f);
             char reloadText[64] = {};
             std::snprintf(reloadText, sizeof(reloadText), "RELOADING %.0f%%", progress * 100.0f);
-            fg->AddText(labelPos, IM_COL32(255, 210, 90, 255), reloadText);
-
-            const ImVec2 barMin(labelPos.x, labelPos.y + 18.0f);
-            const ImVec2 barMax(labelPos.x + 96.0f, labelPos.y + 26.0f);
-            fg->AddRectFilled(barMin, barMax, IM_COL32(30, 30, 36, 220), 2.0f);
-            fg->AddRectFilled(barMin, ImVec2(barMin.x + (barMax.x - barMin.x) * progress, barMax.y), IM_COL32(255, 170, 60, 240), 2.0f);
-            fg->AddRect(barMin, barMax, IM_COL32(255, 255, 255, 120), 2.0f);
+            ui.Label(labelX, labelY, reloadText, 1.8f, UI::Color{ 1.0f, 0.82f, 0.42f });
+            ui.ProgressBar(
+                UI::Rect{ labelX, labelY + 20.0f, 112.0f, 14.0f },
+                progress,
+                UI::Color{ 0.95f, 0.55f, 0.26f },
+                UI::Color{ 0.12f, 0.14f, 0.18f },
+                theme.panelBorder);
         }
         else
         {
             char ammoText[64] = {};
             std::snprintf(ammoText, sizeof(ammoText), "AMMO %d/%d", ammoInMagazine, kMagazineSize);
-            const ImU32 ammoColor = (ammoInMagazine <= 10)
-                ? IM_COL32(255, 130, 130, 255)
-                : IM_COL32(180, 230, 255, 255);
-            fg->AddText(labelPos, ammoColor, ammoText);
+            const UI::Color ammoColor = (ammoInMagazine <= 10)
+                ? UI::Color{ 1.0f, 0.48f, 0.48f }
+                : UI::Color{ 0.70f, 0.86f, 1.0f };
+            ui.Label(labelX, labelY, ammoText, 1.8f, ammoColor);
         }
     }
 
@@ -422,116 +426,87 @@ void GamePlay1::Draw()
         const int hpMax = playerPtr ? playerPtr->GetMaxHP() : 0;
         const int coresCollected = std::clamp(totalCoreCount - CountAliveByType(GameObjectType::DataCore), 0, totalCoreCount);
         const int enemiesRemaining = CountAliveByType(GameObjectType::Enemy);
+        const float hpRatio = (hpMax > 0)
+            ? std::clamp(static_cast<float>(hp) / static_cast<float>(hpMax), 0.0f, 1.0f)
+            : 0.0f;
 
-        ImGui::SetNextWindowBgAlpha(0.78f);
-        ImGui::SetNextWindowPos(
-            ImVec2(static_cast<float>(Engine::GetViewportWidth()) - 12.0f, 12.0f),
-            ImGuiCond_Always,
-            ImVec2(1.0f, 0.0f));
+        UI::Color hpFill = UI::Color{ 0.2f, 0.8f, 0.35f };
+        if (hpRatio < 0.30f)
+            hpFill = UI::Color{ 0.9f, 0.2f, 0.2f };
+        else if (hpRatio < 0.60f)
+            hpFill = UI::Color{ 0.95f, 0.75f, 0.2f };
 
-        constexpr ImGuiWindowFlags hudFlags =
-            ImGuiWindowFlags_NoDecoration |
-            ImGuiWindowFlags_AlwaysAutoResize |
-            ImGuiWindowFlags_NoSavedSettings |
-            ImGuiWindowFlags_NoNav |
-            ImGuiWindowFlags_NoMove |
-            ImGuiWindowFlags_NoFocusOnAppearing |
-            ImGuiWindowFlags_NoInputs;
+        const UI::Rect hudPanel{ viewportWidth - 286.0f, 12.0f, 274.0f, 198.0f };
+        ui.Panel(hudPanel, theme.panelBg, theme.panelBorder, 3.0f);
 
-        if (ImGui::Begin("Gameplay HUD", nullptr, hudFlags))
+        char hpLabel[64] = {};
+        std::snprintf(hpLabel, sizeof(hpLabel), "HP %d/%d", hp, hpMax);
+        ui.Label(hudPanel.x + 16.0f, hudPanel.y + 16.0f, hpLabel, 1.9f, theme.text);
+
+        ui.ProgressBar(
+            UI::Rect{ hudPanel.x + 16.0f, hudPanel.y + 38.0f, hudPanel.w - 32.0f, 18.0f },
+            hpRatio,
+            hpFill,
+            UI::Color{ 0.10f, 0.13f, 0.18f },
+            theme.panelBorder);
+
+        char hpPercentText[24] = {};
+        std::snprintf(hpPercentText, sizeof(hpPercentText), "%d%%", static_cast<int>(std::lround(hpRatio * 100.0f)));
+        ui.LabelCentered(UI::Rect{ hudPanel.x + 16.0f, hudPanel.y + 38.0f, hudPanel.w - 32.0f, 18.0f }, hpPercentText, 1.5f, theme.text);
+
+        char coresText[64] = {};
+        std::snprintf(coresText, sizeof(coresText), "CORES %d/%d", coresCollected, totalCoreCount);
+        ui.Label(hudPanel.x + 16.0f, hudPanel.y + 66.0f, coresText, 1.7f, theme.text);
+
+        const char* weaponName = (weaponMode == WeaponMode::Shotgun) ? "SHOTGUN" : "MACHINE";
+        char weaponText[64] = {};
+        std::snprintf(weaponText, sizeof(weaponText), "WEAPON %s", weaponName);
+        ui.Label(hudPanel.x + 16.0f, hudPanel.y + 85.0f, weaponText, 1.7f, theme.text);
+
+        char enemyText[64] = {};
+        std::snprintf(enemyText, sizeof(enemyText), "ENEMIES %d", enemiesRemaining);
+        ui.Label(hudPanel.x + 16.0f, hudPanel.y + 104.0f, enemyText, 1.7f, theme.text);
+
+        if (machineBulletPool)
         {
-            const float hpRatio = (hpMax > 0)
-                ? std::clamp(static_cast<float>(hp) / static_cast<float>(hpMax), 0.0f, 1.0f)
-                : 0.0f;
-
-            ImVec4 hpColor = ImVec4(0.2f, 0.8f, 0.35f, 1.0f);
-            if (hpRatio < 0.30f)
-                hpColor = ImVec4(0.9f, 0.2f, 0.2f, 1.0f);
-            else if (hpRatio < 0.60f)
-                hpColor = ImVec4(0.95f, 0.75f, 0.2f, 1.0f);
-
-            char hpLabel[64] = {};
-            std::snprintf(hpLabel, sizeof(hpLabel), "HP: %d / %d", hp, hpMax);
-
-            const float fullContentWidth = ImGui::GetContentRegionAvail().x;
-            const float hpBarWidth = 210.0f;
-
-            ImVec2 hpLabelSize = ImGui::CalcTextSize(hpLabel);
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (fullContentWidth - hpLabelSize.x) * 0.5f);
-            ImGui::TextUnformatted(hpLabel);
-
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (fullContentWidth - hpBarWidth) * 0.5f);
-            const ImVec2 barPos = ImGui::GetCursorScreenPos();
-
-            ImGui::PushStyleColor(ImGuiCol_PlotHistogram, hpColor);
-            ImGui::ProgressBar(hpRatio, ImVec2(hpBarWidth, 0.0f), "");
-            ImGui::PopStyleColor();
-
-            char hpPercentText[16] = {};
-            std::snprintf(hpPercentText, sizeof(hpPercentText), "%d%%", static_cast<int>(std::lround(hpRatio * 100.0f)));
-
-            const ImVec2 barSize = ImGui::GetItemRectSize();
-            const ImVec2 textSize = ImGui::CalcTextSize(hpPercentText);
-            const ImVec2 textPos{
-                barPos.x + (barSize.x - textSize.x) * 0.5f,
-                barPos.y + (barSize.y - textSize.y) * 0.5f
-            };
-            ImGui::GetWindowDrawList()->AddText(textPos, IM_COL32(255, 255, 255, 255), hpPercentText);
-
-            ImGui::Separator();
-            ImGui::Text("Cores: %d / %d", coresCollected, totalCoreCount);
-            ImGui::Text("Weapon: %s", (weaponMode == WeaponMode::Shotgun) ? "Shotgun" : "Machine Gun");
-            ImGui::Text("Enemies Left: %d", enemiesRemaining);
-
-            if (machineBulletPool || shotgunBulletPool)
-            {
-                ImGui::Separator();
-                if (machineBulletPool)
-                {
-                    ImGui::Text("BulletPool(M): %zu / %zu active (overflow %zu)",
-                        machineBulletPool->ActiveCount(),
-                        machineBulletPool->Capacity(),
-                        machineBulletPool->OverflowCount());
-                }
-                if (shotgunBulletPool)
-                {
-                    ImGui::Text("BulletPool(S): %zu / %zu active (overflow %zu)",
-                        shotgunBulletPool->ActiveCount(),
-                        shotgunBulletPool->Capacity(),
-                        shotgunBulletPool->OverflowCount());
-                }
-            }
+            char poolM[96] = {};
+            std::snprintf(poolM, sizeof(poolM), "M %llu/%llu O %llu",
+                static_cast<unsigned long long>(machineBulletPool->ActiveCount()),
+                static_cast<unsigned long long>(machineBulletPool->Capacity()),
+                static_cast<unsigned long long>(machineBulletPool->OverflowCount()));
+            ui.Label(hudPanel.x + 16.0f, hudPanel.y + 132.0f, poolM, 1.5f, theme.textMuted);
         }
-        ImGui::End();
+
+        if (shotgunBulletPool)
+        {
+            char poolS[96] = {};
+            std::snprintf(poolS, sizeof(poolS), "S %llu/%llu O %llu",
+                static_cast<unsigned long long>(shotgunBulletPool->ActiveCount()),
+                static_cast<unsigned long long>(shotgunBulletPool->Capacity()),
+                static_cast<unsigned long long>(shotgunBulletPool->OverflowCount()));
+            ui.Label(hudPanel.x + 16.0f, hudPanel.y + 149.0f, poolS, 1.5f, theme.textMuted);
+        }
     }
 
-    if (!pauseMenuOpen)
-        return;
-
-    ImGui::SetNextWindowPos(
-        ImVec2(Engine::GetViewportWidth() * 0.5f, Engine::GetViewportHeight() * 0.5f),
-        ImGuiCond_Always,
-        ImVec2(0.5f, 0.5f));
-
-    constexpr ImGuiWindowFlags flags =
-        ImGuiWindowFlags_NoResize |
-        ImGuiWindowFlags_NoCollapse |
-        ImGuiWindowFlags_AlwaysAutoResize;
-
-    if (ImGui::Begin("Paused", nullptr, flags))
+    if (pauseMenuOpen)
     {
-        ImGui::TextUnformatted("Game is paused.");
-        ImGui::Separator();
-        if (ImGui::Button("Resume", ImVec2(160.0f, 0.0f)))
+        const UI::Rect panel{ viewportWidth * 0.5f - 180.0f, viewportHeight * 0.5f - 150.0f, 360.0f, 300.0f };
+        ui.Panel(panel, theme.panelBg, theme.panelBorder, 3.0f);
+        ui.LabelCentered(UI::Rect{ panel.x, panel.y + 20.0f, panel.w, 28.0f }, "PAUSED", 2.6f, theme.text);
+
+        const float bx = panel.x + 60.0f;
+        const float bw = panel.w - 120.0f;
+        if (ui.Button(UI::Rect{ bx, panel.y + 70.0f, bw, 46.0f }, "RESUME"))
             pausePendingAction = 1;
-        if (ImGui::Button("Restart", ImVec2(160.0f, 0.0f)))
+        if (ui.Button(UI::Rect{ bx, panel.y + 124.0f, bw, 46.0f }, "RESTART"))
             pausePendingAction = 2;
-        if (ImGui::Button("Main Menu", ImVec2(160.0f, 0.0f)))
+        if (ui.Button(UI::Rect{ bx, panel.y + 178.0f, bw, 46.0f }, "MAIN MENU"))
             pausePendingAction = 3;
-        if (ImGui::Button("Quit", ImVec2(160.0f, 0.0f)))
+        if (ui.Button(UI::Rect{ bx, panel.y + 232.0f, bw, 46.0f }, "QUIT", true))
             pausePendingAction = 4;
     }
-    ImGui::End();
+
+    ui.EndFrame();
 }
 
 void GamePlay1::Unload()
@@ -659,7 +634,5 @@ int GamePlay1::GetMaxEnemyCountForTier(int enemyTier) const
     const double scaled = static_cast<double>(maxEnemies[static_cast<std::size_t>(tier)]) * GetPhaseMaxEnemyMultiplier();
     return (std::max)(1, static_cast<int>(std::lround(scaled)));
 }
-
-
 
 

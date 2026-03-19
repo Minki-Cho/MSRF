@@ -1,7 +1,7 @@
 #include "../Engine/DX11Services.h"
 #include "../Engine/Engine.h"
 #include "../Engine/EventTypes.h"
-#include "../external/imgui/imgui.h"
+#include "../Engine/UIFramework.h"
 #include <SDL2/SDL.h>
 
 #include "MainMenu.h"
@@ -222,32 +222,32 @@ void MainMenu::Draw()
     if (!showQuitConfirm)
         return;
 
-    ImGui::SetNextWindowPos(
-        ImVec2(Engine::GetViewportWidth() * 0.5f, Engine::GetViewportHeight() * 0.5f),
-        ImGuiCond_Always,
-        ImVec2(0.5f, 0.5f));
+    auto& ui = UI::Get();
+    ui.BeginFrame();
 
-    constexpr ImGuiWindowFlags flags =
-        ImGuiWindowFlags_NoResize |
-        ImGuiWindowFlags_NoCollapse |
-        ImGuiWindowFlags_AlwaysAutoResize;
+    const float vw = static_cast<float>(Engine::GetViewportWidth());
+    const float vh = static_cast<float>(Engine::GetViewportHeight());
+    const UI::Rect panel{ vw * 0.5f - 220.0f, vh * 0.5f - 100.0f, 440.0f, 200.0f };
 
-    if (ImGui::Begin("Quit Confirmation", nullptr, flags))
+    const auto& theme = ui.GetTheme();
+    ui.Panel(panel, theme.panelBg, theme.panelBorder, 3.0f);
+    ui.LabelCentered(UI::Rect{ panel.x, panel.y + 20.0f, panel.w, 28.0f }, "EXIT THE GAME?", 2.5f, theme.text);
+
+    const UI::Rect quitBtn{ panel.x + 34.0f, panel.y + 115.0f, 170.0f, 52.0f };
+    const UI::Rect cancelBtn{ panel.x + panel.w - 204.0f, panel.y + 115.0f, 170.0f, 52.0f };
+
+    if (ui.Button(quitBtn, "QUIT", true))
     {
-        ImGui::TextUnformatted("Exit the game?");
-        ImGui::Separator();
-        if (ImGui::Button("Quit", ImVec2(150.0f, 0.0f)))
-        {
-            showQuitConfirm = false;
-            requestQuitNow = true;
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Cancel", ImVec2(150.0f, 0.0f)))
-        {
-            showQuitConfirm = false;
-        }
+        showQuitConfirm = false;
+        requestQuitNow = true;
     }
-    ImGui::End();
+
+    if (ui.Button(cancelBtn, "CANCEL"))
+    {
+        showQuitConfirm = false;
+    }
+
+    ui.EndFrame();
 }
 
 void MainMenu::Unload()

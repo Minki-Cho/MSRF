@@ -139,6 +139,7 @@
     <ClCompile Include="Engine\Sprite.cpp" />
     <ClCompile Include="Engine\TextureDX11.cpp" />
     <ClCompile Include="Engine\TextureManager.cpp" />
+    <ClCompile Include="Engine\UIFramework.cpp" />
     <ClCompile Include="Engine\Window.cpp" />
     <ClCompile Include="external\imgui\imgui.cpp" />
     <ClCompile Include="external\imgui\imgui_draw.cpp" />
@@ -184,6 +185,7 @@
     <ClInclude Include="Engine\TestObj .h" />
     <ClInclude Include="Engine\TextureDX11.h" />
     <ClInclude Include="Engine\TextureManager.h" />
+    <ClInclude Include="Engine\UIFramework.h" />
     <ClInclude Include="Engine\vec2.h" />
     <ClInclude Include="Engine\vec3.h" />
     <ClInclude Include="Engine\Window.h" />

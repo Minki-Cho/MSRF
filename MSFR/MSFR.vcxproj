@@ -204,6 +204,7 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
     <ClInclude Include="Engine\TestObj .h" />
     <ClInclude Include="Engine\TextureDX11.h" />
     <ClInclude Include="Engine\TextureManager.h" />
+    <ClInclude Include="Engine\UIFramework.h" />
     <ClInclude Include="Engine\vec2.h" />
     <ClInclude Include="Engine\vec3.h" />
     <ClInclude Include="Engine\Window.h" />
@@ -242,5 +243,4 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>
-
 

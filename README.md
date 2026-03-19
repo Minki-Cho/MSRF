@@ -30,7 +30,7 @@ Current implementation includes:
   - `scripts/build-and-demo.ps1`
   - `scripts/demo-smoke.ps1`
   - GitHub Actions workflow (`.github/workflows/c-cpp.yml`)
-- Replaced blocking SDL message-box menus with in-game ImGui overlays for `MainMenu`, `HowToPlay`, `GameOver`, and gameplay pause
+- Added custom in-game UI framework (non-ImGui) for `MainMenu`, `HowToPlay`, `GameOver`, `Credit`, gameplay HUD, and pause menu
 - Added run-result summary on `Credit`/`GameOver` (survival time, enemies defeated, core collection rate)
 - Applied first-pass gameplay rebalance in `assets/config/gameplay_balance.cfg` (spawn pacing, enemy stats, weapon cadence)
 
@@ -259,5 +259,4 @@ GitHub Actions (`Windows Build & Demo Smoke`) runs:
 ## 10. Known Gaps / Next Steps
 
 - Collision system is currently focused on debug rendering/basic checks and needs gameplay integration
-- A full custom in-game UI framework is still pending (current menus use ImGui overlays)
 - Data-driven loading (e.g., JSON) and editor tooling remain on the roadmap

@@ -187,6 +187,9 @@
     <ClInclude Include="Engine\TextureManager.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\UIFramework.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
     <ClInclude Include="Engine\Window.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
@@ -231,7 +234,6 @@
     </ResourceCompile>
   </ItemGroup>
 </Project>
-
 
 
 

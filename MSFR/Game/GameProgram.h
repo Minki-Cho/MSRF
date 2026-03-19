@@ -2,7 +2,7 @@
 #include "../Engine/EventTypes.h"
 #include "../Engine/GameCommands.h"
 #include "../Engine/TextureDX11.h"
-#include "../external/imgui/imgui.h"
+#include "../Engine/UIFramework.h"
 #include <SDL2/SDL.h>
 #include "Splash.h"
 #include "MainMenu.h"
@@ -57,44 +57,46 @@ public:
     void Draw() override
     {
         creditImage.DrawFitCenter({ (float)Engine::GetViewportWidth(), (float)Engine::GetViewportHeight() });
+        auto& ui = UI::Get();
+        ui.BeginFrame();
 
-        ImGui::SetNextWindowPos(
-            ImVec2(Engine::GetViewportWidth() * 0.5f, Engine::GetViewportHeight() * 0.5f),
-            ImGuiCond_Always,
-            ImVec2(0.5f, 0.5f));
+        const auto& theme = ui.GetTheme();
+        const float vw = static_cast<float>(Engine::GetViewportWidth());
+        const float vh = static_cast<float>(Engine::GetViewportHeight());
+        const UI::Rect panel{ vw * 0.5f - 250.0f, vh * 0.5f - 170.0f, 500.0f, 340.0f };
 
-        constexpr ImGuiWindowFlags flags =
-            ImGuiWindowFlags_NoResize |
-            ImGuiWindowFlags_NoCollapse |
-            ImGuiWindowFlags_AlwaysAutoResize;
+        ui.Panel(panel, theme.panelBg, theme.panelBorder, 3.0f);
+        ui.LabelCentered(UI::Rect{ panel.x, panel.y + 16.0f, panel.w, 26.0f }, "MISSION CLEAR", 2.5f, theme.text);
+        ui.Label(panel.x + 30.0f, panel.y + 54.0f, "DATA CORES SECURED", 1.8f, theme.textMuted);
 
-        if (ImGui::Begin("Mission Clear", nullptr, flags))
+        const auto summary = Engine::GetLastRunSummary();
+        if (summary.valid)
         {
-            ImGui::TextUnformatted("Data Cores secured.");
-            ImGui::Separator();
+            const float corePercent = (summary.coresTotal > 0)
+                ? (100.0f * static_cast<float>(summary.coresCollected) / static_cast<float>(summary.coresTotal))
+                : 0.0f;
 
-            const auto summary = Engine::GetLastRunSummary();
-            if (summary.valid)
-            {
-                const float corePercent = (summary.coresTotal > 0)
-                    ? (100.0f * static_cast<float>(summary.coresCollected) / static_cast<float>(summary.coresTotal))
-                    : 0.0f;
+            const std::string clock = FormatRunClock(summary.survivalSec);
+            char line1[80] = {};
+            char line2[80] = {};
+            char line3[96] = {};
+            std::snprintf(line1, sizeof(line1), "SURVIVAL %s", clock.c_str());
+            std::snprintf(line2, sizeof(line2), "ENEMIES %d", summary.killCount);
+            std::snprintf(line3, sizeof(line3), "CORES %d/%d %.0f%%", summary.coresCollected, summary.coresTotal, corePercent);
 
-                const std::string clock = FormatRunClock(summary.survivalSec);
-                ImGui::Text("Survival Time: %s", clock.c_str());
-                ImGui::Text("Enemies Defeated: %d", summary.killCount);
-                ImGui::Text("Core Collection: %d/%d (%.0f%%)", summary.coresCollected, summary.coresTotal, corePercent);
-            }
-            else
-            {
-                ImGui::TextUnformatted("Run summary unavailable.");
-            }
-
-            ImGui::Separator();
-            if (ImGui::Button("Main Menu", ImVec2(220.0f, 0.0f)))
-                pendingAction = 1;
+            ui.Label(panel.x + 30.0f, panel.y + 94.0f, line1, 1.9f, theme.text);
+            ui.Label(panel.x + 30.0f, panel.y + 120.0f, line2, 1.9f, theme.text);
+            ui.Label(panel.x + 30.0f, panel.y + 146.0f, line3, 1.9f, theme.text);
         }
-        ImGui::End();
+        else
+        {
+            ui.Label(panel.x + 30.0f, panel.y + 110.0f, "RUN SUMMARY UNAVAILABLE", 1.8f, theme.textMuted);
+        }
+
+        if (ui.Button(UI::Rect{ panel.x + 120.0f, panel.y + panel.h - 68.0f, panel.w - 240.0f, 44.0f }, "MAIN MENU"))
+            pendingAction = 1;
+
+        ui.EndFrame();
     }
 
     void Update(double dt) override
@@ -146,32 +148,29 @@ public:
     {
         backgroundImage.DrawFitCenter({ (float)Engine::GetViewportWidth(), (float)Engine::GetViewportHeight() });
 
-        ImGui::SetNextWindowPos(
-            ImVec2(Engine::GetViewportWidth() * 0.5f, Engine::GetViewportHeight() * 0.5f),
-            ImGuiCond_Always,
-            ImVec2(0.5f, 0.5f));
+        auto& ui = UI::Get();
+        ui.BeginFrame();
 
-        constexpr ImGuiWindowFlags flags =
-            ImGuiWindowFlags_NoResize |
-            ImGuiWindowFlags_NoCollapse |
-            ImGuiWindowFlags_AlwaysAutoResize;
+        const auto& theme = ui.GetTheme();
+        const float vw = static_cast<float>(Engine::GetViewportWidth());
+        const float vh = static_cast<float>(Engine::GetViewportHeight());
+        const UI::Rect panel{ vw * 0.5f - 280.0f, vh * 0.5f - 190.0f, 560.0f, 380.0f };
 
-        if (ImGui::Begin("How To Play", nullptr, flags))
-        {
-            ImGui::TextUnformatted("Collect all Data Cores and survive.");
-            ImGui::Separator();
-            ImGui::TextUnformatted("Move: Arrow Keys");
-            ImGui::TextUnformatted("Fire: Space or Left Click");
-            ImGui::TextUnformatted("Weapon Swap: 1 (Machine), 2 (Shotgun)");
-            ImGui::TextUnformatted("Pause: Esc");
-            ImGui::Separator();
-            if (ImGui::Button("Start Game", ImVec2(180.0f, 0.0f)))
-                pendingAction = 1;
-            ImGui::SameLine();
-            if (ImGui::Button("Back", ImVec2(180.0f, 0.0f)))
-                pendingAction = 2;
-        }
-        ImGui::End();
+        ui.Panel(panel, theme.panelBg, theme.panelBorder, 3.0f);
+        ui.LabelCentered(UI::Rect{ panel.x, panel.y + 18.0f, panel.w, 26.0f }, "HOW TO PLAY", 2.5f, theme.text);
+
+        ui.Label(panel.x + 34.0f, panel.y + 66.0f, "COLLECT ALL DATA CORES AND SURVIVE", 1.8f, theme.textMuted);
+        ui.Label(panel.x + 34.0f, panel.y + 102.0f, "MOVE  ARROW KEYS", 1.8f, theme.text);
+        ui.Label(panel.x + 34.0f, panel.y + 128.0f, "FIRE  SPACE OR LEFT CLICK", 1.8f, theme.text);
+        ui.Label(panel.x + 34.0f, panel.y + 154.0f, "WEAPON SWAP  1 MACHINE  2 SHOTGUN", 1.8f, theme.text);
+        ui.Label(panel.x + 34.0f, panel.y + 180.0f, "PAUSE  ESC", 1.8f, theme.text);
+
+        if (ui.Button(UI::Rect{ panel.x + 52.0f, panel.y + panel.h - 68.0f, 210.0f, 44.0f }, "START GAME"))
+            pendingAction = 1;
+        if (ui.Button(UI::Rect{ panel.x + panel.w - 262.0f, panel.y + panel.h - 68.0f, 210.0f, 44.0f }, "BACK"))
+            pendingAction = 2;
+
+        ui.EndFrame();
     }
 
     void Update(double dt) override
@@ -228,46 +227,46 @@ public:
     void Draw() override
     {
         backgroundImage.DrawFitCenter({ (float)Engine::GetViewportWidth(), (float)Engine::GetViewportHeight() });
+        auto& ui = UI::Get();
+        ui.BeginFrame();
 
-        ImGui::SetNextWindowPos(
-            ImVec2(Engine::GetViewportWidth() * 0.5f, Engine::GetViewportHeight() * 0.5f),
-            ImGuiCond_Always,
-            ImVec2(0.5f, 0.5f));
+        const auto& theme = ui.GetTheme();
+        const float vw = static_cast<float>(Engine::GetViewportWidth());
+        const float vh = static_cast<float>(Engine::GetViewportHeight());
+        const UI::Rect panel{ vw * 0.5f - 280.0f, vh * 0.5f - 190.0f, 560.0f, 380.0f };
 
-        constexpr ImGuiWindowFlags flags =
-            ImGuiWindowFlags_NoResize |
-            ImGuiWindowFlags_NoCollapse |
-            ImGuiWindowFlags_AlwaysAutoResize;
+        ui.Panel(panel, theme.panelBg, theme.panelBorder, 3.0f);
+        ui.LabelCentered(UI::Rect{ panel.x, panel.y + 16.0f, panel.w, 26.0f }, "GAME OVER", 2.6f, theme.text);
+        ui.Label(panel.x + 34.0f, panel.y + 54.0f, "YOU WERE DEFEATED", 1.8f, theme.textMuted);
 
-        if (ImGui::Begin("Game Over", nullptr, flags))
+        const auto summary = Engine::GetLastRunSummary();
+        if (summary.valid)
         {
-            ImGui::TextUnformatted("You were defeated.");
-            ImGui::Separator();
+            const float corePercent = (summary.coresTotal > 0)
+                ? (100.0f * static_cast<float>(summary.coresCollected) / static_cast<float>(summary.coresTotal))
+                : 0.0f;
 
-            const auto summary = Engine::GetLastRunSummary();
-            if (summary.valid)
-            {
-                const float corePercent = (summary.coresTotal > 0)
-                    ? (100.0f * static_cast<float>(summary.coresCollected) / static_cast<float>(summary.coresTotal))
-                    : 0.0f;
+            const std::string clock = FormatRunClock(summary.survivalSec);
+            char line1[80] = {};
+            char line2[80] = {};
+            char line3[96] = {};
+            std::snprintf(line1, sizeof(line1), "SURVIVAL %s", clock.c_str());
+            std::snprintf(line2, sizeof(line2), "ENEMIES %d", summary.killCount);
+            std::snprintf(line3, sizeof(line3), "CORES %d/%d %.0f%%", summary.coresCollected, summary.coresTotal, corePercent);
 
-                const std::string clock = FormatRunClock(summary.survivalSec);
-                ImGui::Text("Survival Time: %s", clock.c_str());
-                ImGui::Text("Enemies Defeated: %d", summary.killCount);
-                ImGui::Text("Core Collection: %d/%d (%.0f%%)", summary.coresCollected, summary.coresTotal, corePercent);
-                ImGui::Separator();
-            }
-
-            if (ImGui::Button("Restart", ImVec2(140.0f, 0.0f)))
-                pendingAction = 1;
-            ImGui::SameLine();
-            if (ImGui::Button("Main Menu", ImVec2(140.0f, 0.0f)))
-                pendingAction = 2;
-            ImGui::SameLine();
-            if (ImGui::Button("Quit", ImVec2(120.0f, 0.0f)))
-                pendingAction = 3;
+            ui.Label(panel.x + 34.0f, panel.y + 94.0f, line1, 1.9f, theme.text);
+            ui.Label(panel.x + 34.0f, panel.y + 120.0f, line2, 1.9f, theme.text);
+            ui.Label(panel.x + 34.0f, panel.y + 146.0f, line3, 1.9f, theme.text);
         }
-        ImGui::End();
+
+        if (ui.Button(UI::Rect{ panel.x + 34.0f, panel.y + panel.h - 66.0f, 160.0f, 44.0f }, "RESTART"))
+            pendingAction = 1;
+        if (ui.Button(UI::Rect{ panel.x + panel.w * 0.5f - 80.0f, panel.y + panel.h - 66.0f, 160.0f, 44.0f }, "MAIN MENU"))
+            pendingAction = 2;
+        if (ui.Button(UI::Rect{ panel.x + panel.w - 194.0f, panel.y + panel.h - 66.0f, 160.0f, 44.0f }, "QUIT", true))
+            pendingAction = 3;
+
+        ui.EndFrame();
     }
 
     void Update(double /*dt*/) override
@@ -359,4 +358,3 @@ private:
     EventBus::SubscriptionId stateChangeSubscription = 0;
     EventBus::SubscriptionId menuActionSubscription = 0;
 };
-
