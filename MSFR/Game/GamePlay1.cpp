@@ -328,6 +328,16 @@ void GamePlay1::Load()
     ammoInMagazine = kMagazineSize;
     isReloading = false;
     reloadTimer = 0.0;
+    enemyHitFxTimer = 0.0;
+    enemyKillFxTimer = 0.0;
+    playerHitFxTimer = 0.0;
+    killToastTimer = 0.0;
+    killToastCount = 0;
+    killComboTimer = 0.0;
+    killComboCount = 0;
+    layeredHitSfxCooldown = 0.0;
+    layeredKillSfxCooldown = 0.0;
+    lastKnownPlayerHp = playerPtr ? playerPtr->GetHP() : 100;
 }
 
 void GamePlay1::Update(double dt)
@@ -344,6 +354,25 @@ void GamePlay1::Update(double dt)
         if (weaponFireOverlayTimer < 0.0)
             weaponFireOverlayTimer = 0.0;
     }
+
+    auto decayTimer = [dt](double& t)
+    {
+        if (t > 0.0)
+        {
+            t -= dt;
+            if (t < 0.0)
+                t = 0.0;
+        }
+    };
+    decayTimer(enemyHitFxTimer);
+    decayTimer(enemyKillFxTimer);
+    decayTimer(playerHitFxTimer);
+    decayTimer(killToastTimer);
+    decayTimer(killComboTimer);
+    decayTimer(layeredHitSfxCooldown);
+    decayTimer(layeredKillSfxCooldown);
+    if (killComboTimer <= 0.0)
+        killComboCount = 0;
 
     if (isReloading)
     {
@@ -388,6 +417,14 @@ void GamePlay1::Update(double dt)
     }
 
     ResolveBulletHits();
+
+    if (playerPtr)
+    {
+        const int currentHp = playerPtr->GetHP();
+        if (currentHp < lastKnownPlayerHp)
+            playerHitFxTimer = 0.22;
+        lastKnownPlayerHp = currentHp;
+    }
 
     const int aliveCoreCount = CountAliveByType(GameObjectType::DataCore);
     const int newCollectedCount = std::clamp(totalCoreCount - aliveCoreCount, 0, totalCoreCount);
@@ -623,7 +660,7 @@ void GamePlay1::Draw()
         else if (hpRatio < 0.60f)
             hpFill = UI::Color{ 0.95f, 0.75f, 0.2f };
 
-        const UI::Rect hudPanel{ viewportWidth - 286.0f, 12.0f, 274.0f, 244.0f };
+        const UI::Rect hudPanel{ viewportWidth - 286.0f, 12.0f, 274.0f, 252.0f };
         ui.Panel(hudPanel, theme.panelBg, theme.panelBorder, 3.0f);
 
         char hpLabel[64] = {};
@@ -677,21 +714,83 @@ void GamePlay1::Draw()
             ui.Label(hudPanel.x + 16.0f, hudPanel.y + 149.0f, poolS, 1.5f, theme.textMuted);
         }
 
-        char speedText[64] = {};
-        std::snprintf(speedText, sizeof(speedText), "SPD x%.2f %.1fs",
-            (speedBoostTimer > 0.0) ? kSpeedMoveMultiplier : 1.0f,
-            (std::max)(0.0, speedBoostTimer));
-        ui.Label(hudPanel.x + 16.0f, hudPanel.y + 174.0f, speedText, 1.5f, speedBoostTimer > 0.0 ? UI::Color{ 0.65f, 1.0f, 0.72f } : theme.textMuted);
+        const float cardY = hudPanel.y + 174.0f;
+        const float cardW = 78.0f;
+        const float cardH = 56.0f;
+        const float cardGap = 8.0f;
+        const float cardStartX = hudPanel.x + 14.0f;
 
-        char rapidText[64] = {};
-        std::snprintf(rapidText, sizeof(rapidText), "ROF x%.1f %.1fs",
-            (rapidBoostTimer > 0.0) ? kRapidFireMultiplier : 1.0f,
-            (std::max)(0.0, rapidBoostTimer));
-        ui.Label(hudPanel.x + 16.0f, hudPanel.y + 191.0f, rapidText, 1.5f, rapidBoostTimer > 0.0 ? UI::Color{ 0.70f, 0.90f, 1.0f } : theme.textMuted);
+        auto drawBuffCard = [&](float x, const char* icon, const char* key, double timer, double duration, const UI::Color& activeColor)
+        {
+            const bool active = timer > 0.0;
+            const UI::Rect card{ x, cardY, cardW, cardH };
+            const UI::Color cardBg = active ? UI::Color{ 0.13f, 0.18f, 0.24f } : UI::Color{ 0.09f, 0.11f, 0.15f };
+            const UI::Color cardBorder = active ? activeColor : UI::Color{ 0.24f, 0.28f, 0.34f };
+            ui.Panel(card, cardBg, cardBorder, 2.0f);
 
-        char hybridText[64] = {};
-        std::snprintf(hybridText, sizeof(hybridText), "HYB %.1fs", (std::max)(0.0, hybridBoostTimer));
-        ui.Label(hudPanel.x + 16.0f, hudPanel.y + 208.0f, hybridText, 1.5f, hybridBoostTimer > 0.0 ? UI::Color{ 1.0f, 0.78f, 0.55f } : theme.textMuted);
+            const UI::Rect iconRect{ card.x + 5.0f, card.y + 6.0f, 20.0f, 20.0f };
+            ui.Panel(iconRect, active ? activeColor : UI::Color{ 0.16f, 0.20f, 0.24f }, UI::Color{ 0.08f, 0.10f, 0.14f }, 1.0f);
+            ui.LabelCentered(iconRect, icon, 1.6f, UI::Color{ 0.95f, 0.97f, 1.0f });
+
+            ui.Label(card.x + 29.0f, card.y + 7.0f, key, 1.3f, active ? UI::Color{ 0.96f, 0.98f, 1.0f } : theme.textMuted);
+
+            char t[24] = {};
+            std::snprintf(t, sizeof(t), "%.1fs", (std::max)(0.0, timer));
+            ui.Label(card.x + 29.0f, card.y + 18.0f, t, 1.2f, active ? UI::Color{ 0.96f, 0.98f, 1.0f } : theme.textMuted);
+
+            const float ratio = (duration > 0.001) ? static_cast<float>(std::clamp(timer / duration, 0.0, 1.0)) : 0.0f;
+            ui.ProgressBar(
+                UI::Rect{ card.x + 6.0f, card.y + 33.0f, card.w - 12.0f, 15.0f },
+                ratio,
+                active ? activeColor : UI::Color{ 0.24f, 0.28f, 0.34f },
+                UI::Color{ 0.10f, 0.13f, 0.18f },
+                UI::Color{ 0.24f, 0.28f, 0.34f });
+        };
+
+        drawBuffCard(cardStartX, "S", "SPD", speedBoostTimer, kSpeedBuffDurationSec, UI::Color{ 0.32f, 0.92f, 0.55f });
+        drawBuffCard(cardStartX + cardW + cardGap, "R", "ROF", rapidBoostTimer, kRapidBuffDurationSec, UI::Color{ 0.42f, 0.72f, 1.0f });
+        drawBuffCard(cardStartX + (cardW + cardGap) * 2.0f, "H", "HYB", hybridBoostTimer, kHybridBuffDurationSec, UI::Color{ 1.0f, 0.66f, 0.30f });
+    }
+
+    auto drawScreenBorder = [&](const UI::Color& color, float thickness)
+    {
+        const float t = (std::max)(1.0f, thickness);
+        ui.FillRect(UI::Rect{ 0.0f, 0.0f, viewportWidth, t }, color);
+        ui.FillRect(UI::Rect{ 0.0f, viewportHeight - t, viewportWidth, t }, color);
+        ui.FillRect(UI::Rect{ 0.0f, 0.0f, t, viewportHeight }, color);
+        ui.FillRect(UI::Rect{ viewportWidth - t, 0.0f, t, viewportHeight }, color);
+    };
+
+    if (enemyHitFxTimer > 0.0)
+    {
+        const float pulse = static_cast<float>(enemyHitFxTimer);
+        drawScreenBorder(UI::Color{ 0.32f + pulse * 0.5f, 0.64f + pulse * 0.2f, 1.0f }, 2.0f + pulse * 8.0f);
+    }
+    if (enemyKillFxTimer > 0.0)
+    {
+        const float pulse = static_cast<float>(enemyKillFxTimer);
+        drawScreenBorder(UI::Color{ 1.0f, 0.72f + pulse * 0.2f, 0.32f }, 3.0f + pulse * 10.0f);
+    }
+    if (playerHitFxTimer > 0.0)
+    {
+        const float pulse = static_cast<float>(playerHitFxTimer);
+        drawScreenBorder(UI::Color{ 1.0f, 0.28f + pulse * 0.2f, 0.26f }, 3.0f + pulse * 10.0f);
+    }
+
+    if (killToastTimer > 0.0)
+    {
+        const float panelW = 232.0f;
+        const float panelH = 56.0f;
+        const UI::Rect toast{ viewportWidth * 0.5f - panelW * 0.5f, 18.0f, panelW, panelH };
+        ui.Panel(toast, UI::Color{ 0.13f, 0.10f, 0.08f }, UI::Color{ 0.97f, 0.68f, 0.32f }, 3.0f);
+
+        char killText[64] = {};
+        if (killToastCount >= 2)
+            std::snprintf(killText, sizeof(killText), "KILL COMBO X%d", killToastCount);
+        else
+            std::snprintf(killText, sizeof(killText), "ENEMY DOWN");
+
+        ui.LabelCentered(toast, killText, 2.1f, UI::Color{ 1.0f, 0.93f, 0.77f });
     }
 
     if (pauseMenuOpen)
@@ -750,6 +849,16 @@ void GamePlay1::Unload()
     speedBoostTimer = 0.0;
     rapidBoostTimer = 0.0;
     hybridBoostTimer = 0.0;
+    enemyHitFxTimer = 0.0;
+    enemyKillFxTimer = 0.0;
+    playerHitFxTimer = 0.0;
+    killToastTimer = 0.0;
+    killToastCount = 0;
+    killComboTimer = 0.0;
+    killComboCount = 0;
+    layeredHitSfxCooldown = 0.0;
+    layeredKillSfxCooldown = 0.0;
+    lastKnownPlayerHp = 100;
 }
 
 int GamePlay1::GetPhaseIndex() const

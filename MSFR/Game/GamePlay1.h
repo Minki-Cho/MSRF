@@ -97,6 +97,15 @@ private:
     bool isReloading{ false };
     double reloadTimer{ 0.0 };
     double reloadDurationSec{ 1.25 };
+    double enemyHitFxTimer{ 0.0 };
+    double enemyKillFxTimer{ 0.0 };
+    double playerHitFxTimer{ 0.0 };
+    double killToastTimer{ 0.0 };
+    int killToastCount{ 0 };
+    double killComboTimer{ 0.0 };
+    int killComboCount{ 0 };
+    double layeredHitSfxCooldown{ 0.0 };
+    double layeredKillSfxCooldown{ 0.0 };
+    int lastKnownPlayerHp{ 100 };
 };
-
 

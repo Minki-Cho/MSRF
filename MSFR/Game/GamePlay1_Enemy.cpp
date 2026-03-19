@@ -859,15 +859,49 @@ void GamePlay1::ResolveBulletHits()
             {
                 const bool wasAlive = !enemy->GetDestroyed();
                 enemy->ApplyDamage(bullet->GetDamage(), bullet->GetVelocity());
-                if (wasAlive && enemy->GetDestroyed())
+                const bool killedNow = wasAlive && enemy->GetDestroyed();
+                if (killedNow)
                 {
                     ++runKillCount;
                     const int phaseIndex = GetPhaseIndex();
                     if (phaseIndex >= 0 && phaseIndex < 3)
                         ++phaseKillCount[phaseIndex];
+
+                    killComboCount = (killComboTimer > 0.0) ? (killComboCount + 1) : 1;
+                    killComboTimer = 1.35;
+                    killToastCount = killComboCount;
+                    killToastTimer = 0.95;
+                    enemyKillFxTimer = (std::max)(enemyKillFxTimer, 0.20);
                 }
+
+                enemyHitFxTimer = (std::max)(enemyHitFxTimer, 0.09);
                 SpawnHitParticles(bPos, bullet->GetVelocity());
-                Engine::PlaySound("assets/sounds/hit_enemy.wav");
+
+                if (killedNow)
+                {
+                    SpawnHitParticles(bPos, Rotate(bullet->GetVelocity(), 0.42f));
+                    SpawnHitParticles(bPos, Rotate(bullet->GetVelocity(), -0.42f));
+
+                    if (layeredKillSfxCooldown <= 0.0)
+                    {
+                        Engine::PlaySound("assets/sounds/hit_enemy.wav");
+                        Engine::PlaySound("assets/sounds/gun_shotgun.wav");
+                        if (util::random() < 0.55f)
+                            Engine::PlaySound("assets/sounds/gun_fire.wav");
+                        layeredKillSfxCooldown = 0.08;
+                    }
+                }
+                else
+                {
+                    if (layeredHitSfxCooldown <= 0.0)
+                    {
+                        Engine::PlaySound("assets/sounds/hit_enemy.wav");
+                        if (util::random() < 0.22f)
+                            Engine::PlaySound("assets/sounds/gun_fire.wav");
+                        layeredHitSfxCooldown = 0.03;
+                    }
+                }
+
                 bullet->Deactivate();
                 break;
             }
