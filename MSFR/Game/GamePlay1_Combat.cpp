@@ -72,6 +72,15 @@ void GamePlay1::HandleWeaponInput(double dt)
     if (fireCooldownTimer < 0.0)
         fireCooldownTimer = 0.0;
 
+    if (isReloading)
+        return;
+
+    if (ammoInMagazine <= 0)
+    {
+        StartReload();
+        return;
+    }
+
     const bool wantsFire = input.IsKeyDown(InputKey::Keyboard::Space) || input.GetMouseDown();
     if (!wantsFire)
         return;
@@ -80,16 +89,34 @@ void GamePlay1::HandleWeaponInput(double dt)
         return;
 
     const double phaseCooldownMul = GetPhaseFireCooldownMultiplier();
+    int ammoUsed = 0;
 
     if (weaponMode == WeaponMode::MachineGun)
     {
         FireMachineGun();
         fireCooldownTimer = machineGunInterval * phaseCooldownMul;
+        ammoUsed = 1;
     }
     else
     {
-        FireShotgun();
+        const int configuredPellets = (std::max)(1, balance::Get().weapon.shotgunPelletCount);
+        const int pelletsToFire = (std::min)(ammoInMagazine, configuredPellets);
+        if (pelletsToFire <= 0)
+        {
+            StartReload();
+            return;
+        }
+
+        FireShotgun(pelletsToFire);
         fireCooldownTimer = shotgunInterval * phaseCooldownMul;
+        ammoUsed = pelletsToFire;
+    }
+
+    ammoInMagazine -= ammoUsed;
+    if (ammoInMagazine <= 0)
+    {
+        ammoInMagazine = 0;
+        StartReload();
     }
 }
 
@@ -114,7 +141,7 @@ void GamePlay1::FireMachineGun()
     TriggerWeaponVisual(origin, dir);
 }
 
-void GamePlay1::FireShotgun()
+void GamePlay1::FireShotgun(int pelletCountToFire)
 {
     const auto& weapon = balance::Get().weapon;
     const vec2 baseDir = GetFireDirection();
@@ -123,7 +150,7 @@ void GamePlay1::FireShotgun()
 
     Engine::PlaySound("assets/sounds/gun_shotgun.wav");
 
-    const int pelletCount = weapon.shotgunPelletCount;
+    const int pelletCount = (std::max)(1, pelletCountToFire);
     const float spreadDeg = weapon.shotgunSpreadDeg;
 
     for (int i = 0; i < pelletCount; ++i)
@@ -152,7 +179,17 @@ void GamePlay1::TriggerWeaponVisual(const vec2& origin, const vec2& direction)
         origin.x() + dir.x() * 10.0f,
         origin.y() + dir.y() * 10.0f
     };
+    weaponFireOverlayFlipX = (dir.x() < 0.0f);
     weaponFireOverlayTimer = 0.09;
+}
+
+void GamePlay1::StartReload()
+{
+    if (isReloading)
+        return;
+
+    isReloading = true;
+    reloadTimer = reloadDurationSec;
 }
 
 void GamePlay1::SpawnBullet(const vec2& origin, const vec2& direction, float speed, double lifeTimeSec, int damage, float hitRadius, const char* spriteSptPath)

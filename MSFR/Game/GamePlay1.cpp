@@ -11,6 +11,7 @@
 #include "ScreenMods.h"
 
 #include <algorithm>
+#include <cstdio>
 #include <cmath>
 #include <memory>
 #include <sstream>
@@ -138,12 +139,19 @@ void GamePlay1::Load()
     map = TextureDX11("assets/images/map.png", false);
     weaponFireOverlay = TextureDX11("assets/images/weapons/gun_fire.png", false);
     weaponFireOverlayPos = vec2{ 0.0f, 0.0f };
+    weaponFireOverlayFlipX = false;
     weaponFireOverlayTimer = 0.0;
+    ammoInMagazine = kMagazineSize;
+    isReloading = false;
+    reloadTimer = 0.0;
 }
 
 void GamePlay1::Update(double dt)
 {
     if (!gameObjectManager)
+        return;
+
+    if (HandlePauseMenu())
         return;
 
     if (weaponFireOverlayTimer > 0.0)
@@ -153,8 +161,16 @@ void GamePlay1::Update(double dt)
             weaponFireOverlayTimer = 0.0;
     }
 
-    if (HandlePauseMenu())
-        return;
+    if (isReloading)
+    {
+        reloadTimer -= dt;
+        if (reloadTimer <= 0.0)
+        {
+            reloadTimer = 0.0;
+            isReloading = false;
+            ammoInMagazine = kMagazineSize;
+        }
+    }
 
     runElapsedSec += dt;
     const int phaseIndex = GetPhaseIndex();
@@ -354,15 +370,50 @@ void GamePlay1::Draw()
         {
             constexpr float overlayDrawW = 72.0f;
             constexpr float overlayDrawH = 30.0f;
-            const float drawX = weaponFireOverlayPos.x() - overlayDrawW * 0.5f;
-            const float drawY = weaponFireOverlayPos.y() - overlayDrawH * 0.5f;
             const float sx = overlayDrawW / texSize.x();
             const float sy = overlayDrawH / texSize.y();
+            const float flipX = weaponFireOverlayFlipX ? -1.0f : 1.0f;
             const mat3<float> overlayMatrix =
                 cameraMatrix *
-                mat3<float>::build_translation(drawX, drawY) *
-                mat3<float>::build_scale(sx, sy);
+                mat3<float>::build_translation(weaponFireOverlayPos.x(), weaponFireOverlayPos.y()) *
+                mat3<float>::build_scale(sx * flipX, sy) *
+                mat3<float>::build_translation(-texSize.x() * 0.5f, -texSize.y() * 0.5f);
             weaponFireOverlay.Draw(overlayMatrix);
+        }
+    }
+
+    if (playerPtr)
+    {
+        const vec2 playerPos = playerPtr->GetPosition();
+        const float playerScreenX = playerPos.x() + cameraX;
+        const float playerScreenY = viewportHeight - (playerPos.y() + cameraY);
+        ImDrawList* fg = ImGui::GetForegroundDrawList();
+
+        const ImVec2 labelPos(playerScreenX + 36.0f, playerScreenY - 56.0f);
+        if (isReloading)
+        {
+            const float progress = std::clamp(
+                static_cast<float>((reloadDurationSec - reloadTimer) / (std::max)(0.001, reloadDurationSec)),
+                0.0f,
+                1.0f);
+            char reloadText[64] = {};
+            std::snprintf(reloadText, sizeof(reloadText), "RELOADING %.0f%%", progress * 100.0f);
+            fg->AddText(labelPos, IM_COL32(255, 210, 90, 255), reloadText);
+
+            const ImVec2 barMin(labelPos.x, labelPos.y + 18.0f);
+            const ImVec2 barMax(labelPos.x + 96.0f, labelPos.y + 26.0f);
+            fg->AddRectFilled(barMin, barMax, IM_COL32(30, 30, 36, 220), 2.0f);
+            fg->AddRectFilled(barMin, ImVec2(barMin.x + (barMax.x - barMin.x) * progress, barMax.y), IM_COL32(255, 170, 60, 240), 2.0f);
+            fg->AddRect(barMin, barMax, IM_COL32(255, 255, 255, 120), 2.0f);
+        }
+        else
+        {
+            char ammoText[64] = {};
+            std::snprintf(ammoText, sizeof(ammoText), "AMMO %d/%d", ammoInMagazine, kMagazineSize);
+            const ImU32 ammoColor = (ammoInMagazine <= 10)
+                ? IM_COL32(255, 130, 130, 255)
+                : IM_COL32(180, 230, 255, 255);
+            fg->AddText(labelPos, ammoColor, ammoText);
         }
     }
 
@@ -399,10 +450,33 @@ void GamePlay1::Draw()
             else if (hpRatio < 0.60f)
                 hpColor = ImVec4(0.95f, 0.75f, 0.2f, 1.0f);
 
-            ImGui::Text("HP: %d / %d", hp, hpMax);
+            char hpLabel[64] = {};
+            std::snprintf(hpLabel, sizeof(hpLabel), "HP: %d / %d", hp, hpMax);
+
+            const float fullContentWidth = ImGui::GetContentRegionAvail().x;
+            const float hpBarWidth = 210.0f;
+
+            ImVec2 hpLabelSize = ImGui::CalcTextSize(hpLabel);
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (fullContentWidth - hpLabelSize.x) * 0.5f);
+            ImGui::TextUnformatted(hpLabel);
+
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (fullContentWidth - hpBarWidth) * 0.5f);
+            const ImVec2 barPos = ImGui::GetCursorScreenPos();
+
             ImGui::PushStyleColor(ImGuiCol_PlotHistogram, hpColor);
-            ImGui::ProgressBar(hpRatio, ImVec2(210.0f, 0.0f));
+            ImGui::ProgressBar(hpRatio, ImVec2(hpBarWidth, 0.0f), "");
             ImGui::PopStyleColor();
+
+            char hpPercentText[16] = {};
+            std::snprintf(hpPercentText, sizeof(hpPercentText), "%d%%", static_cast<int>(std::lround(hpRatio * 100.0f)));
+
+            const ImVec2 barSize = ImGui::GetItemRectSize();
+            const ImVec2 textSize = ImGui::CalcTextSize(hpPercentText);
+            const ImVec2 textPos{
+                barPos.x + (barSize.x - textSize.x) * 0.5f,
+                barPos.y + (barSize.y - textSize.y) * 0.5f
+            };
+            ImGui::GetWindowDrawList()->AddText(textPos, IM_COL32(255, 255, 255, 255), hpPercentText);
 
             ImGui::Separator();
             ImGui::Text("Cores: %d / %d", coresCollected, totalCoreCount);
@@ -484,7 +558,11 @@ void GamePlay1::Unload()
     fireCooldownTimer = 0.0;
     weaponMode = WeaponMode::MachineGun;
     weaponFireOverlayPos = vec2{ 0.0f, 0.0f };
+    weaponFireOverlayFlipX = false;
     weaponFireOverlayTimer = 0.0;
+    ammoInMagazine = kMagazineSize;
+    isReloading = false;
+    reloadTimer = 0.0;
 }
 
 int GamePlay1::GetPhaseIndex() const
