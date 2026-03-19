@@ -24,7 +24,7 @@ public:
 private:
     void DrawHealthBar(mat3<float> cameraMatrix);
 
-    float moveSpeed = 55.0f;
+    float moveSpeed = 65.0f;
     vec2 startPos;
     int maxHp = 100;
     int hp = 100;

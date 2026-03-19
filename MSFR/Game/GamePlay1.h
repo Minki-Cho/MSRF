@@ -38,6 +38,7 @@ private:
     void MaybeEmitBalanceLog();
     void FireMachineGun();
     void FireShotgun();
+    void TriggerWeaponVisual(const vec2& origin, const vec2& direction);
     void SpawnBullet(const vec2& origin, const vec2& direction, float speed, double lifeTimeSec, int damage, float hitRadius, const char* spriteSptPath);
     vec2 GetFireDirection() const;
 
@@ -55,6 +56,7 @@ private:
 private:
     GameObjectManager* gameObjectManager{ nullptr };
     TextureDX11 map;
+    TextureDX11 weaponFireOverlay;
     double timer;
     Player* playerPtr{ nullptr };
     std::unique_ptr<BulletPool> machineBulletPool;
@@ -78,6 +80,8 @@ private:
     double fireCooldownTimer{ 0.0 };
     double machineGunInterval{ 0.08 };
     double shotgunInterval{ 0.42 };
+    vec2 weaponFireOverlayPos{ 0.0f, 0.0f };
+    double weaponFireOverlayTimer{ 0.0 };
 };
 
 

@@ -110,6 +110,8 @@ void GamePlay1::FireMachineGun()
         weapon.machineBulletDamage,
         weapon.machineBulletHitRadius,
         "assets/images/weapons/bullet_machine.spt");
+
+    TriggerWeaponVisual(origin, dir);
 }
 
 void GamePlay1::FireShotgun()
@@ -139,6 +141,18 @@ void GamePlay1::FireShotgun()
             weapon.shotgunBulletHitRadius,
             "assets/images/weapons/bullet_shotgun.spt");
     }
+
+    TriggerWeaponVisual(origin, baseDir);
+}
+
+void GamePlay1::TriggerWeaponVisual(const vec2& origin, const vec2& direction)
+{
+    const vec2 dir = NormalizeOrFallback(direction, vec2{ 1.0f, 0.0f });
+    weaponFireOverlayPos = vec2{
+        origin.x() + dir.x() * 10.0f,
+        origin.y() + dir.y() * 10.0f
+    };
+    weaponFireOverlayTimer = 0.09;
 }
 
 void GamePlay1::SpawnBullet(const vec2& origin, const vec2& direction, float speed, double lifeTimeSec, int damage, float hitRadius, const char* spriteSptPath)

@@ -136,12 +136,22 @@ void GamePlay1::Load()
     shotgunBulletPool = std::make_unique<BulletPool>(280, "assets/images/weapons/bullet_shotgun.spt");
 
     map = TextureDX11("assets/images/map.png", false);
+    weaponFireOverlay = TextureDX11("assets/images/weapons/gun_fire.png", false);
+    weaponFireOverlayPos = vec2{ 0.0f, 0.0f };
+    weaponFireOverlayTimer = 0.0;
 }
 
 void GamePlay1::Update(double dt)
 {
     if (!gameObjectManager)
         return;
+
+    if (weaponFireOverlayTimer > 0.0)
+    {
+        weaponFireOverlayTimer -= dt;
+        if (weaponFireOverlayTimer < 0.0)
+            weaponFireOverlayTimer = 0.0;
+    }
 
     if (HandlePauseMenu())
         return;
@@ -337,6 +347,24 @@ void GamePlay1::Draw()
     gameObjectManager->DrawAll(cameraMatrix);
     if (machineBulletPool) machineBulletPool->Draw(cameraMatrix);
     if (shotgunBulletPool) shotgunBulletPool->Draw(cameraMatrix);
+    if (weaponFireOverlayTimer > 0.0)
+    {
+        const vec2 texSize = weaponFireOverlay.GetSize();
+        if (texSize.x() > 0.0f && texSize.y() > 0.0f)
+        {
+            constexpr float overlayDrawW = 72.0f;
+            constexpr float overlayDrawH = 30.0f;
+            const float drawX = weaponFireOverlayPos.x() - overlayDrawW * 0.5f;
+            const float drawY = weaponFireOverlayPos.y() - overlayDrawH * 0.5f;
+            const float sx = overlayDrawW / texSize.x();
+            const float sy = overlayDrawH / texSize.y();
+            const mat3<float> overlayMatrix =
+                cameraMatrix *
+                mat3<float>::build_translation(drawX, drawY) *
+                mat3<float>::build_scale(sx, sy);
+            weaponFireOverlay.Draw(overlayMatrix);
+        }
+    }
 
     {
         const int hp = playerPtr ? playerPtr->GetHP() : 0;
@@ -438,6 +466,7 @@ void GamePlay1::Unload()
     gameObjectManager = nullptr;
     playerPtr = nullptr;
     map.Reset();
+    weaponFireOverlay.Reset();
     machineBulletPool.reset();
     shotgunBulletPool.reset();
     collectedCoreCount = 0;
@@ -454,6 +483,8 @@ void GamePlay1::Unload()
     nextBalanceLogSec = 10.0;
     fireCooldownTimer = 0.0;
     weaponMode = WeaponMode::MachineGun;
+    weaponFireOverlayPos = vec2{ 0.0f, 0.0f };
+    weaponFireOverlayTimer = 0.0;
 }
 
 int GamePlay1::GetPhaseIndex() const
