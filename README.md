@@ -193,6 +193,7 @@ scripts/
 2. Select `x64` + `Debug` or `Release`
 3. Build
 
+The solution builds `EngineLib` first and then links `MSFR`.
 The `MSFR.vcxproj` post-build step copies `external/bin/SDL2.dll` to the output folder.
 
 ### 8-3. Run
@@ -220,6 +221,28 @@ Smoke run checks:
 - Runtime balance logs are emitted as `[BalanceLog] ...` lines in `Trace.log`.
 - For automated gameplay-entry profiling, run:
   - `MSFR.exe --auto-play --auto-exit-ms=65000`
+
+### 8-6. Release Package (GitHub Release)
+
+Create a distributable zip locally:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/package-release.ps1 -Configuration Release -Version v1.0.0
+```
+
+Output:
+
+- `artifacts/MSFR-v1.0.0-win64.zip`
+- zip contents:
+  - `MSFR.exe`
+  - `SDL2.dll`
+  - `assets/`
+  - `README.md`, `LICENSE`
+
+GitHub Release automation:
+
+- Push a tag like `v1.0.0`
+- Workflow `.github/workflows/release.yml` builds `Release|x64`, packages zip, and uploads it to GitHub Releases
 
 ---
 

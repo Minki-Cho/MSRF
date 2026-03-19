@@ -1,0 +1,66 @@
+name: Windows Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. v1.0.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-package-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Resolve Version
+        id: meta
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch")
+          {
+            $version = "${{ inputs.tag }}"
+          }
+          else
+          {
+            $version = "${{ github.ref_name }}"
+          }
+
+          if ([string]::IsNullOrWhiteSpace($version))
+          {
+            throw "Release version/tag is empty."
+          }
+
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Build + Package
+        shell: pwsh
+        run: |
+          ./scripts/package-release.ps1 -Configuration Release -Version "${{ steps.meta.outputs.version }}" -OutputDir artifacts
+
+      - name: Upload Package Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: msfr-release-${{ steps.meta.outputs.version }}
+          path: artifacts/*.zip
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.version }}
+          files: artifacts/*.zip
+          generate_release_notes: true
+          fail_on_unmatched_files: true

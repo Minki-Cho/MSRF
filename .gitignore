@@ -37,7 +37,9 @@
 # Visual Studio
 # =============================
 MSFR/.vs/
+MSFR/x64/
 MSFR/MSFR/x64/
+MSFR/EngineLib/
 
 # =============================
 # Allow external libraries
@@ -50,3 +52,4 @@ MSFR/MSFR/x64/
 !MSFR/external/lib/**
 MSFR/imgui.ini
 MSFR/Trace.log
+artifacts/
