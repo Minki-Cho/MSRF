@@ -36,7 +36,7 @@ namespace
         InputKey::Keyboard inputKey = InputKey::Keyboard::None;
     };
 
-    constexpr std::array<KeyBinding, 11> kKeyBindings{ {
+    constexpr std::array<KeyBinding, 15> kKeyBindings{ {
         { SDLK_RETURN, InputKey::Keyboard::Enter },
         { SDLK_BACKQUOTE, InputKey::Keyboard::Tilde },
         { SDLK_ESCAPE, InputKey::Keyboard::Escape },
@@ -45,6 +45,10 @@ namespace
         { SDLK_DOWN, InputKey::Keyboard::Down },
         { SDLK_LEFT, InputKey::Keyboard::Left },
         { SDLK_RIGHT, InputKey::Keyboard::Right },
+        { SDLK_w, InputKey::Keyboard::W },
+        { SDLK_a, InputKey::Keyboard::A },
+        { SDLK_s, InputKey::Keyboard::S },
+        { SDLK_d, InputKey::Keyboard::D },
         { SDLK_1, InputKey::Keyboard::Num1 },
         { SDLK_2, InputKey::Keyboard::Num2 },
         { SDLK_h, InputKey::Keyboard::H },
@@ -591,7 +595,6 @@ void DX11App::Update()
     // Present
     renderBackend->EndFrame(true);
 }
-
 
 
 

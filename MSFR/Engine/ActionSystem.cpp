@@ -6,16 +6,16 @@ void ActionSystem::PollFromInput(const Input& input)
     fired_.clear();
 
 
-    if (input.IsKeyDown(InputKey::Keyboard::Up))
+    if (input.IsKeyDown(InputKey::Keyboard::Up) || input.IsKeyDown(InputKey::Keyboard::W))
         fired_.push_back(ActionId::Up);
 
-    if (input.IsKeyDown(InputKey::Keyboard::Down))
+    if (input.IsKeyDown(InputKey::Keyboard::Down) || input.IsKeyDown(InputKey::Keyboard::S))
         fired_.push_back(ActionId::Down);
 
-    if (input.IsKeyDown(InputKey::Keyboard::Left))
+    if (input.IsKeyDown(InputKey::Keyboard::Left) || input.IsKeyDown(InputKey::Keyboard::A))
         fired_.push_back(ActionId::Left);
 
-    if (input.IsKeyDown(InputKey::Keyboard::Right))
+    if (input.IsKeyDown(InputKey::Keyboard::Right) || input.IsKeyDown(InputKey::Keyboard::D))
         fired_.push_back(ActionId::Right);
 
     // === Splash Skip Mapping ===
