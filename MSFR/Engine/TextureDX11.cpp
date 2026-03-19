@@ -278,25 +278,12 @@ namespace
         }
         return blob;
     }
-    static mat3<float> BuildSpriteModelToNDC(
-        float x, float y, float w, float h,
-        float screenW, float screenH)
+    static mat3<float> BuildScreenToNDC(float screenW, float screenH)
     {
-        mat3<float> m; // identity (e[0][0]=1,e[1][1]=1,e[2][2]=1)
-
-        // scale (column-major e[c][r])
-        m.e[0][0] = (2.0f * w) / screenW;  // sx
-        m.e[1][1] = (2.0f * h) / screenH;  // sy
-
-        // translation
-        m.e[2][0] = (-1.0f + (2.0f * x) / screenW);
-        m.e[2][1] = (-1.0f + (2.0f * y) / screenH);
-        m.e[2][2] = 1.0f;
-
-        m.e[0][1] = m.e[0][2] = 0.0f;
-        m.e[1][0] = m.e[1][2] = 0.0f;
-        m.e[2][2] = 1.0f;
-
+        mat3<float> m;
+        m.e[0][0] = 2.0f / screenW;  m.e[0][1] = 0.0f;           m.e[0][2] = 0.0f;
+        m.e[1][0] = 0.0f;           m.e[1][1] = 2.0f / screenH;  m.e[1][2] = 0.0f;
+        m.e[2][0] = -1.0f;          m.e[2][1] = -1.0f;           m.e[2][2] = 1.0f;
         return m;
     }
 }
@@ -517,15 +504,11 @@ void TextureDX11::Draw(ID3D11DeviceContext* ctx, const mat3<float>& displayMatri
     const float screenW = (float)Engine::GetViewportWidth();
     const float screenH = (float)Engine::GetViewportHeight();
 
-    const float x = displayMatrix.column2().x();
-    const float y = displayMatrix.column2().y();
-    const float sx = displayMatrix.column0().x();
-    const float sy = displayMatrix.column1().y();
+    const mat3<float> quadToScreen =
+        displayMatrix *
+        mat3<float>::build_scale((float)width, (float)height);
 
-    const float w = (float)width * sx;
-    const float h = (float)height * sy;
-
-    const mat3<float> model_to_ndc = BuildSpriteModelToNDC(x, y, w, h, screenW, screenH);
+    const mat3<float> model_to_ndc = BuildScreenToNDC(screenW, screenH) * quadToScreen;
 
     const CBPerDraw cb = MakeCB(model_to_ndc, { 0,0 }, { 1,1 });
     UpdateDynamicCB(ctx, constantBuffer.Get(), &cb, sizeof(cb));
@@ -566,15 +549,11 @@ void TextureDX11::Draw(ID3D11DeviceContext* ctx, const mat3<float>& displayMatri
     const float screenW = (float)Engine::GetViewportWidth();
     const float screenH = (float)Engine::GetViewportHeight();
 
-    const float x = displayMatrix.column2().x();
-    const float y = displayMatrix.column2().y();
-    const float sx = displayMatrix.column0().x();
-    const float sy = displayMatrix.column1().y();
+    const mat3<float> quadToScreen =
+        displayMatrix *
+        mat3<float>::build_scale(frameSize.x(), frameSize.y());
 
-    const float w = frameSize.x() * sx;
-    const float h = frameSize.y() * sy;
-
-    const mat3<float> model_to_ndc = BuildSpriteModelToNDC(x, y, w, h, screenW, screenH);
+    const mat3<float> model_to_ndc = BuildScreenToNDC(screenW, screenH) * quadToScreen;
 
     vec2 texelPosN = { texelPos.x() / (float)width,  texelPos.y() / (float)height };
     vec2 frameSizeN = { frameSize.x() / (float)width, frameSize.y() / (float)height };

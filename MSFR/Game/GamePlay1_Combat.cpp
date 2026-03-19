@@ -254,7 +254,7 @@ void GamePlay1::TriggerWeaponVisual(const vec2& origin, const vec2& direction)
         origin.x() + dir.x() * 10.0f,
         origin.y() + dir.y() * 10.0f
     };
-    weaponFireOverlayFlipX = (dir.x() < 0.0f);
+    weaponFireOverlayRotationRad = -std::atan2(static_cast<double>(dir.y()), static_cast<double>(dir.x()));
     weaponFireOverlayTimer = 0.09;
 }
 

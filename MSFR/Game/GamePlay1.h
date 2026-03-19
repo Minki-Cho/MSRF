@@ -46,6 +46,9 @@ private:
     vec2 GetFireDirection() const;
 
     void SpawnEnemyFromEdge(int enemyTier);
+    void SpawnEnemyVariantFromEdge(int variantId);
+    void SpawnEliteSetForCore();
+    void ProcessEliteSummons();
     void UpdateEnemyTargets();
     void ResolveEnemyOverlap();
     void ResolveEnemyPlayerHits();
@@ -87,7 +90,7 @@ private:
     double rapidBoostTimer{ 0.0 };
     double hybridBoostTimer{ 0.0 };
     vec2 weaponFireOverlayPos{ 0.0f, 0.0f };
-    bool weaponFireOverlayFlipX{ false };
+    double weaponFireOverlayRotationRad{ 0.0 };
     double weaponFireOverlayTimer{ 0.0 };
     int ammoInMagazine{ 50 };
     static constexpr int kMagazineSize = 50;
@@ -95,8 +98,5 @@ private:
     double reloadTimer{ 0.0 };
     double reloadDurationSec{ 1.25 };
 };
-
-
-
 
 

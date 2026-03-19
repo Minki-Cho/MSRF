@@ -323,7 +323,7 @@ void GamePlay1::Load()
     map = TextureDX11("assets/images/map.png", false);
     weaponFireOverlay = TextureDX11("assets/images/weapons/gun_fire.png", false);
     weaponFireOverlayPos = vec2{ 0.0f, 0.0f };
-    weaponFireOverlayFlipX = false;
+    weaponFireOverlayRotationRad = 0.0;
     weaponFireOverlayTimer = 0.0;
     ammoInMagazine = kMagazineSize;
     isReloading = false;
@@ -375,6 +375,7 @@ void GamePlay1::Update(double dt)
     HandleWeaponInput(dt);
     UpdateEnemyTargets();
     gameObjectManager->Update(dt);
+    ProcessEliteSummons();
     if (machineBulletPool) machineBulletPool->Update(dt);
     if (shotgunBulletPool) shotgunBulletPool->Update(dt);
 
@@ -392,8 +393,12 @@ void GamePlay1::Update(double dt)
     const int newCollectedCount = std::clamp(totalCoreCount - aliveCoreCount, 0, totalCoreCount);
     if (newCollectedCount != collectedCoreCount)
     {
+        const int gainedCoreCount = (std::max)(0, newCollectedCount - collectedCoreCount);
         collectedCoreCount = newCollectedCount;
         enemySpawnTimer = 0.0;
+
+        for (int i = 0; i < gainedCoreCount; ++i)
+            SpawnEliteSetForCore();
 
         if (collectedCoreCount >= totalCoreCount)
         {
@@ -554,11 +559,11 @@ void GamePlay1::Draw()
             constexpr float overlayDrawH = 30.0f;
             const float sx = overlayDrawW / texSize.x();
             const float sy = overlayDrawH / texSize.y();
-            const float flipX = weaponFireOverlayFlipX ? -1.0f : 1.0f;
             const mat3<float> overlayMatrix =
                 cameraMatrix *
                 mat3<float>::build_translation(weaponFireOverlayPos.x(), weaponFireOverlayPos.y()) *
-                mat3<float>::build_scale(sx * flipX, sy) *
+                mat3<float>::build_rotation(static_cast<float>(weaponFireOverlayRotationRad)) *
+                mat3<float>::build_scale(sx, sy) *
                 mat3<float>::build_translation(-texSize.x() * 0.5f, -texSize.y() * 0.5f);
             weaponFireOverlay.Draw(overlayMatrix);
         }
@@ -737,7 +742,7 @@ void GamePlay1::Unload()
     fireCooldownTimer = 0.0;
     weaponMode = WeaponMode::MachineGun;
     weaponFireOverlayPos = vec2{ 0.0f, 0.0f };
-    weaponFireOverlayFlipX = false;
+    weaponFireOverlayRotationRad = 0.0;
     weaponFireOverlayTimer = 0.0;
     ammoInMagazine = kMagazineSize;
     isReloading = false;
@@ -862,7 +867,10 @@ double GamePlay1::GetSpawnIntervalForTier(int enemyTier) const
 {
     const auto& intervals = balance::Get().spawn.intervalByTierSec;
     const int tier = std::clamp(enemyTier, 0, 2);
-    return intervals[static_cast<std::size_t>(tier)] * GetPhaseSpawnIntervalMultiplier();
+    constexpr double kSpawnRateMultiplier = 2.0;
+    constexpr double kMinSpawnIntervalSec = 0.08;
+    const double interval = intervals[static_cast<std::size_t>(tier)] * GetPhaseSpawnIntervalMultiplier();
+    return (std::max)(kMinSpawnIntervalSec, interval / kSpawnRateMultiplier);
 }
 
 int GamePlay1::GetMaxEnemyCountForTier(int enemyTier) const

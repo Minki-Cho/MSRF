@@ -80,6 +80,9 @@ namespace
             Normal,
             Fast,
             Heavy,
+            EliteDash,
+            EliteRanged,
+            EliteSummoner,
         };
 
         EnemyChaser(vec2 startPos, Variant variant)
@@ -103,6 +106,18 @@ namespace
                 variantSettings = &enemySettings.heavy;
                 spritePath = "assets/images/characters/characters/enemy_heavy/enemy_heavy.spt";
                 break;
+            case Variant::EliteDash:
+                variantSettings = &enemySettings.fast;
+                spritePath = "assets/images/characters/characters/enemy_fast/enemy_fast.spt";
+                break;
+            case Variant::EliteRanged:
+                variantSettings = &enemySettings.normal;
+                spritePath = "assets/images/characters/characters/enemy/enemy.spt";
+                break;
+            case Variant::EliteSummoner:
+                variantSettings = &enemySettings.heavy;
+                spritePath = "assets/images/characters/characters/enemy_heavy/enemy_heavy.spt";
+                break;
             }
 
             moveSpeed_ = variantSettings->moveSpeed;
@@ -110,7 +125,41 @@ namespace
             attackRadius_ = variantSettings->attackRadius;
             knockbackForce_ = variantSettings->knockbackForce;
             attackCooldownInterval_ = enemySettings.attackCooldownSec;
-            SetScale(vec2{ variantSettings->scale, variantSettings->scale });
+
+            switch (variant_)
+            {
+            case Variant::EliteDash:
+                moveSpeed_ *= 1.35f;
+                health_ += 4;
+                attackRadius_ = (std::max)(attackRadius_, 46.0f);
+                attackCooldownInterval_ *= 0.82;
+                dashCooldownSec_ = util::random(1.5f, 2.2f);
+                dashDurationSec_ = 0.28;
+                dashSpeedMultiplier_ = 3.4f;
+                SetScale(vec2{ variantSettings->scale * 1.05f, variantSettings->scale * 1.05f });
+                break;
+            case Variant::EliteRanged:
+                moveSpeed_ *= 0.82f;
+                health_ += 6;
+                attackRadius_ = 240.0f;
+                attackCooldownInterval_ = (std::max)(0.25, attackCooldownInterval_ * 1.75);
+                rangedPreferredRange_ = 172.0f;
+                strafeSign_ = (util::random(0, 2) == 0) ? -1.0f : 1.0f;
+                SetScale(vec2{ variantSettings->scale * 1.03f, variantSettings->scale * 1.03f });
+                break;
+            case Variant::EliteSummoner:
+                moveSpeed_ *= 0.72f;
+                health_ += 10;
+                attackRadius_ = (std::max)(attackRadius_, 52.0f);
+                attackCooldownInterval_ *= 1.12;
+                summonCooldownSec_ = util::random(5.4f, 7.2f);
+                summonBurstCount_ = 2;
+                SetScale(vec2{ variantSettings->scale * 1.10f, variantSettings->scale * 1.10f });
+                break;
+            default:
+                SetScale(vec2{ variantSettings->scale, variantSettings->scale });
+                break;
+            }
 
             AddGOComponent(new Sprite(spritePath, this));
 
@@ -139,6 +188,18 @@ namespace
             return attackRadius_;
         }
 
+        bool IsEliteSummoner() const
+        {
+            return variant_ == Variant::EliteSummoner;
+        }
+
+        int ConsumePendingSummons()
+        {
+            const int out = pendingSummonCount_;
+            pendingSummonCount_ = 0;
+            return out;
+        }
+
         void ApplyDamage(int damage, const vec2& hitDirection)
         {
             if (damage <= 0 || GetDestroyed())
@@ -156,12 +217,42 @@ namespace
 
         void Update(double dt) override
         {
-            
+            if (hitFlashTimer_ > 0.0)
+            {
+                hitFlashTimer_ -= dt;
+                if (hitFlashTimer_ < 0.0)
+                    hitFlashTimer_ = 0.0;
+            }
+
             if (attackCooldown_ > 0.0)
             {
                 attackCooldown_ -= dt;
                 if (attackCooldown_ < 0.0)
                     attackCooldown_ = 0.0;
+            }
+
+            if (dashCooldownSec_ > 0.0)
+            {
+                dashCooldownSec_ -= dt;
+                if (dashCooldownSec_ < 0.0)
+                    dashCooldownSec_ = 0.0;
+            }
+
+            if (dashTimeRemainingSec_ > 0.0)
+            {
+                dashTimeRemainingSec_ -= dt;
+                if (dashTimeRemainingSec_ < 0.0)
+                    dashTimeRemainingSec_ = 0.0;
+            }
+
+            if (variant_ == Variant::EliteSummoner && hasTarget_)
+            {
+                summonCooldownSec_ -= dt;
+                if (summonCooldownSec_ <= 0.0)
+                {
+                    pendingSummonCount_ += summonBurstCount_;
+                    summonCooldownSec_ = util::random(5.4f, 7.6f);
+                }
             }
 
             vec2 chaseVelocity{ 0.f, 0.f };
@@ -176,9 +267,48 @@ namespace
                 if (lenSq > 1.0f)
                 {
                     const float len = std::sqrt(lenSq);
-                    chaseVelocity.x() = (dx / len) * moveSpeed_;
-                    chaseVelocity.y() = (dy / len) * moveSpeed_;
+                    const float nx = dx / len;
+                    const float ny = dy / len;
+
+                    if (variant_ == Variant::EliteRanged)
+                    {
+                        const float kRangeSlack = 22.0f;
+                        if (len > rangedPreferredRange_ + kRangeSlack)
+                        {
+                            chaseVelocity.x() = nx * moveSpeed_;
+                            chaseVelocity.y() = ny * moveSpeed_;
+                        }
+                        else if (len < rangedPreferredRange_ - kRangeSlack)
+                        {
+                            chaseVelocity.x() = -nx * moveSpeed_;
+                            chaseVelocity.y() = -ny * moveSpeed_;
+                        }
+                        else
+                        {
+                            // Orbiting movement makes ranged elite less linear.
+                            chaseVelocity.x() = -ny * moveSpeed_ * 0.75f * strafeSign_;
+                            chaseVelocity.y() = nx * moveSpeed_ * 0.75f * strafeSign_;
+                        }
+                    }
+                    else
+                    {
+                        chaseVelocity.x() = nx * moveSpeed_;
+                        chaseVelocity.y() = ny * moveSpeed_;
+
+                        if (variant_ == Variant::EliteDash && dashTimeRemainingSec_ <= 0.0 && dashCooldownSec_ <= 0.0)
+                        {
+                            dashDirection_ = vec2{ nx, ny };
+                            dashTimeRemainingSec_ = dashDurationSec_;
+                            dashCooldownSec_ = util::random(1.65f, 2.45f);
+                        }
+                    }
                 }
+            }
+
+            if (variant_ == Variant::EliteDash && dashTimeRemainingSec_ > 0.0)
+            {
+                chaseVelocity.x() = dashDirection_.x() * moveSpeed_ * dashSpeedMultiplier_;
+                chaseVelocity.y() = dashDirection_.y() * moveSpeed_ * dashSpeedMultiplier_;
             }
 
             const float damping = (std::max)(0.0f, 1.0f - static_cast<float>(dt) * 8.0f);
@@ -324,6 +454,16 @@ namespace
         double hitFlashTimer_ = 0.0;
         double attackCooldown_ = 0.0;
         double attackCooldownInterval_ = 0.34;
+        double dashCooldownSec_ = 0.0;
+        double dashTimeRemainingSec_ = 0.0;
+        double dashDurationSec_ = 0.30;
+        float dashSpeedMultiplier_ = 3.0f;
+        vec2 dashDirection_{ 1.0f, 0.0f };
+        float rangedPreferredRange_ = 170.0f;
+        float strafeSign_ = 1.0f;
+        double summonCooldownSec_ = 0.0;
+        int summonBurstCount_ = 0;
+        int pendingSummonCount_ = 0;
     };
 
     class HitParticle : public GameObject
@@ -394,14 +534,30 @@ void GamePlay1::SpawnHitParticles(const vec2& origin, const vec2& bulletVelocity
 
 void GamePlay1::SpawnEnemyFromEdge(int enemyTier)
 {
+    int variantId = 0;
+    if (enemyTier == 1)
+        variantId = 1;
+    else if (enemyTier >= 2)
+        variantId = 2;
+
+    SpawnEnemyVariantFromEdge(variantId);
+}
+
+void GamePlay1::SpawnEnemyVariantFromEdge(int variantId)
+{
     if (!gameObjectManager || !playerPtr)
         return;
 
     EnemyChaser::Variant variant = EnemyChaser::Variant::Normal;
-    if (enemyTier == 1)
-        variant = EnemyChaser::Variant::Fast;
-    else if (enemyTier >= 2)
-        variant = EnemyChaser::Variant::Heavy;
+    switch (variantId)
+    {
+    case 1: variant = EnemyChaser::Variant::Fast; break;
+    case 2: variant = EnemyChaser::Variant::Heavy; break;
+    case 3: variant = EnemyChaser::Variant::EliteDash; break;
+    case 4: variant = EnemyChaser::Variant::EliteRanged; break;
+    case 5: variant = EnemyChaser::Variant::EliteSummoner; break;
+    default: variant = EnemyChaser::Variant::Normal; break;
+    }
 
     const float viewportWidth = static_cast<float>(Engine::GetViewportWidth());
     const float viewportHeight = static_cast<float>(Engine::GetViewportHeight());
@@ -412,7 +568,8 @@ void GamePlay1::SpawnEnemyFromEdge(int enemyTier)
 
     const auto& enemySettings = balance::Get().enemy;
     const float edgeInset = enemySettings.spawnEdgeInset;
-    const float minSpawnGap = enemySettings.spawnMinGap;
+    const bool isElite = (variantId >= 3);
+    const float minSpawnGap = enemySettings.spawnMinGap * (isElite ? 1.2f : 1.0f);
 
     auto makeCandidate = [&]() -> vec2
     {
@@ -453,6 +610,74 @@ void GamePlay1::SpawnEnemyFromEdge(int enemyTier)
     auto enemy = std::make_unique<EnemyChaser>(spawn, variant);
     enemy->SetTarget(playerPtr->GetPosition());
     gameObjectManager->Add(std::move(enemy));
+}
+
+void GamePlay1::SpawnEliteSetForCore()
+{
+    // One set per collected core: dash + ranged + summoner.
+    SpawnEnemyVariantFromEdge(3);
+    SpawnEnemyVariantFromEdge(4);
+    SpawnEnemyVariantFromEdge(5);
+}
+
+void GamePlay1::ProcessEliteSummons()
+{
+    if (!gameObjectManager || !playerPtr)
+        return;
+
+    const float viewportWidth = static_cast<float>(Engine::GetViewportWidth());
+    const float viewportHeight = static_cast<float>(Engine::GetViewportHeight());
+    const float worldMinX = -viewportWidth + 24.0f;
+    const float worldMinY = -viewportHeight + 24.0f;
+    const float worldMaxX = viewportWidth * 2.0f - 24.0f;
+    const float worldMaxY = viewportHeight * 2.0f - 24.0f;
+
+    std::vector<vec2> summonPositions;
+    summonPositions.reserve(16);
+
+    for (const auto& owner : gameObjectManager->Objects())
+    {
+        GameObject* obj = owner.get();
+        if (!obj || obj->GetDestroyed() || obj->GetObjectType() != GameObjectType::Enemy)
+            continue;
+
+        auto* enemy = static_cast<EnemyChaser*>(obj);
+        if (!enemy->IsEliteSummoner())
+            continue;
+
+        const int summonCount = enemy->ConsumePendingSummons();
+        if (summonCount <= 0)
+            continue;
+
+        const vec2 center = enemy->GetPosition();
+        const int safeSummonCount = (std::min)(summonCount, 6);
+        for (int i = 0; i < safeSummonCount; ++i)
+        {
+            const float angle = util::random(0.0f, 2.0f * kPi);
+            const float dist = util::random(74.0f, 132.0f);
+            vec2 p{
+                center.x() + std::cos(angle) * dist,
+                center.y() + std::sin(angle) * dist
+            };
+
+            p.x() = std::clamp(p.x(), worldMinX, worldMaxX);
+            p.y() = std::clamp(p.y(), worldMinY, worldMaxY);
+            summonPositions.push_back(p);
+
+            if (summonPositions.size() >= 18)
+                break;
+        }
+
+        if (summonPositions.size() >= 18)
+            break;
+    }
+
+    for (const vec2& spawnPos : summonPositions)
+    {
+        auto summoned = std::make_unique<EnemyChaser>(spawnPos, EnemyChaser::Variant::Normal);
+        summoned->SetTarget(playerPtr->GetPosition());
+        gameObjectManager->Add(std::move(summoned));
+    }
 }
 
 void GamePlay1::UpdateEnemyTargets()
