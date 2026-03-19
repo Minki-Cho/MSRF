@@ -186,21 +186,21 @@ namespace
             if (std::abs(knockbackVel_.x()) < 2.0f) knockbackVel_.x() = 0.0f;
             if (std::abs(knockbackVel_.y()) < 2.0f) knockbackVel_.y() = 0.0f;
 
-            vec2 velocity{ chaseVelocity.x() + knockbackVel_.x(), chaseVelocity.y() + knockbackVel_.y() };
+            vec2 moveVelocity{ chaseVelocity.x() + knockbackVel_.x(), chaseVelocity.y() + knockbackVel_.y() };
 
-            if (std::abs(velocity.x()) > 0.001f || std::abs(velocity.y()) > 0.001f)
+            if (std::abs(moveVelocity.x()) > 0.001f || std::abs(moveVelocity.y()) > 0.001f)
             {
-                if (std::abs(velocity.x()) > std::abs(velocity.y()))
-                    direction_ = (velocity.x() < 0.0f) ? CharacterAnim::Left : CharacterAnim::Right;
+                if (std::abs(moveVelocity.x()) > std::abs(moveVelocity.y()))
+                    direction_ = (moveVelocity.x() < 0.0f) ? CharacterAnim::Left : CharacterAnim::Right;
                 else
-                    direction_ = (velocity.y() < 0.0f) ? CharacterAnim::Back : CharacterAnim::Front;
+                    direction_ = (moveVelocity.y() < 0.0f) ? CharacterAnim::Back : CharacterAnim::Front;
             }
             else
             {
                 direction_ = ToIdle(direction_);
             }
 
-            SetVelocity(velocity);
+            SetVelocity(moveVelocity);
 
             if (auto* spr = GetGOComponent<Sprite>())
                 spr->PlayAnimation(ToAnimActionId(direction_));

@@ -1,7 +1,6 @@
 #include "GameStateManager.h" //GameStateManager
 #include "GameObjectManager.h" //GetGSComponent
 #include "Engine.h" //logger
-//#include "..\Game\Splash.h" //load splash
 
 GameStateManager::GameStateManager()
 {

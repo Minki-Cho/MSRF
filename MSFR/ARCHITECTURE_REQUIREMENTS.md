@@ -62,7 +62,7 @@ This document explains how MSFR is designed to satisfy the following requirement
 - Event definitions: `Engine/EventTypes.h:10`, `Engine/EventTypes.h:15`
 - Engine dispatch points in frame loop: `Engine/Engine.cpp:164`, `Engine/Engine.cpp:172`
 - Publish sites in gameplay/menu: `Game/MainMenu.cpp:44`, `Game/MainMenu.cpp:50`, `Game/GamePlay1.cpp:215`, `Game/GamePlay1.cpp:233`, `Game/Splash.cpp:33`
-- Subscription and command execution bridge: `Engine/GameProgram.h:330`, `Engine/GameProgram.h:331`, `Engine/GameProgram.h:335`
+- Subscription and command execution bridge: `Game/GameProgram.h:330`, `Game/GameProgram.h:331`, `Game/GameProgram.h:335`
 
 ---
 
@@ -118,7 +118,7 @@ This document explains how MSFR is designed to satisfy the following requirement
 ### Code evidence
 - Command abstraction: `Engine/Command.h:3`
 - Concrete commands: `Engine/GameCommands.h:9`, `Engine/GameCommands.h:24`
-- Pooled execute helper: `Engine/GameProgram.h:17`, `Engine/GameProgram.h:21`, `Engine/GameProgram.h:29`
+- Pooled execute helper: `Game/GameProgram.h:17`, `Game/GameProgram.h:21`, `Game/GameProgram.h:29`
 - Action ids and poller: `Engine/ActionId.h:4`, `Engine/ActionSystem.cpp:4`, `Engine/ActionSystem.cpp:36`
 - Frame integration: `Engine/DX11App.cpp:618`
 - Action consumers: `Game/Splash.cpp:30`, `Game/Player.cpp:206`

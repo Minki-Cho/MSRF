@@ -89,9 +89,6 @@
     <ClCompile Include="Engine\InputWin32.cpp">
       <Filter>Source Files\Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\IProgram.cpp">
-      <Filter>Source Files\Engine</Filter>
-    </ClCompile>
     <ClCompile Include="Engine\JobSystem.cpp">
       <Filter>Source Files\Engine</Filter>
     </ClCompile>
@@ -139,6 +136,9 @@
     </ClCompile>
     <ClCompile Include="external\imgui\imgui_tables.cpp">
       <Filter>Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\ProgramFactory.cpp">
+      <Filter>Source Files\Game</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -281,9 +281,6 @@
       <Filter>Header Files\Engine\Helpers</Filter>
     </ClInclude>
     <ClInclude Include="Game\ActionId.h">
-      <Filter>Header Files\Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\GameProgram.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
   </ItemGroup>

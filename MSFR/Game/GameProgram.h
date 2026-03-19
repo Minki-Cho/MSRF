@@ -1,14 +1,14 @@
-#include "Engine.h"
-#include "EventTypes.h"
-#include "GameCommands.h"
-#include "TextureDX11.h"
+#include "../Engine/Engine.h"
+#include "../Engine/EventTypes.h"
+#include "../Engine/GameCommands.h"
+#include "../Engine/TextureDX11.h"
 #include "../external/imgui/imgui.h"
 #include <SDL2/SDL.h>
-#include "../Game/Splash.h"
-#include "../Game/MainMenu.h"
-#include "../Game/GamePlay1.h"
-#include "../Game/ScreenMods.h"
-#include "IProgram.h"
+#include "Splash.h"
+#include "MainMenu.h"
+#include "GamePlay1.h"
+#include "ScreenMods.h"
+#include "../Engine/IProgram.h"
 #include <cstdio>
 #include <string>
 

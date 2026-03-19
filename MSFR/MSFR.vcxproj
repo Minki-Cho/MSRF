@@ -170,7 +170,6 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
     <ClCompile Include="Engine\GameStateManager.cpp" />
     <ClCompile Include="Engine\input.cpp" />
     <ClCompile Include="Engine\InputWin32.cpp" />
-    <ClCompile Include="Engine\IProgram.cpp" />
     <ClCompile Include="Engine\JobSystem.cpp" />
     <ClCompile Include="Engine\Logger.cpp" />
     <ClCompile Include="Engine\PlatformLoggerWin32.cpp" />
@@ -192,6 +191,7 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
     <ClCompile Include="Game\GamePlay1_Combat.cpp" />
     <ClCompile Include="Game\GamePlay1_Enemy.cpp" />
     <ClCompile Include="Game\MainMenu.cpp" />
+    <ClCompile Include="Game\ProgramFactory.cpp" />
     <ClCompile Include="Game\Player.cpp" />
     <ClCompile Include="Game\Splash.cpp" />
     <ClCompile Include="main.cpp" />
@@ -213,7 +213,6 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
     <ClInclude Include="Engine\Engine.h" />
     <ClInclude Include="Engine\GameObject.h" />
     <ClInclude Include="Engine\GameObjectManager.h" />
-    <ClInclude Include="Engine\GameProgram.h" />
     <ClInclude Include="Engine\GameState.h" />
     <ClInclude Include="Engine\GameStateManager.h" />
     <ClInclude Include="Engine\Input.h" />

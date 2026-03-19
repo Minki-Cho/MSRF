@@ -5,7 +5,14 @@
 #include <string>
 
 #define MINIAUDIO_IMPLEMENTATION
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4244) // miniaudio internal narrowing conversions
+#endif
 #include "../ThirdParty/miniaudio.h"
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 struct AudioSystem::Impl
 {

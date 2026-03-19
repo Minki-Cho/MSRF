@@ -1,4 +1,4 @@
-#include "IProgram.h"
+#include "../Engine/IProgram.h"
 #include "GameProgram.h"
 
 util::owner<IProgram*> create_program(int viewport_width, int viewport_height)

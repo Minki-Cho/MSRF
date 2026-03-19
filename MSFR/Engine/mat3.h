@@ -138,7 +138,7 @@ constexpr vec3 operator*(const mat3<T>& m, vec3 v) noexcept
         T(m.e[0][2]) * v.x() + T(m.e[1][2]) * v.y() + T(m.e[2][2]) * v.z()
     };
 }
-static mat3<float> PixelToNdc(float w, float h)
+inline mat3<float> PixelToNdc(float w, float h)
 {
     // column-major e[c][r]
     // [ 2/w    0   -1 ]
