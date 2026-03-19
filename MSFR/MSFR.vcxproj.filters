@@ -219,6 +219,9 @@
     <None Include="assets\config\gameplay_balance.cfg">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="assets\config\gameplay_balance.json">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\TraceLog.ico">
@@ -234,7 +237,6 @@
     </ResourceCompile>
   </ItemGroup>
 </Project>
-
 
 
 

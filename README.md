@@ -215,12 +215,26 @@ Smoke run checks:
 ### 8-5. Balance Tuning
 
 - Gameplay balance values are loaded from:
-  - `MSFR/assets/config/gameplay_balance.cfg`
+  - `MSFR/assets/config/gameplay_balance.json` (preferred)
+  - `MSFR/assets/config/gameplay_balance.cfg` (fallback)
 - You can tune weapon, enemy, spawn, and phase (`early/mid/late`) values without recompiling code.
 - The file is reloaded each time `GamePlay1` state enters `Load()`.
 - Runtime balance logs are emitted as `[BalanceLog] ...` lines in `Trace.log`.
 - For automated gameplay-entry profiling, run:
   - `MSFR.exe --auto-play --auto-exit-ms=65000`
+
+Balance editor tooling (JSON):
+
+```powershell
+# Generate JSON from existing CFG once
+powershell -ExecutionPolicy Bypass -File scripts/balance-editor.ps1 -FromCfg
+
+# List all settings
+powershell -ExecutionPolicy Bypass -File scripts/balance-editor.ps1 -List
+
+# Update one or more values
+powershell -ExecutionPolicy Bypass -File scripts/balance-editor.ps1 -Set "weapon.machine.interval=0.095" -Set "enemy.fast.health=12"
+```
 
 ### 8-6. Release Package (GitHub Release)
 
@@ -259,4 +273,5 @@ GitHub Actions (`Windows Build & Demo Smoke`) runs:
 ## 10. Known Gaps / Next Steps
 
 - Collision system is integrated into gameplay interactions (player-core collection, enemy contact, enemy separation, bullet hit checks)
-- Data-driven loading (e.g., JSON) and editor tooling remain on the roadmap
+- Data-driven loading is now available for gameplay balance via `assets/config/gameplay_balance.json`
+- Editor tooling is available via `scripts/balance-editor.ps1` (`-FromCfg`, `-List`, `-Get`, `-Set`)

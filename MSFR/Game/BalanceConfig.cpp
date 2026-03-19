@@ -8,6 +8,8 @@
 #include <cstdlib>
 #include <fstream>
 #include <string>
+#include <utility>
+#include <vector>
 
 namespace balance
 {
@@ -70,6 +72,231 @@ namespace balance
                 return false;
 
             out = static_cast<float>(parsed);
+            return true;
+        }
+
+        void SkipWs(const std::string& text, std::size_t& i)
+        {
+            while (i < text.size() && std::isspace(static_cast<unsigned char>(text[i])))
+                ++i;
+        }
+
+        bool ParseJsonString(const std::string& text, std::size_t& i, std::string& out, std::string& err)
+        {
+            if (i >= text.size() || text[i] != '"')
+            {
+                err = "expected '\"'";
+                return false;
+            }
+
+            ++i;
+            out.clear();
+            while (i < text.size())
+            {
+                const char c = text[i++];
+                if (c == '"')
+                    return true;
+
+                if (c == '\\')
+                {
+                    if (i >= text.size())
+                    {
+                        err = "unterminated escape sequence";
+                        return false;
+                    }
+
+                    const char esc = text[i++];
+                    switch (esc)
+                    {
+                    case '"':  out.push_back('"'); break;
+                    case '\\': out.push_back('\\'); break;
+                    case '/':  out.push_back('/'); break;
+                    case 'b':  out.push_back('\b'); break;
+                    case 'f':  out.push_back('\f'); break;
+                    case 'n':  out.push_back('\n'); break;
+                    case 'r':  out.push_back('\r'); break;
+                    case 't':  out.push_back('\t'); break;
+                    default:
+                        err = "unsupported escape sequence";
+                        return false;
+                    }
+                }
+                else
+                {
+                    out.push_back(c);
+                }
+            }
+
+            err = "unterminated string";
+            return false;
+        }
+
+        bool ParseJsonNumberToken(const std::string& text, std::size_t& i, std::string& out)
+        {
+            const std::size_t begin = i;
+
+            if (i < text.size() && (text[i] == '-' || text[i] == '+'))
+                ++i;
+
+            bool hasDigit = false;
+            while (i < text.size() && std::isdigit(static_cast<unsigned char>(text[i])))
+            {
+                ++i;
+                hasDigit = true;
+            }
+
+            if (i < text.size() && text[i] == '.')
+            {
+                ++i;
+                while (i < text.size() && std::isdigit(static_cast<unsigned char>(text[i])))
+                {
+                    ++i;
+                    hasDigit = true;
+                }
+            }
+
+            if (!hasDigit)
+                return false;
+
+            if (i < text.size() && (text[i] == 'e' || text[i] == 'E'))
+            {
+                ++i;
+                if (i < text.size() && (text[i] == '-' || text[i] == '+'))
+                    ++i;
+
+                bool expDigit = false;
+                while (i < text.size() && std::isdigit(static_cast<unsigned char>(text[i])))
+                {
+                    ++i;
+                    expDigit = true;
+                }
+
+                if (!expDigit)
+                    return false;
+            }
+
+            out = text.substr(begin, i - begin);
+            return true;
+        }
+
+        bool TryParseFlatJsonObject(const std::string& text, std::vector<std::pair<std::string, std::string>>& outEntries, std::string& outError)
+        {
+            outEntries.clear();
+            std::size_t i = 0;
+
+            // Allow UTF-8 BOM at file start.
+            if (text.size() >= 3 &&
+                static_cast<unsigned char>(text[0]) == 0xEF &&
+                static_cast<unsigned char>(text[1]) == 0xBB &&
+                static_cast<unsigned char>(text[2]) == 0xBF)
+            {
+                i = 3;
+            }
+
+            SkipWs(text, i);
+
+            if (i >= text.size() || text[i] != '{')
+            {
+                outError = "root must be an object";
+                return false;
+            }
+            ++i;
+
+            for (;;)
+            {
+                SkipWs(text, i);
+                if (i >= text.size())
+                {
+                    outError = "unexpected end of file";
+                    return false;
+                }
+
+                if (text[i] == '}')
+                {
+                    ++i;
+                    break;
+                }
+
+                std::string key;
+                if (!ParseJsonString(text, i, key, outError))
+                    return false;
+
+                SkipWs(text, i);
+                if (i >= text.size() || text[i] != ':')
+                {
+                    outError = "expected ':' after key";
+                    return false;
+                }
+                ++i;
+
+                SkipWs(text, i);
+                if (i >= text.size())
+                {
+                    outError = "missing value";
+                    return false;
+                }
+
+                std::string value;
+                if (text[i] == '"')
+                {
+                    if (!ParseJsonString(text, i, value, outError))
+                        return false;
+                }
+                else if (!text.compare(i, 4, "true"))
+                {
+                    value = "1";
+                    i += 4;
+                }
+                else if (!text.compare(i, 5, "false"))
+                {
+                    value = "0";
+                    i += 5;
+                }
+                else if (!text.compare(i, 4, "null"))
+                {
+                    value = "0";
+                    i += 4;
+                }
+                else
+                {
+                    if (!ParseJsonNumberToken(text, i, value))
+                    {
+                        outError = "value must be number/bool/string";
+                        return false;
+                    }
+                }
+
+                outEntries.emplace_back(std::move(key), std::move(value));
+
+                SkipWs(text, i);
+                if (i >= text.size())
+                {
+                    outError = "unexpected end after value";
+                    return false;
+                }
+
+                if (text[i] == ',')
+                {
+                    ++i;
+                    continue;
+                }
+                if (text[i] == '}')
+                {
+                    ++i;
+                    break;
+                }
+
+                outError = "expected ',' or '}'";
+                return false;
+            }
+
+            SkipWs(text, i);
+            if (i != text.size())
+            {
+                outError = "trailing content after root object";
+                return false;
+            }
+
             return true;
         }
 
@@ -362,11 +589,37 @@ namespace balance
         {
             gSettings = Settings{};
 
+            constexpr const char* kJsonPath = "assets/config/gameplay_balance.json";
+            {
+                std::ifstream jsonFile(kJsonPath);
+                if (jsonFile.is_open())
+                {
+                    std::string jsonText((std::istreambuf_iterator<char>(jsonFile)), std::istreambuf_iterator<char>());
+                    std::vector<std::pair<std::string, std::string>> entries;
+                    std::string parseError;
+                    if (TryParseFlatJsonObject(jsonText, entries, parseError))
+                    {
+                        for (const auto& entry : entries)
+                        {
+                            ApplySetting(gSettings, entry.first, entry.second);
+                        }
+
+                        ClampToSafeRanges(gSettings);
+                        Engine::GetLogger().LogEvent("[Balance] Loaded assets/config/gameplay_balance.json");
+                        return;
+                    }
+
+                    Engine::GetLogger().LogWarning(
+                        std::string("[Balance] Failed to parse assets/config/gameplay_balance.json: ") + parseError +
+                        " (falling back to .cfg)");
+                }
+            }
+
             constexpr const char* kBalancePath = "assets/config/gameplay_balance.cfg";
             std::ifstream file(kBalancePath);
             if (!file.is_open())
             {
-                Engine::GetLogger().LogWarning("[Balance] Config not found: assets/config/gameplay_balance.cfg (using defaults)");
+                Engine::GetLogger().LogWarning("[Balance] Config not found: gameplay_balance.json/.cfg (using defaults)");
                 ClampToSafeRanges(gSettings);
                 return;
             }

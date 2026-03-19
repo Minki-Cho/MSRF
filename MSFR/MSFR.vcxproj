@@ -225,6 +225,7 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
   <ItemGroup>
     <None Include="Engine\vec2.inl" />
     <None Include="assets\config\gameplay_balance.cfg" />
+    <None Include="assets\config\gameplay_balance.json" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MSFR.rc" />
@@ -243,4 +244,3 @@ copy /Y "$(ProjectDir)external\bin\SDL2.dll" "$(TargetDir)"
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>
-
