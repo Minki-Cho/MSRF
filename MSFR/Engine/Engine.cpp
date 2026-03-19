@@ -62,8 +62,6 @@ void Engine::InitCore()
     lastFrameDt = 1.0 / TargetFPS;
     fixedStepAccumulator = 0.0;
     renderInterpolationAlpha = 0.0;
-    bulletPoolDebugStats = BulletPoolDebugStats{};
-    gameplayHudStats = GameplayHudStats{};
     lastRunSummary = LastRunSummary{};
 
     gameFinish = false;
@@ -104,8 +102,6 @@ void Engine::Shutdown()
     eventBus.Clear();
 
     textureManager.Unload();
-    bulletPoolDebugStats = BulletPoolDebugStats{};
-    gameplayHudStats = GameplayHudStats{};
     lastRunSummary = LastRunSummary{};
 
     if (dx11 && dx11->context)

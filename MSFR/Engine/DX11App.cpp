@@ -247,13 +247,6 @@ void DX11App::DrawProfilerOverlay()
             auto& pool = Engine::GetCommandPool();
             ImGui::Text("CommandPool: %zu / %zu in-use", pool.InUse(), pool.InUse() + pool.Available());
 
-            const auto bulletStats = Engine::GetBulletPoolDebugStats();
-            if (bulletStats.valid)
-            {
-                ImGui::Text("BulletPool(M): %zu / %zu active (overflow %zu)", bulletStats.machineActive, bulletStats.machineCapacity, bulletStats.machineOverflow);
-                ImGui::Text("BulletPool(S): %zu / %zu active (overflow %zu)", bulletStats.shotgunActive, bulletStats.shotgunCapacity, bulletStats.shotgunOverflow);
-            }
-
             ImGui::Text("Viewport: %d x %d", Engine::GetViewportWidth(), Engine::GetViewportHeight());
             ImGui::Text("Thread Stress (F3): %s", stressTestEnabled ? "ON" : "OFF");
             ImGui::Text("Stress Accumulator: %llu", static_cast<unsigned long long>(stressAccumulator.load(std::memory_order_relaxed)));
@@ -299,49 +292,6 @@ void DX11App::DrawProfilerOverlay()
                     ImGui::EndTable();
                 }
             }
-        }
-        ImGui::End();
-    }
-
-    const auto hud = Engine::GetGameplayHudStats();
-    if (hud.valid)
-    {
-        ImGui::SetNextWindowBgAlpha(0.78f);
-        ImGui::SetNextWindowPos(
-            ImVec2(static_cast<float>(Engine::GetViewportWidth()) - 12.0f, 12.0f),
-            ImGuiCond_Always,
-            ImVec2(1.0f, 0.0f));
-
-        constexpr ImGuiWindowFlags hudFlags =
-            ImGuiWindowFlags_NoDecoration |
-            ImGuiWindowFlags_AlwaysAutoResize |
-            ImGuiWindowFlags_NoSavedSettings |
-            ImGuiWindowFlags_NoNav |
-            ImGuiWindowFlags_NoMove |
-            ImGuiWindowFlags_NoFocusOnAppearing |
-            ImGuiWindowFlags_NoInputs;
-
-        if (ImGui::Begin("Gameplay HUD", nullptr, hudFlags))
-        {
-            const float hpRatio = (hud.hpMax > 0)
-                ? std::clamp(static_cast<float>(hud.hp) / static_cast<float>(hud.hpMax), 0.0f, 1.0f)
-                : 0.0f;
-
-            ImVec4 hpColor = ImVec4(0.2f, 0.8f, 0.35f, 1.0f);
-            if (hpRatio < 0.30f)
-                hpColor = ImVec4(0.9f, 0.2f, 0.2f, 1.0f);
-            else if (hpRatio < 0.60f)
-                hpColor = ImVec4(0.95f, 0.75f, 0.2f, 1.0f);
-
-            ImGui::Text("HP: %d / %d", hud.hp, hud.hpMax);
-            ImGui::PushStyleColor(ImGuiCol_PlotHistogram, hpColor);
-            ImGui::ProgressBar(hpRatio, ImVec2(210.0f, 0.0f));
-            ImGui::PopStyleColor();
-
-            ImGui::Separator();
-            ImGui::Text("Cores: %d / %d", hud.coresCollected, hud.coresTotal);
-            ImGui::Text("Weapon: %s", (hud.weaponMode == 1) ? "Shotgun" : "Machine Gun");
-            ImGui::Text("Enemies Left: %d", hud.enemiesRemaining);
         }
         ImGui::End();
     }

@@ -143,29 +143,8 @@ void GamePlay1::Update(double dt)
     if (!gameObjectManager)
         return;
 
-    auto publishHudStats = [this]()
-    {
-        Engine::GameplayHudStats hud{};
-        hud.valid = true;
-        hud.coresTotal = totalCoreCount;
-        hud.coresCollected = std::clamp(totalCoreCount - CountAliveByType(GameObjectType::DataCore), 0, totalCoreCount);
-        hud.enemiesRemaining = CountAliveByType(GameObjectType::Enemy);
-        hud.weaponMode = (weaponMode == WeaponMode::Shotgun) ? 1 : 0;
-
-        if (playerPtr)
-        {
-            hud.hp = playerPtr->GetHP();
-            hud.hpMax = playerPtr->GetMaxHP();
-        }
-
-        Engine::SetGameplayHudStats(hud);
-    };
-
     if (HandlePauseMenu())
-    {
-        publishHudStats();
         return;
-    }
 
     runElapsedSec += dt;
     const int phaseIndex = GetPhaseIndex();
@@ -188,28 +167,11 @@ void GamePlay1::Update(double dt)
     if (machineBulletPool) machineBulletPool->Update(dt);
     if (shotgunBulletPool) shotgunBulletPool->Update(dt);
 
-    Engine::BulletPoolDebugStats bulletStats{};
-    bulletStats.valid = true;
-    if (machineBulletPool)
-    {
-        bulletStats.machineActive = machineBulletPool->ActiveCount();
-        bulletStats.machineCapacity = machineBulletPool->Capacity();
-        bulletStats.machineOverflow = machineBulletPool->OverflowCount();
-    }
-    if (shotgunBulletPool)
-    {
-        bulletStats.shotgunActive = shotgunBulletPool->ActiveCount();
-        bulletStats.shotgunCapacity = shotgunBulletPool->Capacity();
-        bulletStats.shotgunOverflow = shotgunBulletPool->OverflowCount();
-    }
-    Engine::SetBulletPoolDebugStats(bulletStats);
-
     ResolveEnemyOverlap();
     ResolveEnemyPlayerHits();
 
     if (playerPtr && playerPtr->IsDead() && !gameOverTriggered)
     {
-        publishHudStats();
         PublishRunSummary(false);
         gameOverTriggered = true;
         Engine::GetEventBus().Publish(RequestStateChangeEvent{ static_cast<int>(ScreenMods::GameOver) });
@@ -227,7 +189,6 @@ void GamePlay1::Update(double dt)
 
         if (collectedCoreCount >= totalCoreCount)
         {
-            publishHudStats();
             PublishRunSummary(true);
             clearTriggered = true;
             Engine::GetEventBus().Publish(RequestStateChangeEvent{ static_cast<int>(ScreenMods::Credit) });
@@ -248,8 +209,6 @@ void GamePlay1::Update(double dt)
         SpawnEnemyFromEdge(enemyTier);
         enemySpawnTimer = GetSpawnIntervalForTier(enemyTier);
     }
-
-    publishHudStats();
 }
 
 bool GamePlay1::HandlePauseMenu()
@@ -379,6 +338,71 @@ void GamePlay1::Draw()
     if (machineBulletPool) machineBulletPool->Draw(cameraMatrix);
     if (shotgunBulletPool) shotgunBulletPool->Draw(cameraMatrix);
 
+    {
+        const int hp = playerPtr ? playerPtr->GetHP() : 0;
+        const int hpMax = playerPtr ? playerPtr->GetMaxHP() : 0;
+        const int coresCollected = std::clamp(totalCoreCount - CountAliveByType(GameObjectType::DataCore), 0, totalCoreCount);
+        const int enemiesRemaining = CountAliveByType(GameObjectType::Enemy);
+
+        ImGui::SetNextWindowBgAlpha(0.78f);
+        ImGui::SetNextWindowPos(
+            ImVec2(static_cast<float>(Engine::GetViewportWidth()) - 12.0f, 12.0f),
+            ImGuiCond_Always,
+            ImVec2(1.0f, 0.0f));
+
+        constexpr ImGuiWindowFlags hudFlags =
+            ImGuiWindowFlags_NoDecoration |
+            ImGuiWindowFlags_AlwaysAutoResize |
+            ImGuiWindowFlags_NoSavedSettings |
+            ImGuiWindowFlags_NoNav |
+            ImGuiWindowFlags_NoMove |
+            ImGuiWindowFlags_NoFocusOnAppearing |
+            ImGuiWindowFlags_NoInputs;
+
+        if (ImGui::Begin("Gameplay HUD", nullptr, hudFlags))
+        {
+            const float hpRatio = (hpMax > 0)
+                ? std::clamp(static_cast<float>(hp) / static_cast<float>(hpMax), 0.0f, 1.0f)
+                : 0.0f;
+
+            ImVec4 hpColor = ImVec4(0.2f, 0.8f, 0.35f, 1.0f);
+            if (hpRatio < 0.30f)
+                hpColor = ImVec4(0.9f, 0.2f, 0.2f, 1.0f);
+            else if (hpRatio < 0.60f)
+                hpColor = ImVec4(0.95f, 0.75f, 0.2f, 1.0f);
+
+            ImGui::Text("HP: %d / %d", hp, hpMax);
+            ImGui::PushStyleColor(ImGuiCol_PlotHistogram, hpColor);
+            ImGui::ProgressBar(hpRatio, ImVec2(210.0f, 0.0f));
+            ImGui::PopStyleColor();
+
+            ImGui::Separator();
+            ImGui::Text("Cores: %d / %d", coresCollected, totalCoreCount);
+            ImGui::Text("Weapon: %s", (weaponMode == WeaponMode::Shotgun) ? "Shotgun" : "Machine Gun");
+            ImGui::Text("Enemies Left: %d", enemiesRemaining);
+
+            if (machineBulletPool || shotgunBulletPool)
+            {
+                ImGui::Separator();
+                if (machineBulletPool)
+                {
+                    ImGui::Text("BulletPool(M): %zu / %zu active (overflow %zu)",
+                        machineBulletPool->ActiveCount(),
+                        machineBulletPool->Capacity(),
+                        machineBulletPool->OverflowCount());
+                }
+                if (shotgunBulletPool)
+                {
+                    ImGui::Text("BulletPool(S): %zu / %zu active (overflow %zu)",
+                        shotgunBulletPool->ActiveCount(),
+                        shotgunBulletPool->Capacity(),
+                        shotgunBulletPool->OverflowCount());
+                }
+            }
+        }
+        ImGui::End();
+    }
+
     if (!pauseMenuOpen)
         return;
 
@@ -416,8 +440,6 @@ void GamePlay1::Unload()
     map.Reset();
     machineBulletPool.reset();
     shotgunBulletPool.reset();
-    Engine::SetBulletPoolDebugStats(Engine::BulletPoolDebugStats{});
-    Engine::SetGameplayHudStats(Engine::GameplayHudStats{});
     collectedCoreCount = 0;
     enemySpawnTimer = 0.0;
     clearTriggered = false;
