@@ -23,4 +23,5 @@ private:
 	GameObjectManager tt;
 	bool showQuitConfirm = false;
 	bool requestQuitNow = false;
+	bool wasMouseDown = false;
 };

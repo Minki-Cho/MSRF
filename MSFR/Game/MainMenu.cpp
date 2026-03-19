@@ -17,6 +17,50 @@ namespace
             return x >= l && x <= r && y >= t && y <= b;
         }
     };
+
+    struct FitRect
+    {
+        float x = 0.0f;
+        float y = 0.0f;
+        float w = 0.0f;
+        float h = 0.0f;
+        float scale = 1.0f;
+    };
+
+    constexpr float kMenuRefWidth = 1080.0f;
+    constexpr float kMenuRefHeight = 720.0f;
+
+    FitRect ComputeFitRect(const vec2& textureSize, float viewportWidth, float viewportHeight)
+    {
+        FitRect fit{};
+        if (textureSize.x() <= 0.0f || textureSize.y() <= 0.0f || viewportWidth <= 0.0f || viewportHeight <= 0.0f)
+            return fit;
+
+        const float sx = viewportWidth / textureSize.x();
+        const float sy = viewportHeight / textureSize.y();
+        fit.scale = (std::min)(sx, sy);
+        fit.w = textureSize.x() * fit.scale;
+        fit.h = textureSize.y() * fit.scale;
+        fit.x = (viewportWidth - fit.w) * 0.5f;
+        fit.y = (viewportHeight - fit.h) * 0.5f;
+        return fit;
+    }
+
+    bool TryWindowToMenuUv(const vec2& mouseWindowPos, const FitRect& fit, vec2& outUv)
+    {
+        if (fit.w <= 0.0f || fit.h <= 0.0f || fit.scale <= 0.0f)
+            return false;
+
+        if (mouseWindowPos.x() < fit.x || mouseWindowPos.x() > (fit.x + fit.w) ||
+            mouseWindowPos.y() < fit.y || mouseWindowPos.y() > (fit.y + fit.h))
+        {
+            return false;
+        }
+
+        outUv.x() = (mouseWindowPos.x() - fit.x) / fit.w;
+        outUv.y() = (mouseWindowPos.y() - fit.y) / fit.h;
+        return true;
+    }
 }
 
 MainMenu::MainMenu() : modeNext(InputKey::Keyboard::Enter), timer(5.0f)
@@ -32,12 +76,16 @@ void MainMenu::Load()
     MainMenuImage = TextureDX11("assets/images/MainMenu.png", false);
     showQuitConfirm = false;
     requestQuitNow = false;
+    wasMouseDown = Engine::GetInput().GetMouseDown();
     timer = Engine::IsAutoPlayEnabled() ? 0.35 : 0.0;
 }
 
 void MainMenu::Update(double dt)
 {
     auto& input = Engine::GetInput();
+    const bool mouseDownNow = input.GetMouseDown();
+    const bool mouseDownStarted = mouseDownNow && !wasMouseDown;
+    wasMouseDown = mouseDownNow;
 
     auto requestPlay = []()
     {
@@ -107,39 +155,58 @@ void MainMenu::Update(double dt)
         return;
     }
 
-    if (input.GetMouseReleasedThisFrame())
+    if (input.GetMouseReleasedThisFrame() || mouseDownStarted)
     {
-        const vec2 mouse = input.GetMousePos();
+        const vec2 mouseWindow = input.GetMousePos();
+        const vec2 menuTextureSize = MainMenuImage.GetSize();
+        const FitRect menuFit = ComputeFitRect(
+            menuTextureSize,
+            static_cast<float>(Engine::GetViewportWidth()),
+            static_cast<float>(Engine::GetViewportHeight()));
+
+        vec2 mouseUv = { 0.0f, 0.0f };
+        if (!TryWindowToMenuUv(mouseWindow, menuFit, mouseUv))
+        {
+            return;
+        }
+
+        const vec2 mouseRef = {
+            mouseUv.x() * kMenuRefWidth,
+            mouseUv.y() * kMenuRefHeight
+        };
 
         Engine::GetLogger().LogEvent(
             "mouse win: " +
-            std::to_string((int)mouse.x()) + ", " +
-            std::to_string((int)mouse.y()));
+            std::to_string((int)mouseWindow.x()) + ", " +
+            std::to_string((int)mouseWindow.y()) +
+            " -> ref: " +
+            std::to_string((int)mouseRef.x()) + ", " +
+            std::to_string((int)mouseRef.y()));
 
         const RectF play{
-            390.f, 220.f,
+            330.f, 220.f,
             800.f, 345.f
         };
 
         const RectF howToPlay{
-            390.f, 380.f,
+            330.f, 380.f,
             800.f, 380.f + 125.f
         };
 
         const RectF quit{
-            390.f, 530.f,
+            330.f, 530.f,
             800.f, 530.f + 125.f
         };
 
-        if (play.Contains(mouse.x(), mouse.y()))
+        if (play.Contains(mouseRef.x(), mouseRef.y()))
         {
             requestPlay();
         }
-        else if (howToPlay.Contains(mouse.x(), mouse.y()))
+        else if (howToPlay.Contains(mouseRef.x(), mouseRef.y()))
         {
             requestHowToPlay();
         }
-        else if (quit.Contains(mouse.x(), mouse.y()))
+        else if (quit.Contains(mouseRef.x(), mouseRef.y()))
         {
             showQuitConfirm = true;
         }
@@ -188,4 +255,5 @@ void MainMenu::Unload()
     MainMenuImage.Reset();
     showQuitConfirm = false;
     requestQuitNow = false;
+    wasMouseDown = false;
 }
