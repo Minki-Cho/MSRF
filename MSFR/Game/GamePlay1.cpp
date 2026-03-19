@@ -1,6 +1,7 @@
 #include "../Engine/Engine.h"
 #include "../Engine/EventTypes.h"
 #include "../Engine/Random.h"
+#include "../Engine/Sprite.h"
 #include "../Engine/UIFramework.h"
 #include <SDL2/SDL.h>
 
@@ -23,12 +24,122 @@
 
 namespace
 {
+    constexpr int kItemsPerType = 3;
+    constexpr float kSpeedMoveMultiplier = 1.85f;
+    constexpr float kRapidFireMultiplier = 3.0f;
+    constexpr double kSpeedBuffDurationSec = 10.0;
+    constexpr double kRapidBuffDurationSec = 9.0;
+    constexpr double kHybridBuffDurationSec = 12.0;
+
     bool IsTooClose(const vec2& a, const vec2& b, float minDist)
     {
         const float dx = a.x() - b.x();
         const float dy = a.y() - b.y();
         return (dx * dx + dy * dy) < (minDist * minDist);
     }
+
+    class PowerItem : public GameObject
+    {
+    public:
+        enum class Kind
+        {
+            Speed,
+            Rapid,
+            Hybrid,
+        };
+
+        PowerItem(vec2 startPos, Kind kind)
+            : GameObject(startPos),
+              anchorPos_(startPos),
+              kind_(kind)
+        {
+            const char* spritePath = "assets/images/items/item_speed/item_speed.spt";
+            switch (kind_)
+            {
+            case Kind::Speed: spritePath = "assets/images/items/item_speed/item_speed.spt"; break;
+            case Kind::Rapid: spritePath = "assets/images/items/item_rapid/item_rapid.spt"; break;
+            case Kind::Hybrid: spritePath = "assets/images/items/item_hybrid/item_hybrid.spt"; break;
+            }
+
+            AddGOComponent(new Sprite(spritePath, this));
+            phase_ = (static_cast<double>(startPos.x()) * 0.05) + (static_cast<double>(startPos.y()) * 0.03);
+
+            switch (kind_)
+            {
+            case Kind::Speed:
+                bobAmplitude_ = 9.0f;
+                bobSpeed_ = 3.2f;
+                spinSpeed_ = 2.2f;
+                SetScale(vec2{ 0.92f, 0.92f });
+                break;
+            case Kind::Rapid:
+                bobAmplitude_ = 8.0f;
+                bobSpeed_ = 3.8f;
+                spinSpeed_ = 3.1f;
+                SetScale(vec2{ 0.85f, 0.85f });
+                break;
+            case Kind::Hybrid:
+                bobAmplitude_ = 10.0f;
+                bobSpeed_ = 2.7f;
+                spinSpeed_ = 1.7f;
+                SetScale(vec2{ 1.0f, 1.0f });
+                break;
+            }
+        }
+
+        void Update(double dt) override
+        {
+            timeSec_ += dt;
+            const float bob = std::sin(static_cast<float>(timeSec_ * bobSpeed_ + phase_)) * bobAmplitude_;
+            SetPosition(vec2{ anchorPos_.x(), anchorPos_.y() + bob });
+            UpdateRotation(spinSpeed_ * dt);
+            GameObject::Update(dt);
+        }
+
+        bool CanCollideWith(GameObjectType objectBType) override
+        {
+            return objectBType == GameObjectType::Player;
+        }
+
+        void ResolveCollision(GameObject* objectB) override
+        {
+            if (!objectB || objectB->GetObjectType() != GameObjectType::Player)
+                return;
+
+            SetDestroyed(true);
+        }
+
+        GameObjectType GetObjectType() override
+        {
+            switch (kind_)
+            {
+            case Kind::Speed: return GameObjectType::ItemSpeed;
+            case Kind::Rapid: return GameObjectType::ItemRapid;
+            case Kind::Hybrid: return GameObjectType::ItemHybrid;
+            default: return GameObjectType::ItemSpeed;
+            }
+        }
+
+        std::string GetObjectTypeName() override
+        {
+            switch (kind_)
+            {
+            case Kind::Speed: return "ItemSpeed";
+            case Kind::Rapid: return "ItemRapid";
+            case Kind::Hybrid: return "ItemHybrid";
+            default: return "ItemSpeed";
+            }
+        }
+
+    private:
+        vec2 anchorPos_{ 0.0f, 0.0f };
+        Kind kind_{ Kind::Speed };
+        double timeSec_{ 0.0 };
+        double phase_{ 0.0 };
+        float bobAmplitude_{ 8.0f };
+        float bobSpeed_{ 3.0f };
+        float spinSpeed_{ 2.0f };
+    };
 }
 
 GamePlay1::GamePlay1() : timer(5.0f)
@@ -124,6 +235,74 @@ void GamePlay1::Load()
     for (const vec2& p : coreSpawn)
         gameObjectManager->Add(std::make_unique<DataCore>(p));
 
+    const float itemSpawnMargin = 120.0f;
+    const float minDistToPlayerItem = 180.0f;
+    const float minDistBetweenItems = 130.0f;
+    const float minDistItemToCore = 110.0f;
+
+    std::vector<vec2> itemSpawns;
+    itemSpawns.reserve(kItemsPerType * 3);
+
+    auto isItemCandidateValid = [&](const vec2& candidate) -> bool
+    {
+        if (IsTooClose(candidate, playerStart, minDistToPlayerItem))
+            return false;
+
+        for (const vec2& corePos : coreSpawn)
+        {
+            if (IsTooClose(candidate, corePos, minDistItemToCore))
+                return false;
+        }
+
+        for (const vec2& existing : itemSpawns)
+        {
+            if (IsTooClose(candidate, existing, minDistBetweenItems))
+                return false;
+        }
+
+        return true;
+    };
+
+    auto randomItemPos = [&]() -> vec2
+    {
+        return vec2{
+            util::random(worldMinX + itemSpawnMargin, worldMaxX - itemSpawnMargin),
+            util::random(worldMinY + itemSpawnMargin, worldMaxY - itemSpawnMargin)
+        };
+    };
+
+    auto spawnItemsByType = [&](PowerItem::Kind kind)
+    {
+        for (int i = 0; i < kItemsPerType; ++i)
+        {
+            vec2 candidate = randomItemPos();
+
+            bool found = false;
+            for (int attempt = 0; attempt < 220; ++attempt)
+            {
+                candidate = randomItemPos();
+                if (!isItemCandidateValid(candidate))
+                    continue;
+
+                found = true;
+                break;
+            }
+
+            if (!found)
+            {
+                // Keep progression robust even on dense maps.
+                candidate = randomItemPos();
+            }
+
+            itemSpawns.push_back(candidate);
+            gameObjectManager->Add(std::make_unique<PowerItem>(candidate, kind));
+        }
+    };
+
+    spawnItemsByType(PowerItem::Kind::Speed);
+    spawnItemsByType(PowerItem::Kind::Rapid);
+    spawnItemsByType(PowerItem::Kind::Hybrid);
+
     collectedCoreCount = 0;
     clearTriggered = false;
     gameOverTriggered = false;
@@ -132,6 +311,11 @@ void GamePlay1::Load()
     enemySpawnTimer = 0.2;
     fireCooldownTimer = 0.0;
     weaponMode = WeaponMode::MachineGun;
+    speedBoostTimer = 0.0;
+    rapidBoostTimer = 0.0;
+    hybridBoostTimer = 0.0;
+    if (playerPtr)
+        playerPtr->SetMoveSpeedMultiplier(1.0f);
 
     machineBulletPool = std::make_unique<BulletPool>(640, "assets/images/weapons/bullet_machine.spt");
     shotgunBulletPool = std::make_unique<BulletPool>(280, "assets/images/weapons/bullet_shotgun.spt");
@@ -186,6 +370,7 @@ void GamePlay1::Update(double dt)
             " kills=" + std::to_string(runKillCount));
     }
     MaybeEmitBalanceLog();
+    UpdateItemPowerups(dt);
 
     HandleWeaponInput(dt);
     UpdateEnemyTargets();
@@ -433,7 +618,7 @@ void GamePlay1::Draw()
         else if (hpRatio < 0.60f)
             hpFill = UI::Color{ 0.95f, 0.75f, 0.2f };
 
-        const UI::Rect hudPanel{ viewportWidth - 286.0f, 12.0f, 274.0f, 198.0f };
+        const UI::Rect hudPanel{ viewportWidth - 286.0f, 12.0f, 274.0f, 244.0f };
         ui.Panel(hudPanel, theme.panelBg, theme.panelBorder, 3.0f);
 
         char hpLabel[64] = {};
@@ -455,7 +640,10 @@ void GamePlay1::Draw()
         std::snprintf(coresText, sizeof(coresText), "CORES %d/%d", coresCollected, totalCoreCount);
         ui.Label(hudPanel.x + 16.0f, hudPanel.y + 66.0f, coresText, 1.7f, theme.text);
 
-        const char* weaponName = (weaponMode == WeaponMode::Shotgun) ? "SHOTGUN" : "MACHINE";
+        const bool hybridActive = hybridBoostTimer > 0.0;
+        const char* weaponName = hybridActive
+            ? "HYBRID"
+            : ((weaponMode == WeaponMode::Shotgun) ? "SHOTGUN" : "MACHINE");
         char weaponText[64] = {};
         std::snprintf(weaponText, sizeof(weaponText), "WEAPON %s", weaponName);
         ui.Label(hudPanel.x + 16.0f, hudPanel.y + 85.0f, weaponText, 1.7f, theme.text);
@@ -483,6 +671,22 @@ void GamePlay1::Draw()
                 static_cast<unsigned long long>(shotgunBulletPool->OverflowCount()));
             ui.Label(hudPanel.x + 16.0f, hudPanel.y + 149.0f, poolS, 1.5f, theme.textMuted);
         }
+
+        char speedText[64] = {};
+        std::snprintf(speedText, sizeof(speedText), "SPD x%.2f %.1fs",
+            (speedBoostTimer > 0.0) ? kSpeedMoveMultiplier : 1.0f,
+            (std::max)(0.0, speedBoostTimer));
+        ui.Label(hudPanel.x + 16.0f, hudPanel.y + 174.0f, speedText, 1.5f, speedBoostTimer > 0.0 ? UI::Color{ 0.65f, 1.0f, 0.72f } : theme.textMuted);
+
+        char rapidText[64] = {};
+        std::snprintf(rapidText, sizeof(rapidText), "ROF x%.1f %.1fs",
+            (rapidBoostTimer > 0.0) ? kRapidFireMultiplier : 1.0f,
+            (std::max)(0.0, rapidBoostTimer));
+        ui.Label(hudPanel.x + 16.0f, hudPanel.y + 191.0f, rapidText, 1.5f, rapidBoostTimer > 0.0 ? UI::Color{ 0.70f, 0.90f, 1.0f } : theme.textMuted);
+
+        char hybridText[64] = {};
+        std::snprintf(hybridText, sizeof(hybridText), "HYB %.1fs", (std::max)(0.0, hybridBoostTimer));
+        ui.Label(hudPanel.x + 16.0f, hudPanel.y + 208.0f, hybridText, 1.5f, hybridBoostTimer > 0.0 ? UI::Color{ 1.0f, 0.78f, 0.55f } : theme.textMuted);
     }
 
     if (pauseMenuOpen)
@@ -508,6 +712,9 @@ void GamePlay1::Draw()
 
 void GamePlay1::Unload()
 {
+    if (playerPtr)
+        playerPtr->SetMoveSpeedMultiplier(1.0f);
+
     ClearGSComponent();
     gameObjectManager = nullptr;
     playerPtr = nullptr;
@@ -535,6 +742,9 @@ void GamePlay1::Unload()
     ammoInMagazine = kMagazineSize;
     isReloading = false;
     reloadTimer = 0.0;
+    speedBoostTimer = 0.0;
+    rapidBoostTimer = 0.0;
+    hybridBoostTimer = 0.0;
 }
 
 int GamePlay1::GetPhaseIndex() const
@@ -576,6 +786,37 @@ void GamePlay1::MaybeEmitBalanceLog()
             " kills=" + std::to_string(runKillCount));
         nextBalanceLogSec += 10.0;
     }
+}
+
+void GamePlay1::UpdateItemPowerups(double dt)
+{
+    if (!playerPtr)
+        return;
+
+    const int speedPicked = playerPtr->ConsumeSpeedItemPickups();
+    const int rapidPicked = playerPtr->ConsumeRapidItemPickups();
+    const int hybridPicked = playerPtr->ConsumeHybridItemPickups();
+
+    if (speedPicked > 0)
+        speedBoostTimer += static_cast<double>(speedPicked) * kSpeedBuffDurationSec;
+    if (rapidPicked > 0)
+        rapidBoostTimer += static_cast<double>(rapidPicked) * kRapidBuffDurationSec;
+    if (hybridPicked > 0)
+    {
+        hybridBoostTimer += static_cast<double>(hybridPicked) * kHybridBuffDurationSec;
+        isReloading = false;
+        reloadTimer = 0.0;
+    }
+
+    if (speedBoostTimer > 0.0)
+        speedBoostTimer = (std::max)(0.0, speedBoostTimer - dt);
+    if (rapidBoostTimer > 0.0)
+        rapidBoostTimer = (std::max)(0.0, rapidBoostTimer - dt);
+    if (hybridBoostTimer > 0.0)
+        hybridBoostTimer = (std::max)(0.0, hybridBoostTimer - dt);
+
+    const bool speedActive = speedBoostTimer > 0.0;
+    playerPtr->SetMoveSpeedMultiplier(speedActive ? kSpeedMoveMultiplier : 1.0f);
 }
 
 void GamePlay1::PublishRunSummary(bool cleared)
@@ -631,4 +872,3 @@ int GamePlay1::GetMaxEnemyCountForTier(int enemyTier) const
     const double scaled = static_cast<double>(maxEnemies[static_cast<std::size_t>(tier)]) * GetPhaseMaxEnemyMultiplier();
     return (std::max)(1, static_cast<int>(std::lround(scaled)));
 }
-

@@ -16,6 +16,7 @@
 namespace
 {
     constexpr float kPi = 3.14159265358979323846f;
+    constexpr double kRapidIntervalDivisor = 3.0;
 
     vec2 NormalizeOrFallback(const vec2& v, const vec2& fallback)
     {
@@ -62,6 +63,12 @@ void GamePlay1::HandleWeaponInput(double dt)
         return;
 
     auto& input = Engine::GetInput();
+    const bool hybridActive = (hybridBoostTimer > 0.0);
+    if (hybridActive && isReloading)
+    {
+        isReloading = false;
+        reloadTimer = 0.0;
+    }
 
     if (input.IsKeyPressed(InputKey::Keyboard::Num1))
         weaponMode = WeaponMode::MachineGun;
@@ -72,10 +79,10 @@ void GamePlay1::HandleWeaponInput(double dt)
     if (fireCooldownTimer < 0.0)
         fireCooldownTimer = 0.0;
 
-    if (isReloading)
+    if (isReloading && !hybridActive)
         return;
 
-    if (ammoInMagazine <= 0)
+    if (!hybridActive && ammoInMagazine <= 0)
     {
         StartReload();
         return;
@@ -89,12 +96,24 @@ void GamePlay1::HandleWeaponInput(double dt)
         return;
 
     const double phaseCooldownMul = GetPhaseFireCooldownMultiplier();
+    const double rapidIntervalMul = (rapidBoostTimer > 0.0) ? (1.0 / kRapidIntervalDivisor) : 1.0;
     int ammoUsed = 0;
 
-    if (weaponMode == WeaponMode::MachineGun)
+    if (hybridActive)
+    {
+        const int configuredPellets = (std::max)(1, balance::Get().weapon.shotgunPelletCount);
+        const int hybridPelletsCap = std::clamp(configuredPellets / 2 + 1, 2, 6);
+        const int pelletsToFire = hybridPelletsCap;
+        FireHybridBurst(pelletsToFire);
+        ammoUsed = 0; // Hybrid buff grants temporary unlimited ammo.
+
+        const double hybridInterval = (machineGunInterval + shotgunInterval) * 0.5;
+        fireCooldownTimer = hybridInterval * phaseCooldownMul * rapidIntervalMul;
+    }
+    else if (weaponMode == WeaponMode::MachineGun)
     {
         FireMachineGun();
-        fireCooldownTimer = machineGunInterval * phaseCooldownMul;
+        fireCooldownTimer = machineGunInterval * phaseCooldownMul * rapidIntervalMul;
         ammoUsed = 1;
     }
     else
@@ -108,15 +127,18 @@ void GamePlay1::HandleWeaponInput(double dt)
         }
 
         FireShotgun(pelletsToFire);
-        fireCooldownTimer = shotgunInterval * phaseCooldownMul;
+        fireCooldownTimer = shotgunInterval * phaseCooldownMul * rapidIntervalMul;
         ammoUsed = pelletsToFire;
     }
 
-    ammoInMagazine -= ammoUsed;
-    if (ammoInMagazine <= 0)
+    if (!hybridActive)
     {
-        ammoInMagazine = 0;
-        StartReload();
+        ammoInMagazine -= ammoUsed;
+        if (ammoInMagazine <= 0)
+        {
+            ammoInMagazine = 0;
+            StartReload();
+        }
     }
 }
 
@@ -170,6 +192,59 @@ void GamePlay1::FireShotgun(int pelletCountToFire)
     }
 
     TriggerWeaponVisual(origin, baseDir);
+}
+
+void GamePlay1::FireHybridBurst(int pelletCountToFire)
+{
+    const auto& weapon = balance::Get().weapon;
+    const vec2 baseDir = GetFireDirection();
+    const vec2 playerPos = playerPtr->GetPosition();
+
+    const vec2 machineOrigin{
+        playerPos.x() + baseDir.x() * weapon.machineMuzzleOffset,
+        playerPos.y() + baseDir.y() * weapon.machineMuzzleOffset
+    };
+
+    const vec2 shotgunOrigin{
+        playerPos.x() + baseDir.x() * weapon.shotgunMuzzleOffset,
+        playerPos.y() + baseDir.y() * weapon.shotgunMuzzleOffset
+    };
+
+    Engine::PlaySound("assets/sounds/gun_fire.wav");
+    Engine::PlaySound("assets/sounds/gun_shotgun.wav");
+
+    SpawnBullet(
+        machineOrigin,
+        baseDir,
+        weapon.machineBulletSpeed,
+        weapon.machineBulletLifeSec,
+        weapon.machineBulletDamage,
+        weapon.machineBulletHitRadius,
+        "assets/images/weapons/bullet_machine.spt");
+
+    if (pelletCountToFire > 0)
+    {
+        const int pelletCount = (std::max)(1, pelletCountToFire);
+        const float spreadDeg = weapon.shotgunSpreadDeg;
+
+        for (int i = 0; i < pelletCount; ++i)
+        {
+            const float centered = static_cast<float>(i) - static_cast<float>(pelletCount - 1) * 0.5f;
+            const float angle = centered * spreadDeg * (kPi / 180.0f);
+            const vec2 dir = Rotate(baseDir, angle);
+
+            SpawnBullet(
+                shotgunOrigin,
+                dir,
+                weapon.shotgunBulletSpeed,
+                weapon.shotgunBulletLifeSec,
+                weapon.shotgunBulletDamage,
+                weapon.shotgunBulletHitRadius,
+                "assets/images/weapons/bullet_shotgun.spt");
+        }
+    }
+
+    TriggerWeaponVisual(machineOrigin, baseDir);
 }
 
 void GamePlay1::TriggerWeaponVisual(const vec2& origin, const vec2& direction)
@@ -240,5 +315,3 @@ vec2 GamePlay1::GetFireDirection() const
     const vec2 aimVector{ mouseWorld.x() - playerPos.x(), mouseWorld.y() - playerPos.y() };
     return NormalizeOrFallback(aimVector, AimFallbackFromAnim(playerPtr->GetDirection()));
 }
-
-

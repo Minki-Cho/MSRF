@@ -96,7 +96,10 @@ void Player::Update(double dt)
 
 bool Player::CanCollideWith(GameObjectType objectBType)
 {
-    return objectBType == GameObjectType::DataCore;
+    return objectBType == GameObjectType::DataCore
+        || objectBType == GameObjectType::ItemSpeed
+        || objectBType == GameObjectType::ItemRapid
+        || objectBType == GameObjectType::ItemHybrid;
 }
 
 void Player::ResolveCollision(GameObject* objectB)
@@ -104,9 +107,25 @@ void Player::ResolveCollision(GameObject* objectB)
     if (objectB == nullptr)
         return;
 
-    if (objectB->GetObjectType() == GameObjectType::DataCore)
+    switch (objectB->GetObjectType())
     {
+    case GameObjectType::DataCore:
         objectB->SetDestroyed(true);
+        break;
+    case GameObjectType::ItemSpeed:
+        objectB->SetDestroyed(true);
+        ++pendingSpeedItemPickups;
+        break;
+    case GameObjectType::ItemRapid:
+        objectB->SetDestroyed(true);
+        ++pendingRapidItemPickups;
+        break;
+    case GameObjectType::ItemHybrid:
+        objectB->SetDestroyed(true);
+        ++pendingHybridItemPickups;
+        break;
+    default:
+        break;
     }
 }
 
@@ -123,6 +142,32 @@ bool Player::ApplyDamage(int damage)
     hitFlashTimer = 0.24;
 
     return true;
+}
+
+void Player::SetMoveSpeedMultiplier(float multiplier)
+{
+    moveSpeedMultiplier = std::clamp(multiplier, 0.1f, 8.0f);
+}
+
+int Player::ConsumeSpeedItemPickups()
+{
+    const int count = pendingSpeedItemPickups;
+    pendingSpeedItemPickups = 0;
+    return count;
+}
+
+int Player::ConsumeRapidItemPickups()
+{
+    const int count = pendingRapidItemPickups;
+    pendingRapidItemPickups = 0;
+    return count;
+}
+
+int Player::ConsumeHybridItemPickups()
+{
+    const int count = pendingHybridItemPickups;
+    pendingHybridItemPickups = 0;
+    return count;
 }
 
 void Player::DrawHealthBar(mat3<float> cameraMatrix)
@@ -239,10 +284,11 @@ void Player::StateMove::Update(GameObject* object, double /*dt*/)
 
     vec2 v{ 0.f, 0.f };
 
-    if (L) v.x() -= p->moveSpeed;
-    if (R) v.x() += p->moveSpeed;
-    if (U) v.y() += p->moveSpeed;
-    if (D) v.y() -= p->moveSpeed;
+    const float activeMoveSpeed = p->baseMoveSpeed * p->moveSpeedMultiplier;
+    if (L) v.x() -= activeMoveSpeed;
+    if (R) v.x() += activeMoveSpeed;
+    if (U) v.y() += activeMoveSpeed;
+    if (D) v.y() -= activeMoveSpeed;
 
     if (L) p->direction = CharacterAnim::Front;
     else if (R) p->direction = CharacterAnim::Back;

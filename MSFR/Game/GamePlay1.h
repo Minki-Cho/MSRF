@@ -36,8 +36,10 @@ private:
     double GetPhaseMaxEnemyMultiplier() const;
     double GetPhaseFireCooldownMultiplier() const;
     void MaybeEmitBalanceLog();
+    void UpdateItemPowerups(double dt);
     void FireMachineGun();
     void FireShotgun(int pelletCountToFire);
+    void FireHybridBurst(int pelletCountToFire);
     void TriggerWeaponVisual(const vec2& origin, const vec2& direction);
     void StartReload();
     void SpawnBullet(const vec2& origin, const vec2& direction, float speed, double lifeTimeSec, int damage, float hitRadius, const char* spriteSptPath);
@@ -81,6 +83,9 @@ private:
     double fireCooldownTimer{ 0.0 };
     double machineGunInterval{ 0.08 };
     double shotgunInterval{ 0.42 };
+    double speedBoostTimer{ 0.0 };
+    double rapidBoostTimer{ 0.0 };
+    double hybridBoostTimer{ 0.0 };
     vec2 weaponFireOverlayPos{ 0.0f, 0.0f };
     bool weaponFireOverlayFlipX{ false };
     double weaponFireOverlayTimer{ 0.0 };
@@ -90,7 +95,6 @@ private:
     double reloadTimer{ 0.0 };
     double reloadDurationSec{ 1.25 };
 };
-
 
 
 

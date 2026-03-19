@@ -1,0 +1,6 @@
+assets/images/items/item_speed/item_speed.png
+FrameSize 64 64
+HotSpot 32 32
+Frame 0 0
+Anim assets/images/items/item_speed/item_speed_idle.anm
+CollisionCircle 20

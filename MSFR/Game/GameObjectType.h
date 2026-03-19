@@ -4,6 +4,9 @@ enum class GameObjectType
 {
     Player,
     DataCore,
+    ItemSpeed,
+    ItemRapid,
+    ItemHybrid,
     Enemy,
     Bullet,
     Wall,

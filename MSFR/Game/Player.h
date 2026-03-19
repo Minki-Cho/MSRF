@@ -17,6 +17,10 @@ public:
     std::string GetObjectTypeName() override { return "Player"; }
     CharacterAnim GetDirection() const { return direction; }
     bool ApplyDamage(int damage);
+    void SetMoveSpeedMultiplier(float multiplier);
+    int ConsumeSpeedItemPickups();
+    int ConsumeRapidItemPickups();
+    int ConsumeHybridItemPickups();
     int GetHP() const { return hp; }
     int GetMaxHP() const { return maxHp; }
     bool IsDead() const { return hp <= 0; }
@@ -24,7 +28,11 @@ public:
 private:
     void DrawHealthBar(mat3<float> cameraMatrix);
 
-    float moveSpeed = 65.0f;
+    float baseMoveSpeed = 65.0f;
+    float moveSpeedMultiplier = 1.0f;
+    int pendingSpeedItemPickups = 0;
+    int pendingRapidItemPickups = 0;
+    int pendingHybridItemPickups = 0;
     vec2 startPos;
     int maxHp = 100;
     int hp = 100;
