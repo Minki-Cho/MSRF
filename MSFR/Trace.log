@@ -1,22 +1,25 @@
-[0.2751]	Event	Engine InitCore
-[0.2920]	Event	Job workers (after init) = 31
-[0.3182]	Event	[State] Load Spalsh | thread=2716 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
-[0.3589]	Event	[State] Load Complete | thread=2716 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
-[2.1775]	Event	[Command] RequestStateChange -> 1
-[2.1904]	Event	[State] Unload Spalsh | thread=2716 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:62 (GameStateManager::Update)
-[2.1905]	Event	Clear Textures
-[2.1953]	Event	[State] Load MainMenu | thread=2716 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
-[2.2408]	Event	[State] Load Complete | thread=2716 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
-[3.1276]	Debug	Input LUp -> releasedThisFrame = true
-[3.1298]	Event	mouse win: 530, 288
-[3.1302]	Event	[Command] MenuAction -> Play
-[3.1307]	Event	[Command] RequestStateChange -> 2
-[3.1427]	Event	[State] Unload MainMenu | thread=2716 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:62 (GameStateManager::Update)
-[3.1430]	Event	Clear Textures
-[3.1467]	Event	[State] Load GamePlay1 | thread=2716 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
-[3.1476]	Event	Sprite SPT: assets/images/characters/characters/thief/thief.spt
-[3.1479]	Event	Texture token: assets/images/characters/characters/thief/thief.png
-[3.1480]	Event	Resolved texture path: assets/images/characters/characters/thief/thief.png
-[3.2325]	Event	[State] Load Complete | thread=2716 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
-[5.3017]	Event	FPS: 155.877903
-[6.1379]	Event	SDL_QUIT received
+[0.0764]	Event	Engine InitCore
+[0.0777]	Event	Job workers (after init) = 31
+[0.0987]	Event	[State] Load Spalsh | thread=23608 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[0.1414]	Event	[State] Load Complete | thread=23608 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
+[1.9943]	Event	[Command] RequestStateChange -> 1
+[2.0061]	Event	[State] Unload Spalsh | thread=23608 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:62 (GameStateManager::Update)
+[2.0065]	Event	Clear Textures
+[2.0110]	Event	[State] Load MainMenu | thread=23608 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[2.0607]	Event	[State] Load Complete | thread=23608 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
+[5.0782]	Event	FPS: 160.362026
+[10.0838]	Event	FPS: 165.016126
+[15.0885]	Event	FPS: 165.042108
+[20.0886]	Event	FPS: 164.996829
+[20.7772]	Debug	Input LUp -> releasedThisFrame = true
+[20.7799]	Event	mouse win: 586, 301
+[20.7804]	Event	[Command] MenuAction -> Play
+[20.7807]	Event	[Command] RequestStateChange -> 2
+[20.7915]	Event	[State] Unload MainMenu | thread=23608 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:62 (GameStateManager::Update)
+[20.7919]	Event	Clear Textures
+[20.7984]	Event	[State] Load GamePlay1 | thread=23608 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:38 (GameStateManager::Update)
+[20.7994]	Event	Sprite SPT: assets/images/characters/characters/thief/thief.spt
+[20.7998]	Event	Texture token: assets/images/characters/characters/thief/thief.png
+[20.8006]	Event	Resolved texture path: assets/images/characters/characters/thief/thief.png
+[20.8770]	Event	[State] Load Complete | thread=23608 | at C:\Users\truth\OneDrive\Desktop\MSRF\MSFR\Engine\GameStateManager.cpp:40 (GameStateManager::Update)
+[23.4013]	Event	SDL_QUIT received
