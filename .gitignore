@@ -48,3 +48,5 @@ MSFR/MSFR/x64/
 !MSFR/external/lib/
 !MSFR/external/bin/**
 !MSFR/external/lib/**
+MSFR/imgui.ini
+MSFR/Trace.log
