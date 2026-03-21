@@ -40,6 +40,22 @@ MSFR/.vs/
 MSFR/x64/
 MSFR/MSFR/x64/
 MSFR/EngineLib/
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.VC.db
+*.VC.VC.opendb
+*.opendb
+*.idb
+*.ipch
+*.tlog
+*.lastbuildstate
+Debug/
+Release/
+x64/
+x86/
 
 # =============================
 # Allow external libraries
@@ -50,6 +66,8 @@ MSFR/EngineLib/
 !MSFR/external/lib/
 !MSFR/external/bin/**
 !MSFR/external/lib/**
+imgui.ini
+Trace*.log
 MSFR/imgui.ini
 MSFR/Trace.log
 artifacts/
