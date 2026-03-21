@@ -29,7 +29,32 @@ private:
         Shotgun,
     };
 
+    enum class BuildPath
+    {
+        Basic,
+        Machine,
+        Shotgun,
+    };
+
+    enum class UpgradeId
+    {
+        None,
+        ChooseMachinePath,
+        ChooseShotgunPath,
+        PiercingRounds,
+        RapidMechanism,
+        SpreadBoost,
+        ExplosiveRounds,
+    };
+
     void HandleWeaponInput(double dt);
+    bool HandleUpgradeMenu();
+    void CheckUpgradeMilestones();
+    void BuildUpgradeChoices();
+    void ApplyUpgradeChoice(int choiceIndex);
+    double GetUpgradeFireIntervalMultiplier() const;
+    int GetUpgradedShotgunPellets(int basePellets) const;
+    float GetUpgradedShotgunSpread(float baseSpread) const;
     bool HandlePauseMenu();
     int GetPhaseIndex() const;
     double GetPhaseSpawnIntervalMultiplier() const;
@@ -83,6 +108,7 @@ private:
     double nextBalanceLogSec{ 10.0 };
 
     WeaponMode weaponMode{ WeaponMode::MachineGun };
+    BuildPath buildPath{ BuildPath::Basic };
     double fireCooldownTimer{ 0.0 };
     double machineGunInterval{ 0.08 };
     double shotgunInterval{ 0.42 };
@@ -107,5 +133,14 @@ private:
     double layeredHitSfxCooldown{ 0.0 };
     double layeredKillSfxCooldown{ 0.0 };
     int lastKnownPlayerHp{ 100 };
+    bool upgradeMenuOpen{ false };
+    int upgradePendingChoice{ -1 };
+    int queuedUpgradeCount{ 0 };
+    int nextUpgradeKillMilestone{ 12 };
+    int upgradeKillStep{ 12 };
+    std::array<UpgradeId, 3> upgradeChoices{ UpgradeId::None, UpgradeId::None, UpgradeId::None };
+    int upgradePierceLevel{ 0 };
+    int upgradeFireRateLevel{ 0 };
+    int upgradeSpreadLevel{ 0 };
+    int upgradeExplosiveLevel{ 0 };
 };
-

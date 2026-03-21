@@ -26,7 +26,7 @@ BulletProjectile::BulletProjectile(const char* spriteSptPath)
     Deactivate();
 }
 
-void BulletProjectile::Activate(const vec2& origin, const vec2& direction, float speed, double lifeTimeSec, int damage, float hitRadius)
+void BulletProjectile::Activate(const vec2& origin, const vec2& direction, float speed, double lifeTimeSec, int damage, float hitRadius, int pierceCount, float explosionRadius, int explosionDamage)
 {
     const vec2 dir = NormalizeOrFallback(direction, vec2{ 1.0f, 0.0f });
 
@@ -37,6 +37,9 @@ void BulletProjectile::Activate(const vec2& origin, const vec2& direction, float
     lifeTimeSec_ = (std::max)(0.0, lifeTimeSec);
     damage_ = (std::max)(1, damage);
     hitRadius_ = (std::max)(0.0f, hitRadius);
+    remainingPierceCount_ = (std::max)(0, pierceCount);
+    explosionRadius_ = (std::max)(0.0f, explosionRadius);
+    explosionDamage_ = (std::max)(0, explosionDamage);
 
     // Keep bullet collision shape in sync with runtime tuning values.
     RemoveGOComponent<CircleCollision>();
@@ -53,6 +56,20 @@ void BulletProjectile::Deactivate()
     isActive_ = false;
     lifeTimeSec_ = 0.0;
     SetVelocity(vec2{ 0.0f, 0.0f });
+    remainingPierceCount_ = 0;
+    explosionRadius_ = 0.0f;
+    explosionDamage_ = 0;
+}
+
+bool BulletProjectile::ConsumePierceOnHit()
+{
+    if (remainingPierceCount_ > 0)
+    {
+        --remainingPierceCount_;
+        return false;
+    }
+
+    return true;
 }
 
 void BulletProjectile::Update(double dt)
@@ -95,7 +112,7 @@ BulletPool::BulletPool(std::size_t capacity, const char* spriteSptPath)
     }
 }
 
-BulletProjectile* BulletPool::Spawn(const vec2& origin, const vec2& direction, float speed, double lifeTimeSec, int damage, float hitRadius)
+BulletProjectile* BulletPool::Spawn(const vec2& origin, const vec2& direction, float speed, double lifeTimeSec, int damage, float hitRadius, int pierceCount, float explosionRadius, int explosionDamage)
 {
     if (bullets_.empty())
         return nullptr;
@@ -122,7 +139,7 @@ BulletProjectile* BulletPool::Spawn(const vec2& origin, const vec2& direction, f
     }
 
     BulletProjectile* bullet = bullets_[index].get();
-    bullet->Activate(origin, direction, speed, lifeTimeSec, damage, hitRadius);
+    bullet->Activate(origin, direction, speed, lifeTimeSec, damage, hitRadius, pierceCount, explosionRadius, explosionDamage);
     return bullet;
 }
 

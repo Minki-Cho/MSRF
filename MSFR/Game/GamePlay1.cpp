@@ -311,6 +311,7 @@ void GamePlay1::Load()
     enemySpawnTimer = 0.2;
     fireCooldownTimer = 0.0;
     weaponMode = WeaponMode::MachineGun;
+    buildPath = BuildPath::Basic;
     speedBoostTimer = 0.0;
     rapidBoostTimer = 0.0;
     hybridBoostTimer = 0.0;
@@ -338,11 +339,24 @@ void GamePlay1::Load()
     layeredHitSfxCooldown = 0.0;
     layeredKillSfxCooldown = 0.0;
     lastKnownPlayerHp = playerPtr ? playerPtr->GetHP() : 100;
+    upgradeMenuOpen = false;
+    upgradePendingChoice = -1;
+    queuedUpgradeCount = 0;
+    nextUpgradeKillMilestone = 12;
+    upgradeKillStep = 12;
+    upgradeChoices = { UpgradeId::None, UpgradeId::None, UpgradeId::None };
+    upgradePierceLevel = 0;
+    upgradeFireRateLevel = 0;
+    upgradeSpreadLevel = 0;
+    upgradeExplosiveLevel = 0;
 }
 
 void GamePlay1::Update(double dt)
 {
     if (!gameObjectManager)
+        return;
+
+    if (HandleUpgradeMenu())
         return;
 
     if (HandlePauseMenu())
@@ -417,6 +431,7 @@ void GamePlay1::Update(double dt)
     }
 
     ResolveBulletHits();
+    CheckUpgradeMilestones();
 
     if (playerPtr)
     {
@@ -685,7 +700,8 @@ void GamePlay1::Draw()
         const bool hybridActive = hybridBoostTimer > 0.0;
         const char* weaponName = hybridActive
             ? "HYBRID"
-            : ((weaponMode == WeaponMode::Shotgun) ? "SHOTGUN" : "MACHINE");
+            : ((buildPath == BuildPath::Basic) ? "BASIC"
+                : ((weaponMode == WeaponMode::Shotgun) ? "SHOTGUN" : "MACHINE"));
         char weaponText[64] = {};
         std::snprintf(weaponText, sizeof(weaponText), "WEAPON %s", weaponName);
         ui.Label(hudPanel.x + 16.0f, hudPanel.y + 85.0f, weaponText, 1.7f, theme.text);
@@ -694,6 +710,11 @@ void GamePlay1::Draw()
         std::snprintf(enemyText, sizeof(enemyText), "ENEMIES %d", enemiesRemaining);
         ui.Label(hudPanel.x + 16.0f, hudPanel.y + 104.0f, enemyText, 1.7f, theme.text);
 
+        const char* buildName = (buildPath == BuildPath::Shotgun) ? "SHOTGUN" : ((buildPath == BuildPath::Machine) ? "MACHINE" : "BASIC");
+        char buildText[96] = {};
+        std::snprintf(buildText, sizeof(buildText), "BUILD %s", buildName);
+        ui.Label(hudPanel.x + 16.0f, hudPanel.y + 121.0f, buildText, 1.5f, theme.textMuted);
+
         if (machineBulletPool)
         {
             char poolM[96] = {};
@@ -701,7 +722,7 @@ void GamePlay1::Draw()
                 static_cast<unsigned long long>(machineBulletPool->ActiveCount()),
                 static_cast<unsigned long long>(machineBulletPool->Capacity()),
                 static_cast<unsigned long long>(machineBulletPool->OverflowCount()));
-            ui.Label(hudPanel.x + 16.0f, hudPanel.y + 132.0f, poolM, 1.5f, theme.textMuted);
+            ui.Label(hudPanel.x + 16.0f, hudPanel.y + 138.0f, poolM, 1.5f, theme.textMuted);
         }
 
         if (shotgunBulletPool)
@@ -711,7 +732,7 @@ void GamePlay1::Draw()
                 static_cast<unsigned long long>(shotgunBulletPool->ActiveCount()),
                 static_cast<unsigned long long>(shotgunBulletPool->Capacity()),
                 static_cast<unsigned long long>(shotgunBulletPool->OverflowCount()));
-            ui.Label(hudPanel.x + 16.0f, hudPanel.y + 149.0f, poolS, 1.5f, theme.textMuted);
+            ui.Label(hudPanel.x + 16.0f, hudPanel.y + 155.0f, poolS, 1.5f, theme.textMuted);
         }
 
         const float cardY = hudPanel.y + 174.0f;
@@ -793,6 +814,61 @@ void GamePlay1::Draw()
         ui.LabelCentered(toast, killText, 2.1f, UI::Color{ 1.0f, 0.93f, 0.77f });
     }
 
+    if (upgradeMenuOpen)
+    {
+        auto upgradeTitle = [](UpgradeId id) -> const char*
+        {
+            switch (id)
+            {
+            case UpgradeId::ChooseMachinePath: return "MACHINE PATH";
+            case UpgradeId::ChooseShotgunPath: return "SHOTGUN PATH";
+            case UpgradeId::PiercingRounds: return "PIERCING ROUNDS";
+            case UpgradeId::RapidMechanism: return "RAPID MECHANISM";
+            case UpgradeId::SpreadBoost: return "SPREAD BOOST";
+            case UpgradeId::ExplosiveRounds: return "EXPLOSIVE ROUNDS";
+            default: return "UPGRADE";
+            }
+        };
+
+        auto upgradeDesc = [](UpgradeId id) -> const char*
+        {
+            switch (id)
+            {
+            case UpgradeId::ChooseMachinePath: return "LOCK BUILD: FASTER MACHINE, STABLE FIRE";
+            case UpgradeId::ChooseShotgunPath: return "LOCK BUILD: HEAVIER SHOTGUN, WIDER BLAST";
+            case UpgradeId::PiercingRounds: return "BULLETS PASS THROUGH MORE ENEMIES";
+            case UpgradeId::RapidMechanism: return "INCREASE FIRE RATE";
+            case UpgradeId::SpreadBoost: return "MORE PELLETS, WIDER AREA COVERAGE";
+            case UpgradeId::ExplosiveRounds: return "BULLETS TRIGGER SMALL EXPLOSIONS";
+            default: return "";
+            }
+        };
+
+        const UI::Rect panel{ viewportWidth * 0.5f - 330.0f, viewportHeight * 0.5f - 170.0f, 660.0f, 340.0f };
+        ui.Panel(panel, UI::Color{ 0.08f, 0.11f, 0.15f }, UI::Color{ 0.95f, 0.72f, 0.30f }, 3.0f);
+        ui.LabelCentered(UI::Rect{ panel.x, panel.y + 16.0f, panel.w, 30.0f }, "CHOOSE UPGRADE", 2.5f, UI::Color{ 0.98f, 0.93f, 0.83f });
+
+        const float cardY = panel.y + 60.0f;
+        const float cardW = 196.0f;
+        const float cardH = 238.0f;
+        const float gap = 18.0f;
+        const float startX = panel.x + 18.0f;
+
+        for (int i = 0; i < 3; ++i)
+        {
+            const float x = startX + (cardW + gap) * static_cast<float>(i);
+            const UI::Rect card{ x, cardY, cardW, cardH };
+            ui.Panel(card, UI::Color{ 0.12f, 0.16f, 0.22f }, UI::Color{ 0.42f, 0.52f, 0.66f }, 2.0f);
+
+            const UpgradeId id = upgradeChoices[static_cast<std::size_t>(i)];
+            ui.LabelCentered(UI::Rect{ card.x + 6.0f, card.y + 10.0f, card.w - 12.0f, 26.0f }, upgradeTitle(id), 1.6f, UI::Color{ 0.95f, 0.97f, 1.0f });
+            ui.Label(card.x + 10.0f, card.y + 52.0f, upgradeDesc(id), 1.1f, UI::Color{ 0.78f, 0.84f, 0.92f });
+
+            if (ui.Button(UI::Rect{ card.x + 14.0f, card.y + card.h - 56.0f, card.w - 28.0f, 38.0f }, "SELECT"))
+                upgradePendingChoice = i;
+        }
+    }
+
     if (pauseMenuOpen)
     {
         const UI::Rect panel{ viewportWidth * 0.5f - 180.0f, viewportHeight * 0.5f - 150.0f, 360.0f, 300.0f };
@@ -840,6 +916,7 @@ void GamePlay1::Unload()
     nextBalanceLogSec = 10.0;
     fireCooldownTimer = 0.0;
     weaponMode = WeaponMode::MachineGun;
+    buildPath = BuildPath::Basic;
     weaponFireOverlayPos = vec2{ 0.0f, 0.0f };
     weaponFireOverlayRotationRad = 0.0;
     weaponFireOverlayTimer = 0.0;
@@ -859,6 +936,16 @@ void GamePlay1::Unload()
     layeredHitSfxCooldown = 0.0;
     layeredKillSfxCooldown = 0.0;
     lastKnownPlayerHp = 100;
+    upgradeMenuOpen = false;
+    upgradePendingChoice = -1;
+    queuedUpgradeCount = 0;
+    nextUpgradeKillMilestone = 12;
+    upgradeKillStep = 12;
+    upgradeChoices = { UpgradeId::None, UpgradeId::None, UpgradeId::None };
+    upgradePierceLevel = 0;
+    upgradeFireRateLevel = 0;
+    upgradeSpreadLevel = 0;
+    upgradeExplosiveLevel = 0;
 }
 
 int GamePlay1::GetPhaseIndex() const
@@ -931,6 +1018,135 @@ void GamePlay1::UpdateItemPowerups(double dt)
 
     const bool speedActive = speedBoostTimer > 0.0;
     playerPtr->SetMoveSpeedMultiplier(speedActive ? kSpeedMoveMultiplier : 1.0f);
+}
+
+bool GamePlay1::HandleUpgradeMenu()
+{
+    if (!upgradeMenuOpen)
+        return false;
+
+    if (upgradePendingChoice < 0 || upgradePendingChoice >= static_cast<int>(upgradeChoices.size()))
+        return true;
+
+    ApplyUpgradeChoice(upgradePendingChoice);
+    upgradePendingChoice = -1;
+
+    if (queuedUpgradeCount > 0)
+        --queuedUpgradeCount;
+
+    if (queuedUpgradeCount > 0)
+    {
+        BuildUpgradeChoices();
+    }
+    else
+    {
+        upgradeMenuOpen = false;
+    }
+
+    return true;
+}
+
+void GamePlay1::CheckUpgradeMilestones()
+{
+    while (runKillCount >= nextUpgradeKillMilestone)
+    {
+        ++queuedUpgradeCount;
+        nextUpgradeKillMilestone += (std::max)(1, upgradeKillStep);
+    }
+
+    if (queuedUpgradeCount > 0 && !upgradeMenuOpen)
+    {
+        upgradeMenuOpen = true;
+        upgradePendingChoice = -1;
+        BuildUpgradeChoices();
+    }
+}
+
+void GamePlay1::BuildUpgradeChoices()
+{
+    if (buildPath == BuildPath::Basic)
+    {
+        upgradeChoices = {
+            UpgradeId::ChooseMachinePath,
+            UpgradeId::ChooseShotgunPath,
+            UpgradeId::RapidMechanism
+        };
+        return;
+    }
+
+    if (buildPath == BuildPath::Machine)
+    {
+        upgradeChoices = {
+            UpgradeId::PiercingRounds,
+            UpgradeId::RapidMechanism,
+            UpgradeId::ExplosiveRounds
+        };
+    }
+    else
+    {
+        upgradeChoices = {
+            UpgradeId::SpreadBoost,
+            UpgradeId::RapidMechanism,
+            UpgradeId::ExplosiveRounds
+        };
+    }
+}
+
+void GamePlay1::ApplyUpgradeChoice(int choiceIndex)
+{
+    if (choiceIndex < 0 || choiceIndex >= static_cast<int>(upgradeChoices.size()))
+        return;
+
+    const UpgradeId id = upgradeChoices[choiceIndex];
+    switch (id)
+    {
+    case UpgradeId::ChooseMachinePath:
+        buildPath = BuildPath::Machine;
+        weaponMode = WeaponMode::MachineGun;
+        break;
+    case UpgradeId::ChooseShotgunPath:
+        buildPath = BuildPath::Shotgun;
+        weaponMode = WeaponMode::Shotgun;
+        break;
+    case UpgradeId::PiercingRounds:
+        upgradePierceLevel = (std::min)(3, upgradePierceLevel + 1);
+        break;
+    case UpgradeId::RapidMechanism:
+        upgradeFireRateLevel = (std::min)(6, upgradeFireRateLevel + 1);
+        break;
+    case UpgradeId::SpreadBoost:
+        upgradeSpreadLevel = (std::min)(5, upgradeSpreadLevel + 1);
+        break;
+    case UpgradeId::ExplosiveRounds:
+        upgradeExplosiveLevel = (std::min)(4, upgradeExplosiveLevel + 1);
+        break;
+    default:
+        break;
+    }
+}
+
+double GamePlay1::GetUpgradeFireIntervalMultiplier() const
+{
+    const double mul = 1.0 / (1.0 + static_cast<double>(upgradeFireRateLevel) * 0.20);
+    return std::clamp(mul, 0.40, 1.00);
+}
+
+int GamePlay1::GetUpgradedShotgunPellets(int basePellets) const
+{
+    int pellets = (std::max)(1, basePellets);
+    pellets += upgradeSpreadLevel * 2;
+    if (buildPath == BuildPath::Shotgun)
+        pellets += 2;
+    return pellets;
+}
+
+float GamePlay1::GetUpgradedShotgunSpread(float baseSpread) const
+{
+    float spread = (std::max)(0.0f, baseSpread);
+    spread += static_cast<float>(upgradeSpreadLevel) * 2.4f;
+    if (buildPath == BuildPath::Shotgun)
+        spread += 3.0f;
+    return spread;
 }
 
 void GamePlay1::PublishRunSummary(bool cleared)

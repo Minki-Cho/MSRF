@@ -13,7 +13,7 @@ class BulletProjectile : public GameObject
 public:
     explicit BulletProjectile(const char* spriteSptPath);
 
-    void Activate(const vec2& origin, const vec2& direction, float speed, double lifeTimeSec, int damage, float hitRadius);
+    void Activate(const vec2& origin, const vec2& direction, float speed, double lifeTimeSec, int damage, float hitRadius, int pierceCount, float explosionRadius, int explosionDamage);
     void Deactivate();
     bool IsActive() const noexcept { return isActive_; }
 
@@ -22,6 +22,10 @@ public:
 
     int GetDamage() const noexcept { return damage_; }
     float GetHitRadius() const noexcept { return hitRadius_; }
+    int GetExplosionDamage() const noexcept { return explosionDamage_; }
+    float GetExplosionRadius() const noexcept { return explosionRadius_; }
+    bool IsExplosive() const noexcept { return explosionRadius_ > 0.0f && explosionDamage_ > 0; }
+    bool ConsumePierceOnHit();
 
     bool CanCollideWith(GameObjectType /*objectBType*/) override { return false; }
     void ResolveCollision(GameObject* /*objectB*/) override {}
@@ -34,6 +38,9 @@ private:
     double lifeTimeSec_ = 0.0;
     int damage_ = 1;
     float hitRadius_ = 5.0f;
+    int remainingPierceCount_ = 0;
+    float explosionRadius_ = 0.0f;
+    int explosionDamage_ = 0;
 };
 
 class BulletPool
@@ -41,7 +48,7 @@ class BulletPool
 public:
     BulletPool(std::size_t capacity, const char* spriteSptPath);
 
-    BulletProjectile* Spawn(const vec2& origin, const vec2& direction, float speed, double lifeTimeSec, int damage, float hitRadius);
+    BulletProjectile* Spawn(const vec2& origin, const vec2& direction, float speed, double lifeTimeSec, int damage, float hitRadius, int pierceCount, float explosionRadius, int explosionDamage);
     void Update(double dt);
     void Draw(mat3<float> cameraMatrix);
     void DeactivateAll();
@@ -58,4 +65,3 @@ private:
     std::size_t recycleCursor_ = 0;
     std::size_t overflowCount_ = 0;
 };
-

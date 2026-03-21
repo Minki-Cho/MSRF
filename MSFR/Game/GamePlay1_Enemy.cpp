@@ -857,10 +857,7 @@ void GamePlay1::ResolveBulletHits()
 
             if (bullet->DoesCollideWith(enemy))
             {
-                const bool wasAlive = !enemy->GetDestroyed();
-                enemy->ApplyDamage(bullet->GetDamage(), bullet->GetVelocity());
-                const bool killedNow = wasAlive && enemy->GetDestroyed();
-                if (killedNow)
+                auto registerKill = [&]()
                 {
                     ++runKillCount;
                     const int phaseIndex = GetPhaseIndex();
@@ -872,9 +869,54 @@ void GamePlay1::ResolveBulletHits()
                     killToastCount = killComboCount;
                     killToastTimer = 0.95;
                     enemyKillFxTimer = (std::max)(enemyKillFxTimer, 0.20);
-                }
+                };
 
                 enemyHitFxTimer = (std::max)(enemyHitFxTimer, 0.09);
+
+                if (bullet->IsExplosive())
+                {
+                    const float explosionRadius = bullet->GetExplosionRadius();
+                    const int explosionDamage = bullet->GetExplosionDamage();
+                    const float radiusSq = explosionRadius * explosionRadius;
+
+                    for (EnemyChaser* splashTarget : enemies)
+                    {
+                        if (!splashTarget || splashTarget->GetDestroyed())
+                            continue;
+
+                        const vec2 pos = splashTarget->GetPosition();
+                        const float dx = pos.x() - bPos.x();
+                        const float dy = pos.y() - bPos.y();
+                        if ((dx * dx + dy * dy) > radiusSq)
+                            continue;
+
+                        const bool wasAlive = !splashTarget->GetDestroyed();
+                        splashTarget->ApplyDamage(explosionDamage, bullet->GetVelocity());
+                        if (wasAlive && splashTarget->GetDestroyed())
+                            registerKill();
+                    }
+
+                    SpawnHitParticles(bPos, bullet->GetVelocity());
+                    SpawnHitParticles(bPos, Rotate(bullet->GetVelocity(), 0.65f));
+                    SpawnHitParticles(bPos, Rotate(bullet->GetVelocity(), -0.65f));
+
+                    if (layeredKillSfxCooldown <= 0.0)
+                    {
+                        Engine::PlaySound("assets/sounds/gun_shotgun.wav");
+                        Engine::PlaySound("assets/sounds/hit_enemy.wav");
+                        layeredKillSfxCooldown = 0.08;
+                    }
+
+                    bullet->Deactivate();
+                    break;
+                }
+
+                const bool wasAlive = !enemy->GetDestroyed();
+                enemy->ApplyDamage(bullet->GetDamage(), bullet->GetVelocity());
+                const bool killedNow = wasAlive && enemy->GetDestroyed();
+                if (killedNow)
+                    registerKill();
+
                 SpawnHitParticles(bPos, bullet->GetVelocity());
 
                 if (killedNow)
@@ -891,19 +933,19 @@ void GamePlay1::ResolveBulletHits()
                         layeredKillSfxCooldown = 0.08;
                     }
                 }
-                else
+                else if (layeredHitSfxCooldown <= 0.0)
                 {
-                    if (layeredHitSfxCooldown <= 0.0)
-                    {
-                        Engine::PlaySound("assets/sounds/hit_enemy.wav");
-                        if (util::random() < 0.22f)
-                            Engine::PlaySound("assets/sounds/gun_fire.wav");
-                        layeredHitSfxCooldown = 0.03;
-                    }
+                    Engine::PlaySound("assets/sounds/hit_enemy.wav");
+                    if (util::random() < 0.22f)
+                        Engine::PlaySound("assets/sounds/gun_fire.wav");
+                    layeredHitSfxCooldown = 0.03;
                 }
 
-                bullet->Deactivate();
-                break;
+                if (bullet->ConsumePierceOnHit())
+                {
+                    bullet->Deactivate();
+                    break;
+                }
             }
         }
     }

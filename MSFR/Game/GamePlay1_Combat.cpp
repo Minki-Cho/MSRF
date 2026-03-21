@@ -70,9 +70,14 @@ void GamePlay1::HandleWeaponInput(double dt)
         reloadTimer = 0.0;
     }
 
-    if (input.IsKeyPressed(InputKey::Keyboard::Num1))
+    if (input.IsKeyPressed(InputKey::Keyboard::Num1) && buildPath != BuildPath::Shotgun)
         weaponMode = WeaponMode::MachineGun;
-    if (input.IsKeyPressed(InputKey::Keyboard::Num2))
+    if (input.IsKeyPressed(InputKey::Keyboard::Num2) && buildPath == BuildPath::Shotgun)
+        weaponMode = WeaponMode::Shotgun;
+
+    if (buildPath == BuildPath::Basic || buildPath == BuildPath::Machine)
+        weaponMode = WeaponMode::MachineGun;
+    else if (buildPath == BuildPath::Shotgun)
         weaponMode = WeaponMode::Shotgun;
 
     fireCooldownTimer -= dt;
@@ -97,28 +102,29 @@ void GamePlay1::HandleWeaponInput(double dt)
 
     const double phaseCooldownMul = GetPhaseFireCooldownMultiplier();
     const double rapidIntervalMul = (rapidBoostTimer > 0.0) ? (1.0 / kRapidIntervalDivisor) : 1.0;
+    const double upgradeIntervalMul = GetUpgradeFireIntervalMultiplier();
     int ammoUsed = 0;
 
     if (hybridActive)
     {
-        const int configuredPellets = (std::max)(1, balance::Get().weapon.shotgunPelletCount);
+        const int configuredPellets = GetUpgradedShotgunPellets(balance::Get().weapon.shotgunPelletCount);
         const int hybridPelletsCap = std::clamp(configuredPellets / 2 + 1, 2, 6);
         const int pelletsToFire = hybridPelletsCap;
         FireHybridBurst(pelletsToFire);
         ammoUsed = 0; // Hybrid buff grants temporary unlimited ammo.
 
         const double hybridInterval = (machineGunInterval + shotgunInterval) * 0.5;
-        fireCooldownTimer = hybridInterval * phaseCooldownMul * rapidIntervalMul;
+        fireCooldownTimer = hybridInterval * phaseCooldownMul * rapidIntervalMul * upgradeIntervalMul;
     }
     else if (weaponMode == WeaponMode::MachineGun)
     {
         FireMachineGun();
-        fireCooldownTimer = machineGunInterval * phaseCooldownMul * rapidIntervalMul;
+        fireCooldownTimer = machineGunInterval * phaseCooldownMul * rapidIntervalMul * upgradeIntervalMul;
         ammoUsed = 1;
     }
     else
     {
-        const int configuredPellets = (std::max)(1, balance::Get().weapon.shotgunPelletCount);
+        const int configuredPellets = GetUpgradedShotgunPellets(balance::Get().weapon.shotgunPelletCount);
         const int pelletsToFire = (std::min)(ammoInMagazine, configuredPellets);
         if (pelletsToFire <= 0)
         {
@@ -127,7 +133,7 @@ void GamePlay1::HandleWeaponInput(double dt)
         }
 
         FireShotgun(pelletsToFire);
-        fireCooldownTimer = shotgunInterval * phaseCooldownMul * rapidIntervalMul;
+        fireCooldownTimer = shotgunInterval * phaseCooldownMul * rapidIntervalMul * upgradeIntervalMul;
         ammoUsed = pelletsToFire;
     }
 
@@ -173,7 +179,7 @@ void GamePlay1::FireShotgun(int pelletCountToFire)
     Engine::PlaySound("assets/sounds/gun_shotgun.wav");
 
     const int pelletCount = (std::max)(1, pelletCountToFire);
-    const float spreadDeg = weapon.shotgunSpreadDeg;
+    const float spreadDeg = GetUpgradedShotgunSpread(weapon.shotgunSpreadDeg);
 
     for (int i = 0; i < pelletCount; ++i)
     {
@@ -225,7 +231,7 @@ void GamePlay1::FireHybridBurst(int pelletCountToFire)
     if (pelletCountToFire > 0)
     {
         const int pelletCount = (std::max)(1, pelletCountToFire);
-        const float spreadDeg = weapon.shotgunSpreadDeg;
+        const float spreadDeg = GetUpgradedShotgunSpread(weapon.shotgunSpreadDeg);
 
         for (int i = 0; i < pelletCount; ++i)
         {
@@ -272,8 +278,9 @@ void GamePlay1::SpawnBullet(const vec2& origin, const vec2& direction, float spe
     if (!spriteSptPath)
         return;
 
+    const bool isShotgunBullet = (std::strcmp(spriteSptPath, "assets/images/weapons/bullet_shotgun.spt") == 0);
     BulletPool* pool = nullptr;
-    if (std::strcmp(spriteSptPath, "assets/images/weapons/bullet_shotgun.spt") == 0)
+    if (isShotgunBullet)
         pool = shotgunBulletPool.get();
     else
         pool = machineBulletPool.get();
@@ -281,7 +288,27 @@ void GamePlay1::SpawnBullet(const vec2& origin, const vec2& direction, float spe
     if (!pool)
         return;
 
-    pool->Spawn(origin, direction, speed, lifeTimeSec, damage, hitRadius);
+    int upgradedDamage = damage;
+    if (buildPath == BuildPath::Machine && !isShotgunBullet)
+        upgradedDamage += 1;
+    if (buildPath == BuildPath::Shotgun && isShotgunBullet)
+        upgradedDamage += 1 + upgradeSpreadLevel / 2;
+
+    int pierceCount = 0;
+    if (!isShotgunBullet)
+        pierceCount = upgradePierceLevel;
+
+    float explosionRadius = 0.0f;
+    int explosionDamage = 0;
+    if (upgradeExplosiveLevel > 0)
+    {
+        explosionRadius = isShotgunBullet
+            ? (52.0f + static_cast<float>(upgradeExplosiveLevel) * 14.0f)
+            : (40.0f + static_cast<float>(upgradeExplosiveLevel) * 10.0f);
+        explosionDamage = (std::max)(1, upgradedDamage + upgradeExplosiveLevel - 1);
+    }
+
+    pool->Spawn(origin, direction, speed, lifeTimeSec, upgradedDamage, hitRadius, pierceCount, explosionRadius, explosionDamage);
 }
 
 vec2 GamePlay1::GetFireDirection() const
