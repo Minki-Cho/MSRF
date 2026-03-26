@@ -26,8 +26,6 @@ public:
     bool IsDead() const { return hp <= 0; }
 
 private:
-    void DrawHealthBar(mat3<float> cameraMatrix);
-
     float baseMoveSpeed = 65.0f;
     float moveSpeedMultiplier = 1.0f;
     int pendingSpeedItemPickups = 0;

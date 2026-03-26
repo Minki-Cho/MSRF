@@ -2,7 +2,6 @@
 #include "../Engine/Collision.h"
 #include "../Engine/Engine.h"
 #include "../Engine/Sprite.h"
-#include "../Engine/TextureDX11.h"
 
 #include <algorithm>
 #include <cmath>
@@ -25,17 +24,6 @@ namespace
         }
     }
 
-    TextureDX11& PlayerHpBarBackTexture()
-    {
-        static TextureDX11 tex("assets/images/ui/hp_bar_bg.png", false);
-        return tex;
-    }
-
-    TextureDX11& PlayerHpBarFillTexture()
-    {
-        static TextureDX11 tex("assets/images/ui/hp_bar_fill.png", false);
-        return tex;
-    }
 }
 
 Player::Player(vec2 startPos_) : startPos(startPos_), GameObject(startPos_)
@@ -170,34 +158,6 @@ int Player::ConsumeHybridItemPickups()
     return count;
 }
 
-void Player::DrawHealthBar(mat3<float> cameraMatrix)
-{
-    const float barWidth = 34.0f;
-    const float barHeight = 4.0f;
-    const float pad = 1.0f;
-
-    const vec2 pos = GetPosition();
-    const float x = pos.x() - barWidth * 0.5f;
-    const float y = pos.y() + 46.0f;
-
-    const mat3<float> backMatrix = cameraMatrix
-        * mat3<float>::build_translation(x, y)
-        * mat3<float>::build_scale(barWidth, barHeight);
-    PlayerHpBarBackTexture().Draw(backMatrix);
-
-    const float hpRatio = static_cast<float>(hp) / static_cast<float>((std::max)(1, maxHp));
-    const float clamped = std::clamp(hpRatio, 0.0f, 1.0f);
-    const float fillWidth = (barWidth - pad * 2.0f) * clamped;
-
-    if (fillWidth > 0.0f)
-    {
-        const mat3<float> fillMatrix = cameraMatrix
-            * mat3<float>::build_translation(x + pad, y + pad)
-            * mat3<float>::build_scale(fillWidth, barHeight - pad * 2.0f);
-        PlayerHpBarFillTexture().Draw(fillMatrix);
-    }
-}
-
 void Player::Draw(mat3<float> TransformMatrix)
 {
     const mat3<float>& modelToWorld = GetMatrix();
@@ -223,7 +183,6 @@ void Player::Draw(mat3<float> TransformMatrix)
             col->Draw(displayMatrix);
     }
 
-    DrawHealthBar(TransformMatrix);
 }
 
 void Player::StateIdle::Enter(GameObject* object)
