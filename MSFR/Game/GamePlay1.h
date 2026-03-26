@@ -99,7 +99,7 @@ private:
     bool clearTriggered{ false };
     bool gameOverTriggered{ false };
     bool pauseMenuOpen{ false };
-    int pausePendingAction{ 0 }; // 0:none, 1:resume, 2:restart, 3:menu, 4:quit
+    int pausePendingAction{ 0 };
     double runElapsedSec{ 0.0 };
     int runKillCount{ 0 };
     std::array<double, 3> phaseElapsedSec{ 0.0, 0.0, 0.0 };

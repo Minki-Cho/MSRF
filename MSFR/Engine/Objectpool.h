@@ -96,7 +96,7 @@ public:
     {
         LockGuard guard(m_lock);
 
-        // Destroy all alive objects, rebuild freelist
+
 #ifndef NDEBUG
         for (std::size_t i = 0; i < Capacity; ++i)
         {
@@ -108,7 +108,7 @@ public:
             }
         }
 #else
-        // In release, we don't know which are alive unless we track.
+
 #endif
 
         for (std::size_t i = 0; i < Capacity - 1; ++i)
@@ -122,7 +122,7 @@ public:
     [[nodiscard]] constexpr std::size_t Max() const noexcept { return Capacity; }
     [[nodiscard]] std::size_t Available() const noexcept { return Capacity - m_inUse; }
 
-    // Debug helper: is this pointer from this pool?
+
     [[nodiscard]] bool Owns(const T* ptr) const noexcept
     {
         auto p = reinterpret_cast<const std::byte*>(ptr);

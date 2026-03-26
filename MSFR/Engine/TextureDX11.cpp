@@ -168,7 +168,7 @@ namespace
             }
         }
 
-        // Force exact edge equality to eliminate residual seam pixels.
+
         for (uint32_t y = 0; y < img.height; ++y)
         {
             uint8_t* left = PixelRGBA(img, 0, y);

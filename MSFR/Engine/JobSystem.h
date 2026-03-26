@@ -48,7 +48,7 @@ public:
         if (count == 0) return;
         if (chunkSize == 0) chunkSize = 1;
 
-        // If no workers, just run on caller.
+
         if (workers.empty())
         {
             for (uint32_t i = 0; i < count; ++i)

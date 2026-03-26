@@ -122,7 +122,7 @@ bool DX11RenderBackend::Initialize(void* nativeWindowHandle, int width, int heig
         ThrowIfFailed(hr, "IDXGIFactory2::CreateSwapChainForHwnd");
     }
 
-    // SDL manages the window mode/state.
+
     factory2->MakeWindowAssociation(hwnd, DXGI_MWA_NO_ALT_ENTER);
     SafeRelease(factory2);
 

@@ -1,17 +1,17 @@
-// Dear ImGui: standalone example application for Glfw + Vulkan
+
 
 // Learn about Dear ImGui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/ folder).
-// - Introduction, links and more at the top of imgui.cpp
 
-// Important note to the reader who wish to integrate imgui_impl_vulkan.cpp/.h in their own engine/app.
-// - Common ImGui_ImplVulkan_XXX functions and structures are used to interface with imgui_impl_vulkan.cpp/.h.
-//   You will use those if you want to use this rendering backend in your engine/app.
-// - Helper ImGui_ImplVulkanH_XXX functions and structures are only used by this example (main.cpp) and by
-//   the backend itself (imgui_impl_vulkan.cpp), but should PROBABLY NOT be used by your own engine/app code.
-// Read comments in imgui_impl_vulkan.h.
+
+
+
+
+
+
+
+
+
+
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -28,14 +28,14 @@
 #include <volk.h>
 #endif
 
-// [Win32] Our example includes a copy of glfw3.lib pre-compiled with VS2010 to maximize ease of testing and compatibility with old VS compilers.
-// To link with VS2010-era libraries, VS2015+ requires linking with legacy_stdio_definitions.lib, which we do using this pragma.
-// Your own project should not be affected, as you are likely to link with a newer binary of GLFW that is adequate for your version of Visual Studio.
+
+
+
 #if defined(_MSC_VER) && (_MSC_VER >= 1900) && !defined(IMGUI_DISABLE_WIN32_FUNCTIONS)
 #pragma comment(lib, "legacy_stdio_definitions")
 #endif
 
-//#define APP_USE_UNLIMITED_FRAME_RATE
+
 #ifdef _DEBUG
 #define APP_USE_VULKAN_DEBUG_REPORT
 static VkDebugReportCallbackEXT g_DebugReport = VK_NULL_HANDLE;
@@ -97,7 +97,7 @@ static void SetupVulkan(ImVector<const char*> instance_extensions)
         VkInstanceCreateInfo create_info = {};
         create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 
-        // Enumerate available extensions
+
         uint32_t properties_count;
         ImVector<VkExtensionProperties> properties;
         vkEnumerateInstanceExtensionProperties(nullptr, &properties_count, nullptr);
@@ -133,7 +133,7 @@ static void SetupVulkan(ImVector<const char*> instance_extensions)
         volkLoadInstance(g_Instance);
 #endif
 
-        // Setup the debug report callback
+
 #ifdef APP_USE_VULKAN_DEBUG_REPORT
         auto f_vkCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(g_Instance, "vkCreateDebugReportCallbackEXT");
         IM_ASSERT(f_vkCreateDebugReportCallbackEXT != nullptr);
@@ -155,12 +155,12 @@ static void SetupVulkan(ImVector<const char*> instance_extensions)
     g_QueueFamily = ImGui_ImplVulkanH_SelectQueueFamilyIndex(g_PhysicalDevice);
     IM_ASSERT(g_QueueFamily != (uint32_t)-1);
 
-    // Create Logical Device (with 1 queue)
+
     {
         ImVector<const char*> device_extensions;
         device_extensions.push_back("VK_KHR_swapchain");
 
-        // Enumerate physical device extension
+
         uint32_t properties_count;
         ImVector<VkExtensionProperties> properties;
         vkEnumerateDeviceExtensionProperties(g_PhysicalDevice, nullptr, &properties_count, nullptr);
@@ -189,7 +189,7 @@ static void SetupVulkan(ImVector<const char*> instance_extensions)
     }
 
     // Create Descriptor Pool
-    // If you wish to load e.g. additional textures you may need to alter pools sizes and maxSets.
+
     {
         VkDescriptorPoolSize pool_sizes[] =
         {
@@ -208,8 +208,8 @@ static void SetupVulkan(ImVector<const char*> instance_extensions)
     }
 }
 
-// All the ImGui_ImplVulkanH_XXX structures/functions are optional helpers used by the demo.
-// Your real engine/app may not use them.
+
+
 static void SetupVulkanWindow(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface, int width, int height)
 {
     // Check for WSI support
@@ -234,9 +234,9 @@ static void SetupVulkanWindow(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface
     VkPresentModeKHR present_modes[] = { VK_PRESENT_MODE_FIFO_KHR };
 #endif
     wd->PresentMode = ImGui_ImplVulkanH_SelectPresentMode(g_PhysicalDevice, wd->Surface, &present_modes[0], IM_COUNTOF(present_modes));
-    //printf("[vulkan] Selected PresentMode = %d\n", wd->PresentMode);
 
-    // Create SwapChain, RenderPass, Framebuffer, etc.
+
+
     IM_ASSERT(g_MinImageCount >= 2);
     ImGui_ImplVulkanH_CreateOrResizeWindow(g_Instance, g_PhysicalDevice, g_Device, wd, g_QueueFamily, g_Allocator, width, height, g_MinImageCount, 0);
 }
@@ -246,7 +246,7 @@ static void CleanupVulkan()
     vkDestroyDescriptorPool(g_Device, g_DescriptorPool, g_Allocator);
 
 #ifdef APP_USE_VULKAN_DEBUG_REPORT
-    // Remove the debug report callback
+
     auto f_vkDestroyDebugReportCallbackEXT = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(g_Instance, "vkDestroyDebugReportCallbackEXT");
     f_vkDestroyDebugReportCallbackEXT(g_Instance, g_DebugReport, g_Allocator);
 #endif // APP_USE_VULKAN_DEBUG_REPORT
@@ -275,7 +275,7 @@ static void FrameRender(ImGui_ImplVulkanH_Window* wd, ImDrawData* draw_data)
 
     ImGui_ImplVulkanH_Frame* fd = &wd->Frames[wd->FrameIndex];
     {
-        err = vkWaitForFences(g_Device, 1, &fd->Fence, VK_TRUE, UINT64_MAX);    // wait indefinitely instead of periodically checking
+        err = vkWaitForFences(g_Device, 1, &fd->Fence, VK_TRUE, UINT64_MAX);
         check_vk_result(err);
 
         err = vkResetFences(g_Device, 1, &fd->Fence);
@@ -302,7 +302,7 @@ static void FrameRender(ImGui_ImplVulkanH_Window* wd, ImDrawData* draw_data)
         vkCmdBeginRenderPass(fd->CommandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
     }
 
-    // Record dear imgui primitives into command buffer
+
     ImGui_ImplVulkan_RenderDrawData(draw_data, fd->CommandBuffer);
 
     // Submit command buffer
@@ -345,7 +345,7 @@ static void FramePresent(ImGui_ImplVulkanH_Window* wd)
         return;
     if (err != VK_SUBOPTIMAL_KHR)
         check_vk_result(err);
-    wd->SemaphoreIndex = (wd->SemaphoreIndex + 1) % wd->SemaphoreCount; // Now we can use the next set of semaphores
+    wd->SemaphoreIndex = (wd->SemaphoreIndex + 1) % wd->SemaphoreCount;
 }
 
 // Main code
@@ -355,7 +355,7 @@ int main(int, char**)
     if (!glfwInit())
         return 1;
 
-    // Create window with Vulkan context
+
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     float main_scale = ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor()); // Valid on GLFW 3.3+ only
     GLFWwindow* window = glfwCreateWindow((int)(1280 * main_scale), (int)(800 * main_scale), "Dear ImGui GLFW+Vulkan example", nullptr, nullptr);
@@ -396,13 +396,13 @@ int main(int, char**)
 
     // Setup scaling
     ImGuiStyle& style = ImGui::GetStyle();
-    style.ScaleAllSizes(main_scale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
-    style.FontScaleDpi = main_scale;        // Set initial font scale. (in docking branch: using io.ConfigDpiScaleFonts=true automatically overrides this for every window depending on the current monitor)
+    style.ScaleAllSizes(main_scale);
+    style.FontScaleDpi = main_scale;
 
-    // Setup Platform/Renderer backends
+
     ImGui_ImplGlfw_InitForVulkan(window, true);
     ImGui_ImplVulkan_InitInfo init_info = {};
-    //init_info.ApiVersion = VK_API_VERSION_1_3;              // Pass in your value of VkApplicationInfo::apiVersion, otherwise will default to header version.
+
     init_info.Instance = g_Instance;
     init_info.PhysicalDevice = g_PhysicalDevice;
     init_info.Device = g_Device;
@@ -420,13 +420,13 @@ int main(int, char**)
     ImGui_ImplVulkan_Init(&init_info);
 
     // Load Fonts
-    // - If fonts are not explicitly loaded, Dear ImGui will select an embedded font: either AddFontDefaultVector() or AddFontDefaultBitmap().
-    //   This selection is based on (style.FontSizeBase * style.FontScaleMain * style.FontScaleDpi) reaching a small threshold.
-    // - You can load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
-    // - If a file cannot be loaded, AddFont functions will return a nullptr. Please handle those errors in your code (e.g. use an assertion, display an error and quit).
-    // - Read 'docs/FONTS.md' for more instructions and details.
-    // - Use '#define IMGUI_ENABLE_FREETYPE' in your imconfig file to use FreeType for higher quality font rendering.
-    // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
+
+
+
+
+
+
+
     //style.FontSizeBase = 20.0f;
     //io.Fonts->AddFontDefaultVector();
     //io.Fonts->AddFontDefaultBitmap();
@@ -434,7 +434,7 @@ int main(int, char**)
     //io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf");
     //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf");
     //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf");
-    //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf");
+
     //IM_ASSERT(font != nullptr);
 
     // Our state
@@ -445,11 +445,11 @@ int main(int, char**)
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
-        // Poll and handle events (inputs, window resize, etc.)
-        // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-        // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
-        // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
-        // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
+
+
+
+
+
         glfwPollEvents();
 
         // Resize swap chain?
@@ -473,25 +473,25 @@ int main(int, char**)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+
         if (show_demo_window)
             ImGui::ShowDemoWindow(&show_demo_window);
 
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
+
         {
             static float f = 0.0f;
             static int counter = 0;
 
-            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+            ImGui::Begin("Hello, world!");
 
-            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+            ImGui::Text("This is some useful text.");
+            ImGui::Checkbox("Demo Window", &show_demo_window);
             ImGui::Checkbox("Another Window", &show_another_window);
 
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+            ImGui::ColorEdit3("clear color", (float*)&clear_color);
 
-            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+            if (ImGui::Button("Button"))
                 counter++;
             ImGui::SameLine();
             ImGui::Text("counter = %d", counter);
@@ -500,10 +500,10 @@ int main(int, char**)
             ImGui::End();
         }
 
-        // 3. Show another simple window.
+
         if (show_another_window)
         {
-            ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+            ImGui::Begin("Another Window", &show_another_window);
             ImGui::Text("Hello from another window!");
             if (ImGui::Button("Close Me"))
                 show_another_window = false;

@@ -176,7 +176,7 @@ void GameObjectManager::CollideTest()
         }
     };
 
-    // For small populations, direct pair iteration is usually faster than hashing.
+
     constexpr std::size_t kBroadphaseThreshold = 48;
     if (collidables.size() <= kBroadphaseThreshold)
     {

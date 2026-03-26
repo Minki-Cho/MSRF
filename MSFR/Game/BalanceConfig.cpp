@@ -184,7 +184,7 @@ namespace balance
             outEntries.clear();
             std::size_t i = 0;
 
-            // Allow UTF-8 BOM at file start.
+
             if (text.size() >= 3 &&
                 static_cast<unsigned char>(text[0]) == 0xEF &&
                 static_cast<unsigned char>(text[1]) == 0xBB &&

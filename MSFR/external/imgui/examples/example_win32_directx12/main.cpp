@@ -1,10 +1,10 @@
-// Dear ImGui: standalone example application for Windows API + DirectX 12
+
 
 // Learn about Dear ImGui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/ folder).
-// - Introduction, links and more at the top of imgui.cpp
+
+
+
+
 
 #include "imgui.h"
 #include "imgui_impl_win32.h"
@@ -33,7 +33,7 @@ struct FrameContext
     UINT64                      FenceValue;
 };
 
-// Simple free list based allocator
+
 struct ExampleDescriptorHeapAllocator
 {
     ID3D12DescriptorHeap*       Heap = nullptr;
@@ -98,7 +98,7 @@ static HANDLE                       g_hSwapChainWaitableObject = nullptr;
 static ID3D12Resource*              g_mainRenderTargetResource[APP_NUM_BACK_BUFFERS] = {};
 static D3D12_CPU_DESCRIPTOR_HANDLE  g_mainRenderTargetDescriptor[APP_NUM_BACK_BUFFERS] = {};
 
-// Forward declarations of helper functions
+
 bool CreateDeviceD3D(HWND hWnd);
 void CleanupDeviceD3D();
 void CreateRenderTarget();
@@ -110,7 +110,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 // Main code
 int main(int, char**)
 {
-    // Make process DPI aware and obtain main monitor scale
+
     ImGui_ImplWin32_EnableDpiAwareness();
     float main_scale = ImGui_ImplWin32_GetDpiScaleForMonitor(::MonitorFromPoint(POINT{ 0, 0 }, MONITOR_DEFAULTTOPRIMARY));
 
@@ -144,10 +144,10 @@ int main(int, char**)
 
     // Setup scaling
     ImGuiStyle& style = ImGui::GetStyle();
-    style.ScaleAllSizes(main_scale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
-    style.FontScaleDpi = main_scale;        // Set initial font scale. (in docking branch: using io.ConfigDpiScaleFonts=true automatically overrides this for every window depending on the current monitor)
+    style.ScaleAllSizes(main_scale);
+    style.FontScaleDpi = main_scale;
 
-    // Setup Platform/Renderer backends
+
     ImGui_ImplWin32_Init(hwnd);
 
     ImGui_ImplDX12_InitInfo init_info = {};
@@ -156,24 +156,24 @@ int main(int, char**)
     init_info.NumFramesInFlight = APP_NUM_FRAMES_IN_FLIGHT;
     init_info.RTVFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
     init_info.DSVFormat = DXGI_FORMAT_UNKNOWN;
-    // Allocating SRV descriptors (for textures) is up to the application, so we provide callbacks.
-    // (current version of the backend will only allocate one descriptor, future versions will need to allocate more)
+
+
     init_info.SrvDescriptorHeap = g_pd3dSrvDescHeap;
     init_info.SrvDescriptorAllocFn = [](ImGui_ImplDX12_InitInfo*, D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu_handle) { return g_pd3dSrvDescHeapAlloc.Alloc(out_cpu_handle, out_gpu_handle); };
     init_info.SrvDescriptorFreeFn = [](ImGui_ImplDX12_InitInfo*, D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle)            { return g_pd3dSrvDescHeapAlloc.Free(cpu_handle, gpu_handle); };
     ImGui_ImplDX12_Init(&init_info);
 
-    // Before 1.91.6: our signature was using a single descriptor. From 1.92, specifying SrvDescriptorAllocFn/SrvDescriptorFreeFn will be required to benefit from new features.
-    //ImGui_ImplDX12_Init(g_pd3dDevice, APP_NUM_FRAMES_IN_FLIGHT, DXGI_FORMAT_R8G8B8A8_UNORM, g_pd3dSrvDescHeap, g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart(), g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
+
+
 
     // Load Fonts
-    // - If fonts are not explicitly loaded, Dear ImGui will select an embedded font: either AddFontDefaultVector() or AddFontDefaultBitmap().
-    //   This selection is based on (style.FontSizeBase * style.FontScaleMain * style.FontScaleDpi) reaching a small threshold.
-    // - You can load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
-    // - If a file cannot be loaded, AddFont functions will return a nullptr. Please handle those errors in your code (e.g. use an assertion, display an error and quit).
-    // - Read 'docs/FONTS.md' for more instructions and details.
-    // - Use '#define IMGUI_ENABLE_FREETYPE' in your imconfig file to use FreeType for higher quality font rendering.
-    // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
+
+
+
+
+
+
+
     //style.FontSizeBase = 20.0f;
     //io.Fonts->AddFontDefaultVector();
     //io.Fonts->AddFontDefaultBitmap();
@@ -181,7 +181,7 @@ int main(int, char**)
     //io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf");
     //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf");
     //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf");
-    //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf");
+
     //IM_ASSERT(font != nullptr);
 
     // Our state
@@ -193,8 +193,8 @@ int main(int, char**)
     bool done = false;
     while (!done)
     {
-        // Poll and handle messages (inputs, window resize, etc.)
-        // See the WndProc() function below for our to dispatch events to the Win32 backend.
+
+
         MSG msg;
         while (::PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
         {
@@ -219,25 +219,25 @@ int main(int, char**)
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+
         if (show_demo_window)
             ImGui::ShowDemoWindow(&show_demo_window);
 
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
+
         {
             static float f = 0.0f;
             static int counter = 0;
 
-            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+            ImGui::Begin("Hello, world!");
 
-            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+            ImGui::Text("This is some useful text.");
+            ImGui::Checkbox("Demo Window", &show_demo_window);
             ImGui::Checkbox("Another Window", &show_another_window);
 
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+            ImGui::ColorEdit3("clear color", (float*)&clear_color);
 
-            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+            if (ImGui::Button("Button"))
                 counter++;
             ImGui::SameLine();
             ImGui::Text("counter = %d", counter);
@@ -246,10 +246,10 @@ int main(int, char**)
             ImGui::End();
         }
 
-        // 3. Show another simple window.
+
         if (show_another_window)
         {
-            ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+            ImGui::Begin("Another Window", &show_another_window);
             ImGui::Text("Hello from another window!");
             if (ImGui::Button("Close Me"))
                 show_another_window = false;
@@ -290,7 +290,7 @@ int main(int, char**)
 
         // Present
         HRESULT hr = g_pSwapChain->Present(1, 0);   // Present with vsync
-        //HRESULT hr = g_pSwapChain->Present(0, g_SwapChainTearingSupport ? DXGI_PRESENT_ALLOW_TEARING : 0); // Present without vsync
+
         g_SwapChainOccluded = (hr == DXGI_STATUS_OCCLUDED);
         g_frameIndex++;
     }
@@ -314,7 +314,7 @@ int main(int, char**)
 bool CreateDeviceD3D(HWND hWnd)
 {
     // Setup swap chain
-    // This is a basic setup. Optimally could handle fullscreen mode differently. See #8979 for suggestions.
+
     DXGI_SWAP_CHAIN_DESC1 sd;
     {
         ZeroMemory(&sd, sizeof(sd));
@@ -332,7 +332,7 @@ bool CreateDeviceD3D(HWND hWnd)
         sd.Stereo = FALSE;
     }
 
-    // [DEBUG] Enable debug interface
+
 #ifdef DX12_ENABLE_DEBUG_LAYER
     ID3D12Debug* pdx12Debug = nullptr;
     if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&pdx12Debug))))
@@ -344,7 +344,7 @@ bool CreateDeviceD3D(HWND hWnd)
     if (D3D12CreateDevice(nullptr, featureLevel, IID_PPV_ARGS(&g_pd3dDevice)) != S_OK)
         return false;
 
-    // [DEBUG] Setup debug interface to break on any warnings/errors
+
 #ifdef DX12_ENABLE_DEBUG_LAYER
     if (pdx12Debug != nullptr)
     {
@@ -354,8 +354,8 @@ bool CreateDeviceD3D(HWND hWnd)
         pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
         pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true);
 
-        // Disable breaking on this warning because of a suspected bug in the D3D12 SDK layer, see #9084 for details.
-        const int D3D12_MESSAGE_ID_FENCE_ZERO_WAIT_ = 1424; // not in all copies of d3d12sdklayers.h
+
+        const int D3D12_MESSAGE_ID_FENCE_ZERO_WAIT_ = 1424;
         D3D12_MESSAGE_ID disabledMessages[] = { (D3D12_MESSAGE_ID)D3D12_MESSAGE_ID_FENCE_ZERO_WAIT_ };
         D3D12_INFO_QUEUE_FILTER filter = {};
         filter.DenyList.NumIDs = 1;
@@ -515,14 +515,14 @@ FrameContext* WaitForNextFrameContext()
     return frame_context;
 }
 
-// Forward declare message handler from imgui_impl_win32.cpp
+
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 // Win32 message handler
-// You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-// - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
-// - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
-// Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
+
+
+
+
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))

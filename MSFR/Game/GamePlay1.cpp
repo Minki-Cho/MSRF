@@ -290,7 +290,7 @@ void GamePlay1::Load()
 
             if (!found)
             {
-                // Keep progression robust even on dense maps.
+
                 candidate = randomItemPos();
             }
 
@@ -564,19 +564,19 @@ void GamePlay1::Draw()
         const float tileW = tileSize.x();
         const float tileH = tileSize.y();
 
-        // Compute the visible world-space rectangle from the current camera.
+
         const float visibleMinX = -cameraX;
         const float visibleMinY = -cameraY;
         const float visibleMaxX = visibleMinX + viewportWidth;
         const float visibleMaxY = visibleMinY + viewportHeight;
 
-        // Add a one-tile guard band to avoid edge cut-offs during movement.
+
         const int tileStartX = static_cast<int>(std::floor((visibleMinX - tileW) / tileW));
         const int tileEndX = static_cast<int>(std::ceil((visibleMaxX + tileW) / tileW));
         const int tileStartY = static_cast<int>(std::floor((visibleMinY - tileH) / tileH));
         const int tileEndY = static_cast<int>(std::ceil((visibleMaxY + tileH) / tileH));
 
-        // Slight overlap hides sub-pixel raster cracks between adjacent tiles.
+
         const float overlapX = (std::min)(1.0f, tileW * 0.25f);
         const float overlapY = (std::min)(1.0f, tileH * 0.25f);
         const float drawScaleX = (tileW + overlapX) / tileW;

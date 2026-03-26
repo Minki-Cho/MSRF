@@ -14,7 +14,7 @@ public:
     void Init(const char* title, int width, int height);
     void Shutdown();
 
-    // Pump OS messages. Returns false if WM_QUIT received.
+
     bool Update();
 
     bool IsOpen() const { return open; }
@@ -24,8 +24,8 @@ public:
     float  GetClientWidth() { return static_cast<float>(clientWidth); }
     float  GetClientHeight() { return static_cast<float>(clientHeight); }
 
-    // Resize signaling (Renderer reads these)
-    bool ConsumeResize(int& outW, int& outH); // returns true if a resize was pending
+
+    bool ConsumeResize(int& outW, int& outH);
 
 private:
     static LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);

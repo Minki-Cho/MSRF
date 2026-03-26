@@ -10,7 +10,7 @@ DataCore::DataCore(vec2 startPos)
 {
     AddGOComponent(new Sprite("assets/images/items/data_core/data_core.spt", this));
 
-    // Seed each core with a stable phase offset so they do not bob in sync.
+
     phase = (static_cast<double>(startPos.x()) * 0.07) + (static_cast<double>(startPos.y()) * 0.03);
 }
 

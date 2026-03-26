@@ -285,7 +285,7 @@ namespace
                         }
                         else
                         {
-                            // Orbiting movement makes ranged elite less linear.
+
                             chaseVelocity.x() = -ny * moveSpeed_ * 0.75f * strafeSign_;
                             chaseVelocity.y() = nx * moveSpeed_ * 0.75f * strafeSign_;
                         }
@@ -378,7 +378,7 @@ namespace
             if (objectB->GetObjectType() != GameObjectType::Enemy)
                 return;
 
-            // Handle enemy-enemy separation once per pair.
+
             if (reinterpret_cast<std::uintptr_t>(this) >= reinterpret_cast<std::uintptr_t>(objectB))
                 return;
 
@@ -614,7 +614,7 @@ void GamePlay1::SpawnEnemyVariantFromEdge(int variantId)
 
 void GamePlay1::SpawnEliteSetForCore()
 {
-    // One set per collected core: dash + ranged + summoner.
+
     SpawnEnemyVariantFromEdge(3);
     SpawnEnemyVariantFromEdge(4);
     SpawnEnemyVariantFromEdge(5);

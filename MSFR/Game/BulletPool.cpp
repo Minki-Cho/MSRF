@@ -41,7 +41,7 @@ void BulletProjectile::Activate(const vec2& origin, const vec2& direction, float
     explosionRadius_ = (std::max)(0.0f, explosionRadius);
     explosionDamage_ = (std::max)(0, explosionDamage);
 
-    // Keep bullet collision shape in sync with runtime tuning values.
+
     RemoveGOComponent<CircleCollision>();
     if (hitRadius_ > 0.0f)
     {

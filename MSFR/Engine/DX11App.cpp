@@ -138,7 +138,7 @@ DX11App::DX11App(const char* title, int desired_width, int desired_height)
 
 DX11App::~DX11App()
 {
-    // Program first (in case it references device resources)
+
     if (ptr_program)
     {
         delete ptr_program;
@@ -386,7 +386,7 @@ void DX11App::InitSDLWindow(const char* title, int desired_width, int desired_he
         throw std::runtime_error(std::string("SDL_CreateWindow failed: ") + SDL_GetError());
     }
     
-    // make window screen shown front
+
     viewport_width = desired_width;
     viewport_height = desired_height;
 
@@ -534,7 +534,7 @@ void DX11App::RunThreadStressStep()
     const uint32_t jobCount = workers * jobsPerWorker;
     const uint32_t kIterationsPerJob = static_cast<uint32_t>((std::max)(1, stressIterationsK)) * 1000u;
 
-    // Prevent unbounded queue growth while stress mode is on.
+
     const uint32_t pending = js.GetPendingJobs();
     if (pending > jobCount * 2u)
         return;
@@ -586,7 +586,7 @@ void DX11App::Update()
     {
         ptr_program->Draw();
 
-        // Schedule stress jobs right before profiler draw so the table can show Running states.
+
         RunThreadStressStep();
     }
 

@@ -23,7 +23,7 @@ struct mat3
         return e[c][r];
     }
 
-    // Columns as vec3 (by value) + setters (no aliasing tricks)
+
     constexpr vec3 column0() const noexcept { return vec3{ T(e[0][0]), T(e[0][1]), T(e[0][2]) }; }
     constexpr vec3 column1() const noexcept { return vec3{ T(e[1][0]), T(e[1][1]), T(e[1][2]) }; }
     constexpr vec3 column2() const noexcept { return vec3{ T(e[2][0]), T(e[2][1]), T(e[2][2]) }; }
@@ -107,7 +107,7 @@ constexpr mat3<T> operator*(const mat3<T>& a, const mat3<T>& b) noexcept
 {
     mat3<T> r;
 
-    // r[c][r] = sum_k a[k][r] * b[c][k]  (column-major multiply)
+
     for (std::size_t c = 0; c < 3; ++c)
     {
         for (std::size_t row = 0; row < 3; ++row)

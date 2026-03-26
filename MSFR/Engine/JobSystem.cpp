@@ -8,7 +8,7 @@ void JobSystem::Init(uint32_t workerCount)
     if (running.load(std::memory_order_acquire))
         return;
 
-    // leave one core for main thread when possible
+
     if (workerCount == 0)
     {
         const uint32_t hc = std::max(1u, std::thread::hardware_concurrency());
@@ -61,7 +61,7 @@ void JobSystem::Enqueue(std::function<void()> job, const char* label)
     if (!job)
         return;
 
-    // If no workers, run immediately on caller.
+
     if (workers.empty())
     {
         job();

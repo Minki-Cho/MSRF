@@ -283,7 +283,7 @@ char UI::Framework::ToUpperAscii(char c)
 
 const unsigned char* UI::Framework::GetGlyphRows(char c)
 {
-    // 5x7 bitmap font rows, MSB uses left-most pixel in 5-bit row.
+
     switch (c)
     {
     case 'A': { static const unsigned char g[7] = { 0x0E,0x11,0x11,0x1F,0x11,0x11,0x11 }; return g; }

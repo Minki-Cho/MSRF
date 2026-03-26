@@ -1,10 +1,10 @@
-// dear imgui: standalone example application for Android + OpenGL ES 3
+
 
 // Learn about Dear ImGui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/ folder).
-// - Introduction, links and more at the top of imgui.cpp
+
+
+
+
 
 #include "imgui.h"
 #include "imgui_impl_android.h"
@@ -25,7 +25,7 @@ static bool                 g_Initialized = false;
 static char                 g_LogTag[] = "ImGuiExample";
 static std::string          g_IniFilename = "";
 
-// Forward declarations of helper functions
+
 static void Init(struct android_app* app);
 static void Shutdown();
 static void MainLoopStep();
@@ -67,18 +67,18 @@ void android_main(struct android_app* app)
         int out_events;
         struct android_poll_source* out_data;
 
-        // Poll all events. If the app is not visible, this loop blocks until g_Initialized == true.
+
         while (ALooper_pollOnce(g_Initialized ? 0 : -1, nullptr, &out_events, (void**)&out_data) >= 0)
         {
             // Process one event
             if (out_data != nullptr)
                 out_data->process(app, out_data);
 
-            // Exit the app by returning from within the infinite loop
+
             if (app->destroyRequested != 0)
             {
-                // shutdown() should have been called already while processing the
-                // app command APP_CMD_TERM_WINDOW. But we play save here
+
+
                 if (!g_Initialized)
                     Shutdown();
 
@@ -100,7 +100,7 @@ void Init(struct android_app* app)
     ANativeWindow_acquire(g_App->window);
 
     // Initialize EGL
-    // This is mostly boilerplate code for EGL...
+
     {
         g_EglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
         if (g_EglDisplay == EGL_NO_DISPLAY)
@@ -116,7 +116,7 @@ void Init(struct android_app* app)
         if (num_configs == 0)
             __android_log_print(ANDROID_LOG_ERROR, g_LogTag, "%s", "eglChooseConfig() returned 0 matching config");
 
-        // Get the first matching config
+
         EGLConfig egl_config;
         eglChooseConfig(g_EglDisplay, egl_attributes, &egl_config, 1, &num_configs);
         EGLint egl_format;
@@ -138,8 +138,8 @@ void Init(struct android_app* app)
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
 
-    // Redirect loading/saving of .ini file to our location.
-    // Make sure 'g_IniFilename' persists while we use Dear ImGui.
+
+
     g_IniFilename = std::string(app->activity->internalDataPath) + "/imgui.ini";
     io.IniFilename = g_IniFilename.c_str();;
 
@@ -147,47 +147,47 @@ void Init(struct android_app* app)
     ImGui::StyleColorsDark();
     //ImGui::StyleColorsLight();
 
-    // Setup Platform/Renderer backends
+
     ImGui_ImplAndroid_Init(g_App->window);
     ImGui_ImplOpenGL3_Init("#version 300 es");
 
     // Setup scaling
     float main_scale = 2.0f;
     ImGuiStyle& style = ImGui::GetStyle();
-    style.ScaleAllSizes(main_scale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
+    style.ScaleAllSizes(main_scale);
     style.FontScaleDpi = main_scale;        // Set initial font scale.
 
     // Load Fonts
-    // - If fonts are not explicitly loaded, Dear ImGui will select an embedded font: either AddFontDefaultVector() or AddFontDefaultBitmap().
-    //   This selection is based on (style.FontSizeBase * style.FontScaleMain * style.FontScaleDpi) reaching a small threshold.
-    // - You can load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
-    // - If a file cannot be loaded, AddFont functions will return a nullptr. Please handle those errors in your code (e.g. use an assertion, display an error and quit).
-    // - Read 'docs/FONTS.md' for more instructions and details.
-    // - Use '#define IMGUI_ENABLE_FREETYPE' in your imconfig file to use FreeType for higher quality font rendering.
-    // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
-    // - Android: The TTF files have to be placed into the assets/ directory (android/app/src/main/assets), we use our GetAssetData() helper to retrieve them.
+
+
+
+
+
+
+
+
     //style.FontSizeBase = 20.0f;
     //io.Fonts->AddFontDefaultVector();
     //io.Fonts->AddFontDefaultBitmap();
 
-    // Important: when calling AddFontFromMemoryTTF(), ownership of font_data is transferred by Dear ImGui by default (deleted is handled by Dear ImGui), unless we set FontDataOwnedByAtlas=false in ImFontConfig
+
     //void*   font_data;
     //int     font_data_size;
     //ImFont* font;
-    //font_data_size = GetAssetData("segoeui.ttf", &font_data);
-    //font = io.Fonts->AddFontFromMemoryTTF(font_data, font_data_size);
+
+
     //IM_ASSERT(font != nullptr);
-    //font_data_size = GetAssetData("DroidSans.ttf", &font_data);
-    //font = io.Fonts->AddFontFromMemoryTTF(font_data, font_data_size);
+
+
     //IM_ASSERT(font != nullptr);
-    //font_data_size = GetAssetData("Roboto-Medium.ttf", &font_data);
-    //font = io.Fonts->AddFontFromMemoryTTF(font_data, font_data_size);
+
+
     //IM_ASSERT(font != nullptr);
-    //font_data_size = GetAssetData("Cousine-Regular.ttf", &font_data);
-    //font = io.Fonts->AddFontFromMemoryTTF(font_data, font_data_size);
+
+
     //IM_ASSERT(font != nullptr);
-    //font_data_size = GetAssetData("ArialUni.ttf", &font_data);
-    //font = io.Fonts->AddFontFromMemoryTTF(font_data, font_data_size);
+
+
     //IM_ASSERT(font != nullptr);
 
     g_Initialized = true;
@@ -200,16 +200,16 @@ void MainLoopStep()
         return;
 
     // Our state
-    // (we use static, which essentially makes the variable globals, as a convenience to keep the example code easy to follow)
+
     static bool show_demo_window = true;
     static bool show_another_window = false;
     static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    // Poll Unicode characters via JNI
-    // FIXME: do not call this every frame because of JNI overhead
+
+
     PollUnicodeChars();
 
-    // Open on-screen (soft) input if requested by Dear ImGui
+
     static bool WantTextInputLast = false;
     if (io.WantTextInput && !WantTextInputLast)
         ShowSoftKeyboardInput();
@@ -220,25 +220,25 @@ void MainLoopStep()
     ImGui_ImplAndroid_NewFrame();
     ImGui::NewFrame();
 
-    // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+
     if (show_demo_window)
         ImGui::ShowDemoWindow(&show_demo_window);
 
-    // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
+
     {
         static float f = 0.0f;
         static int counter = 0;
 
-        ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!" and append into it.
+        ImGui::Begin("Hello, world!");
 
-        ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-        ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+        ImGui::Text("This is some useful text.");
+        ImGui::Checkbox("Demo Window", &show_demo_window);
         ImGui::Checkbox("Another Window", &show_another_window);
 
-        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-        ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+        ImGui::ColorEdit3("clear color", (float*)&clear_color);
 
-        if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+        if (ImGui::Button("Button"))
             counter++;
         ImGui::SameLine();
         ImGui::Text("counter = %d", counter);
@@ -247,10 +247,10 @@ void MainLoopStep()
         ImGui::End();
     }
 
-    // 3. Show another simple window.
+
     if (show_another_window)
     {
-        ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+        ImGui::Begin("Another Window", &show_another_window);
         ImGui::Text("Hello from another window!");
         if (ImGui::Button("Close Me"))
             show_another_window = false;
@@ -299,8 +299,8 @@ void Shutdown()
 
 // Helper functions
 
-// Unfortunately, there is no way to show the on-screen input from native code.
-// Therefore, we call ShowSoftKeyboardInput() of the main activity implemented in MainActivity.kt via JNI.
+
+
 static int ShowSoftKeyboardInput()
 {
     JavaVM* java_vm = g_App->activity->vm;
@@ -331,9 +331,9 @@ static int ShowSoftKeyboardInput()
     return 0;
 }
 
-// Unfortunately, the native KeyEvent implementation has no getUnicodeChar() function.
-// Therefore, we implement the processing of KeyEvents in MainActivity.kt and poll
-// the resulting Unicode characters here via JNI and send them to Dear ImGui.
+
+
+
 static int PollUnicodeChars()
 {
     JavaVM* java_vm = g_App->activity->vm;
@@ -355,7 +355,7 @@ static int PollUnicodeChars()
     if (method_id == nullptr)
         return -4;
 
-    // Send the actual characters to Dear ImGui
+
     ImGuiIO& io = ImGui::GetIO();
     jint unicode_character;
     while ((unicode_character = java_env->CallIntMethod(g_App->activity->clazz, method_id)) != 0)
@@ -368,7 +368,7 @@ static int PollUnicodeChars()
     return 0;
 }
 
-// Helper to retrieve data placed into the assets/ directory (android/app/src/main/assets)
+
 static int GetAssetData(const char* filename, void** outData)
 {
     int num_bytes = 0;

@@ -44,7 +44,7 @@ namespace
         const float a10 = a.e[0][1], a11 = a.e[1][1], a12 = a.e[2][1];
         const float a20 = a.e[0][2], a21 = a.e[1][2], a22 = a.e[2][2];
 
-        // Matches the row_major float4x4 packing used by TextureDX11.
+
         o.m[0] = a00; o.m[1] = a01; o.m[2] = 0.f; o.m[3] = a02;
         o.m[4] = a10; o.m[5] = a11; o.m[6] = 0.f; o.m[7] = a12;
         o.m[8] = 0.f; o.m[9] = 0.f; o.m[10] = 1.f; o.m[11] = 0.f;

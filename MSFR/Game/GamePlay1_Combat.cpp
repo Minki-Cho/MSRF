@@ -111,7 +111,7 @@ void GamePlay1::HandleWeaponInput(double dt)
         const int hybridPelletsCap = std::clamp(configuredPellets / 2 + 1, 2, 6);
         const int pelletsToFire = hybridPelletsCap;
         FireHybridBurst(pelletsToFire);
-        ammoUsed = 0; // Hybrid buff grants temporary unlimited ammo.
+        ammoUsed = 0;
 
         const double hybridInterval = (machineGunInterval + shotgunInterval) * 0.5;
         fireCooldownTimer = hybridInterval * phaseCooldownMul * rapidIntervalMul * upgradeIntervalMul;

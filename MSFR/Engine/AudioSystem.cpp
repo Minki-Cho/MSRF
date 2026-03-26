@@ -7,7 +7,7 @@
 #define MINIAUDIO_IMPLEMENTATION
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable: 4244) // miniaudio internal narrowing conversions
+#pragma warning(disable: 4244)
 #endif
 #include "../ThirdParty/miniaudio.h"
 #ifdef _MSC_VER

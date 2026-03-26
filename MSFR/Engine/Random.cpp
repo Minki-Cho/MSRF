@@ -15,7 +15,7 @@ namespace
         x = (x ^ (x >> 27)) * 0x94d049bb133111ebull;
         return x ^ (x >> 31);
     }
-    // More powerful random (splitmix64 mixer)
+
     thread_local mt19937_64 Engine = [] {
         uint64_t t = (uint64_t)std::chrono::high_resolution_clock::now().time_since_epoch().count();
         uint64_t tid = (uint64_t)std::hash<std::thread::id>{}(std::this_thread::get_id());
